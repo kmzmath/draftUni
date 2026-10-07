@@ -1,14 +1,14 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=302cec329d';
-import * as C from './campaign.js?v=302cec329d';
-import * as S from './screens.js?v=302cec329d';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=302cec329d';
-import {startTour,closeTour,tourOpen} from './tour.js?v=302cec329d';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=302cec329d';
-import {stamp,cleanAlbum} from './album.js?v=302cec329d';
-import {initTips,refreshTips} from './tip.js?v=302cec329d';
-import {shareModel,copyShareImage} from './share.js?v=302cec329d';
-import {staleSave,stampSave} from './save.js?v=302cec329d';
+import * as E from './engine.js?v=31930249b4';
+import * as C from './campaign.js?v=31930249b4';
+import * as S from './screens.js?v=31930249b4';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=31930249b4';
+import {startTour,closeTour,tourOpen} from './tour.js?v=31930249b4';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=31930249b4';
+import {stamp,cleanAlbum} from './album.js?v=31930249b4';
+import {initTips,refreshTips} from './tip.js?v=31930249b4';
+import {shareModel,copyShareImage} from './share.js?v=31930249b4';
+import {staleSave,stampSave} from './save.js?v=31930249b4';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice';
@@ -21,7 +21,7 @@ const ctx={db:null,run:null,mode:'free',slots:{free:null,daily:null},today:'',al
 // What the player chose to keep between visits: the team's name, match speed, how the freezetime before each round
 // works (automatic or on a click, and for how many seconds) and which screens the tutorial already explained.
 const prefs=ctx.prefs={team:'',speed:1,freezeAuto:false,freezeSet:false,freeze:FREEZE_DEFAULT,tourOff:false,seen:{}};
-let timer=null,duelTimer=null,clockTimer=null,shownKey='',toastTimer=null;
+let timer=null,duelTimer=null,clockTimer=null,shownKey='',toastTimer=null,packShown=0;
 
 // Storage can be unavailable (private mode, blocked site data): the game then simply doesn't remember.
 function load(key){try{return JSON.parse(localStorage.getItem(key));}catch{return null;}}
@@ -139,6 +139,11 @@ function openDialog(html,{locked=false,kind=''}={}){
   refreshTips();
 }
 function closeDialog(){const dialog=$('#dialog');if(dialog.open)dialog.close();refreshTips();}
+// The pack on the table: the reveal of its best card, then the choice. The reveal covers the whole dialog and a click
+// on it skips it, so the moment it opened is kept: a click that comes right on the heels of the one that opened the
+// pack (the second of a double click, a key held down) is the same gesture, not a wish to skip.
+const SKIP_AFTER=600;
+function showPack(){packShown=Date.now();openDialog(S.packDialog(ctx),{locked:true,kind:'wide'});}
 
 // ---------- Run ----------
 function route(){
@@ -179,7 +184,7 @@ function startRun(){
 // Back into a run already started. A pack left open comes back open.
 function resume(mode){
   activate(mode);route();
-  if(ctx.run.pack)queueMicrotask(()=>openDialog(S.packDialog(ctx),{locked:true,kind:'wide'}));
+  if(ctx.run.pack)queueMicrotask(showPack);
 }
 async function copy(text){
   try{await navigator.clipboard.writeText(text);}
@@ -288,7 +293,7 @@ const actions={
     return false;
   },
   help(){openTour(entryKey(),false);return false;},
-  'skip-walkout'(){$('#dialog').classList.add('skipped');return false;},
+  'skip-walkout'(){if(Date.now()-packShown>=SKIP_AFTER)$('#dialog').classList.add('skipped');return false;},
   close(){closeDialog();return false;},
   'new-run'(){const free=ctx.slots.free;if(free&&free.status!=='over'){openDialog(S.confirmNewRun());return false;}startRun();},
   'confirm-new-run'(){closeDialog();startRun();},
@@ -320,12 +325,14 @@ const actions={
   'preview-agent'(id,el){openDialog(S.agentPicker(ctx,id,el.dataset.agent),{kind:'wide'});return false;},
   compare(id){openDialog(S.compareDialog(ctx,id),{kind:'wide'});return false;},
   'set-agent'(id,el){C.setAgent(ctx.run,ctx.db,id,el.dataset.agent);closeDialog();},
-  'open-pack'(key){C.openPack(ctx.run,ctx.db,key);saveRun();render();openDialog(S.packDialog(ctx),{locked:true,kind:'wide'});return false;},
+  'open-pack'(key){C.openPack(ctx.run,ctx.db,key);saveRun();render();showPack();return false;},
   'take-card'(id){C.takePackCard(ctx.run,ctx.db,id);closeDialog();toast(`${name(id)} ${arrival(id)}`);},
   'buy-player'(id){C.buyPlayer(ctx.run,ctx.db,id);closeDialog();toast(`${name(id)} ${arrival(id)}`);},
   'buy-agent'(agent){C.buyAgent(ctx.run,ctx.db,agent);toast(`${agent} contratado. Já pode ser escalado`);},
   reroll(){C.rerollShop(ctx.run,ctx.db);},
   play(){enterMatch();announce('Partida iniciada. Você pode pausar quando quiser.');},
+  // From the bar at the bottom of a narrow screen to the rival's panel, further down the page.
+  'see-rival'(){$('.panel.next')?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return false;},
   forfeit(){openDialog(S.forfeitDialog(ctx));return false;},
   'confirm-forfeit'(){
     closeDialog();ctx.match=null;ctx.summary=C.forfeitMatch(ctx.run,ctx.db);
@@ -444,7 +451,7 @@ addEventListener('storage',event=>{
 });
 async function init(){
   try{
-    const response=await fetch('players.json?v=302cec329d');
+    const response=await fetch('players.json?v=31930249b4');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -455,7 +462,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=302cec329d');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=31930249b4');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};

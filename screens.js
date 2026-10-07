@@ -1,11 +1,11 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=302cec329d';
-import * as C from './campaign.js?v=302cec329d';
-import {previewChange} from './impact.js?v=302cec329d';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=302cec329d';
-import {albumSummary,cardStatus} from './album.js?v=302cec329d';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,agentIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=302cec329d';
+import * as E from './engine.js?v=31930249b4';
+import * as C from './campaign.js?v=31930249b4';
+import {previewChange} from './impact.js?v=31930249b4';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=31930249b4';
+import {albumSummary,cardStatus} from './album.js?v=31930249b4';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,agentIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=31930249b4';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -208,11 +208,15 @@ function shopTab(ctx) {
     <footer class="shop-foot"><button class="btn" data-action="reroll" ${run.coins<reroll?'disabled':''}>Trocar ofertas ${reroll?coin(reroll):'<b class="good">grátis</b>'}</button></footer>
   </div>`;
 }
+// The two teams of the next match and what stands in its way. Fewer than five starters can't play: the only way
+// forward is to complete the team or lose by W.O.
+function fixture(ctx) {
+  const {db,run}=ctx,mine=C.lineupSlots(run,db),rival=C.opponentLineup(run,db),short=C.shortHanded(run);
+  return {mine,rival,short,error:short?(mine.length===4?'Falta 1 titular':`Faltam ${5-mine.length} titulares`):C.lineupError(run,db)};
+}
 function nextMatch(ctx) {
-  const {db,run}=ctx,rivalTeam=run.opponent.team,info=teamInfo(rivalTeam),map=mapFor(run.matchSeed);
-  const mine=C.lineupSlots(run,db),rival=C.opponentLineup(run,db),comp=E.composition(rival);
-  // Fewer than five starters can't play: the only way forward is to complete the team or lose by W.O.
-  const short=C.shortHanded(run),error=short?(mine.length===4?'Falta 1 titular':`Faltam ${5-mine.length} titulares`):C.lineupError(run,db);
+  const {run}=ctx,rivalTeam=run.opponent.team,info=teamInfo(rivalTeam),map=mapFor(run.matchSeed);
+  const {mine,rival,short,error}=fixture(ctx),comp=E.composition(rival);
   return `<section class="panel next" style="--team:${teamColor(rivalTeam)}">
     ${map?`<div class="map-shot" style="background-image:url(${esc(map.file)})"><span>Mapa</span><b>${esc(map.name)}</b></div>`:''}
     <div class="versus-head">${crest()}<i>x</i>${teamLogo(rivalTeam)}</div>
@@ -225,6 +229,17 @@ function nextMatch(ctx) {
     ${error?`<p class="warn" role="alert">${esc(error)}</p>`:''}
     ${short?'<button class="btn danger big" data-action="forfeit">Perder por W.O.</button>':`<button class="btn primary big" data-action="play" ${error?'disabled':''}>Jogar partida</button>`}
   </section>`;
+}
+// On a narrow screen the rival's panel is far down the page. This bar holds on to the bottom of the screen there (a
+// wide screen doesn't show it) and keeps the way into the match at hand: who the rival is, how the two teams compare,
+// and the button. A touch on the rival goes to his panel.
+function playBar(ctx) {
+  const run=ctx.run,rivalTeam=run.opponent.team,{mine,rival,short,error}=fixture(ctx);
+  return `<div class="play-bar" style="--team:${teamColor(rivalTeam)}">
+    <button class="play-rival" data-action="see-rival" aria-label="Ver o próximo adversário: ${esc(rivalTeam)}">${teamLogo(rivalTeam)}<span><small>${esc(rivalTeam)}</small>${
+      error?`<em>${esc(error)}</em>`:`<span class="play-versus"><b class="us">${num(effectiveAvg(mine,run.perks),1)}</b><i>x</i><b class="them">${num(effectiveAvg(rival),1)}</b></span>`}</span></button>
+    ${short?'<button class="btn danger" data-action="forfeit">Perder por W.O.</button>':`<button class="btn primary" data-action="play" ${error?'disabled':''}>Jogar partida</button>`}
+  </div>`;
 }
 const eventName = key=>E.EVENT_TYPES[key].label.toLowerCase();
 // The role a formation stands on gives it its colour; the incomplete one has none.
@@ -286,7 +301,7 @@ export function hub(ctx) {
       ${tab==='shop'?shopTab(ctx):tab==='stats'?statsTab(ctx):lineupTab(ctx)}
     </section>
     <aside class="hub-side">${nextMatch(ctx)}${identity(ctx)}</aside>
-  </div>`;
+  </div>${playBar(ctx)}`;
 }
 
 // ---------- Partida ----------
@@ -406,6 +421,9 @@ function duelRows(contest) {
   }
   return rows;
 }
+// The score under the table: a point for each attribute taken (half each when it is level) and, when something else
+// had to decide it (the overall, the draw), one more point for who took that. A confrontation never ends level.
+const duelScore = contest=>[contest.own+(contest.tiebreak&&contest.won?1:0),contest.enemy+(contest.tiebreak&&!contest.won?1:0)];
 export const duelSteps = contest=>2*duelRows(contest).length+2;
 export const duelStepMs = (contest,step)=>step===0?1100:step===duelSteps(contest)-1?2400:step%2?850:950;
 // One side of the confrontation. `team` is the line under the name: the rival's team, or the player's own.
@@ -417,7 +435,7 @@ function duelist(player,agent,side,team,effective) {
     <figcaption><b>${esc(player.name)}</b><small>${agentIcon(agent)}${agent}</small>${team}</figcaption></figure>`;
 }
 function momentResult(ctx) {
-  const {record:r,step}=ctx.ui.duel,event=r.event,c=event.contest,rows=duelRows(c),called=step===duelSteps(c)-1;
+  const {record:r,step}=ctx.ui.duel,event=r.event,c=event.contest,rows=duelRows(c),called=step===duelSteps(c)-1,[ours,theirs]=duelScore(c);
   // Row i is asked at step 1+2i and revealed at step 2+2i.
   const row=(v,i)=>{const asked=1+2*i,shown=step>asked;
     if(step<asked)return '';
@@ -427,7 +445,7 @@ function momentResult(ctx) {
     <div class="duel">
       ${duelist(event.actor,event.actorAgent,'us',`<span class="team">${crest()}<span>${ourName(ctx)}</span></span>`,c.ownOvr)}
       <div class="duel-table">${rows.map(row).join('')}
-        ${called?`<p class="duel-score new"><b>${num(c.own,c.own%1?1:0)}</b><i>x</i><b>${num(c.enemy,c.enemy%1?1:0)}</b></p>`:''}
+        ${called?`<p class="duel-score new"><b>${num(ours,ours%1?1:0)}</b><i>x</i><b>${num(theirs,theirs%1?1:0)}</b></p>`:''}
       </div>
       ${duelist(event.enemy,event.enemyAgent,'them',teamMark(event.enemy.team),c.enemyOvr)}
     </div>
@@ -540,7 +558,7 @@ export function agentPicker(ctx,playerId,previewAgent=null) {
     const fit=E.familiarity(p,agent,run.perks),holder=lineup.find(s=>s.agent===agent&&s!==slot);
     const preview=previewChange(run,db,{type:'agent',id:playerId,agent}),before=preview.before.players.find(s=>s.id===playerId),after=preview.after.players.find(s=>s.id===playerId);
     return `<li><button class="agent-row role-${roleKey(E.AGENTS[agent])} ${agent===selected?'current':''}" aria-pressed="${agent===selected}" data-action="preview-agent" data-id="${p.id}" data-agent="${agent}" ${!previewAgent&&agent===slot.agent?'autofocus':''}>
-      ${agentIcon(agent)}<b>${agent}</b><span class="fit ${changeTone(after.value-before.value)}">${fit.label} · ${before.value} → ${after.value}</span>
+      ${agentIcon(agent)}<b>${roleIcon(E.AGENTS[agent])}<span class="sr-only">${E.AGENTS[agent]}: </span>${agent}</b><span class="fit ${changeTone(after.value-before.value)}">${fit.label} · ${before.value} → ${after.value}</span>
       <small>${agent===slot.agent?'Escalado':holder?`Troca com ${esc(holder.player.name)}`:'Livre'}</small></button></li>`;});
   return `${dialogHead(`Agente de ${esc(p.name)}`,'Escolha e compare')}<div class="agent-preview"><ul class="agent-list" data-scroll="agents">${rows.join('')}</ul>
       <div class="agent-side">${cardArt(p,{effective:impact.after.players.find(s=>s.id===playerId).value})}${impactPanel(impact,[playerId])}</div></div>

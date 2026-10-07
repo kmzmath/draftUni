@@ -30,16 +30,21 @@
   --radius:8px;--tray:rgba(20,20,20,.84);
   --chamfer:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
   --ease:cubic-bezier(.2,.8,.2,1);
+  /* The space between the page and the sides of the screen; on a phone lying down it clears the notch. */
+  --gutter:max(clamp(1rem,3vw,2.2rem),env(safe-area-inset-left),env(safe-area-inset-right));
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+/* Nothing may make the page wider than the screen: a phone would shrink the whole page to fit it. */
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
 body{margin:0;min-height:100vh;color:var(--white);font:400 1rem/1.5 var(--body);overflow-x:clip;
   background:radial-gradient(1100px 620px at 50% -180px,var(--purple-hi),transparent 70%),linear-gradient(180deg,transparent 55%,rgba(35,11,77,.85)),var(--purple);background-attachment:fixed}
 h1,h2,h3,p,ul,ol,dl,dd,figure{margin:0}
 ul,ol{padding:0;list-style:none}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
 button:disabled{cursor:not-allowed}
+/* Under a finger: no wait for a second tap, and the game's own pressed state instead of the browser's grey flash. */
+button,a,select,input,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 img{max-width:100%}
 table{border-collapse:collapse;width:100%}
 :focus-visible{outline:3px solid var(--lime);outline-offset:3px}
@@ -158,7 +163,7 @@ img.card{height:auto;container-type:normal}
 
 /* ---------- Moldura ---------- */
 .ribbon{position:sticky;top:0;z-index:20}
-.ribbon-bar{display:flex;align-items:center;gap:1.5rem;padding:.5rem clamp(1rem,3vw,2.2rem);background:rgba(20,20,20,.9);backdrop-filter:blur(8px)}
+.ribbon-bar{display:flex;align-items:center;gap:1.5rem;padding:max(.5rem,env(safe-area-inset-top)) var(--gutter) .5rem;background:rgba(20,20,20,.9);backdrop-filter:blur(8px)}
 .brand{display:flex;align-items:center;gap:.4rem;font:400 2.2rem/1 var(--display);letter-spacing:.02em}
 .brand em{color:var(--lime);font-style:normal}
 .brand .crest{height:1.9rem;margin-right:.25rem}
@@ -178,7 +183,7 @@ img.card{height:auto;container-type:normal}
 .pip.loss{transform:none;border-radius:50%;width:7px;height:7px}
 .pip.loss.on{background:var(--coral);border-color:var(--coral)}
 .pip-gap{width:6px}
-.screen{max-width:1340px;margin:0 auto;padding:clamp(1.1rem,2.6vw,2rem) clamp(1rem,3vw,2.2rem) 4rem}
+.screen{max-width:1340px;margin:0 auto;padding:clamp(1.1rem,2.6vw,2rem) var(--gutter) 4rem}
 .boot{min-height:70vh;display:grid;place-content:center;justify-items:center;gap:1rem;text-align:center}
 #toast{position:fixed;left:50%;bottom:1.5rem;z-index:60;transform:translate(-50%,calc(100% + 3rem));visibility:hidden;padding:.8rem 1.2rem;max-width:min(92vw,520px);
   font:700 .86rem/1.3 var(--ui);color:var(--black);background:var(--lime);border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s var(--ease),visibility .3s}
@@ -292,8 +297,8 @@ img.card{height:auto;container-type:normal}
 .tabs button{font:400 3rem/1 var(--display);text-transform:uppercase;color:rgba(255,255,255,.55);padding:0 0 .5rem;border-bottom:4px solid transparent}
 .tabs button:hover{color:var(--white)}
 .tabs button[aria-selected="true"]{color:var(--white);border-color:var(--lime)}
-.stage{position:relative;padding:1.7rem 1.1rem .4rem;overflow-x:auto}
-.stage-row{display:grid;grid-template-columns:repeat(5,minmax(112px,1fr));gap:.9rem;min-width:600px}
+.stage{--gap:.9rem;position:relative;padding:1.7rem 1.1rem .4rem;overflow-x:auto}
+.stage-row{display:grid;grid-template-columns:repeat(5,minmax(112px,1fr));gap:var(--gap);min-width:600px}
 .slot{position:relative;display:grid;gap:.5rem;align-content:start}
 .slot.empty>span{display:grid;place-content:center;aspect-ratio:450/720;border:2px dashed rgba(255,255,255,.4);border-radius:var(--radius);
   font:600 .8rem/1 var(--data);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7)}
@@ -312,8 +317,8 @@ img.card{height:auto;container-type:normal}
 /* The laços between teammates: a curve of light in the team's colour, from under one logo to under the other, with the
    bonus they all get riding on it. Each laço is a cell of the same five columns as the cards; the margin brings its
    two ends to the middle of the first and of the last column it covers. */
-.bonds{display:grid;grid-template-columns:repeat(5,minmax(112px,1fr));column-gap:.9rem;min-width:600px;height:52px;margin-top:.15rem}
-.bond{position:relative;grid-row:1;height:40px;margin-inline:calc((100% - (var(--span) - 1)*.9rem)/var(--span)/2);pointer-events:none}
+.bonds{display:grid;grid-template-columns:repeat(5,minmax(112px,1fr));column-gap:var(--gap);min-width:600px;height:52px;margin-top:.15rem}
+.bond{position:relative;grid-row:1;height:40px;margin-inline:calc((100% - (var(--span) - 1)*var(--gap))/var(--span)/2);pointer-events:none}
 .bond svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 5px var(--team))}
 .bond path{fill:none;stroke:var(--team);stroke-width:3;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .bond::before,.bond::after{content:"";position:absolute;top:-4px;width:9px;height:9px;border-radius:50%;background:var(--team);box-shadow:0 0 8px 1px var(--team)}
@@ -386,7 +391,9 @@ img.card{height:auto;container-type:normal}
 .shop-foot{display:flex;justify-content:flex-end}
 
 /* ---------- Painéis laterais ---------- */
-.next{overflow:hidden}
+.next{overflow:hidden;scroll-margin-top:84px}
+/* The bar that keeps "Jogar partida" at hand where the rival's panel is far down the page (see the smaller screens). */
+.play-bar{display:none}
 .map-shot{display:flex;align-items:end;justify-content:space-between;gap:1rem;height:104px;margin:-1.25rem -1.25rem 1rem;padding:.6rem 1rem;background-size:cover;background-position:center;box-shadow:inset 0 -70px 50px -30px rgba(20,20,20,.95)}
 .map-shot span,.arena-map span{font:700 .62rem/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--lime)}
 .map-shot b,.arena-map b{font:400 2rem/.8 var(--display);text-transform:uppercase}
@@ -506,13 +513,13 @@ img.card{height:auto;container-type:normal}
 .bug-score i{font:600 .76rem/1 var(--data);letter-spacing:.14em;text-transform:uppercase;color:var(--grey);font-style:normal}
 .bug-side{text-align:center;margin-top:.5rem;font:700 .7rem/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--lime)}
 .timeline{display:flex;gap:3px;margin:.8rem 0 1.1rem}
-.timeline li{position:relative;flex:1;height:28px;display:grid;place-items:center;background:rgba(20,20,20,.5);border-radius:3px;color:var(--black)}
+.timeline li{position:relative;flex:1;min-width:0;height:28px;display:grid;place-items:center;background:rgba(20,20,20,.5);border-radius:3px;color:var(--black)}
 .timeline li span{font:600 .7rem/1 var(--data);color:rgba(255,255,255,.45)}
 .timeline li.half{margin-left:10px}
 .timeline li.won{background:var(--lime)}.timeline li.lost{background:var(--coral)}
 .timeline li.now{box-shadow:inset 0 0 0 2px var(--white)}
 .timeline li.now span{color:var(--white)}
-.timeline .round-icon{width:15px;height:15px;margin:0}
+.timeline .round-icon{width:min(15px,100%);height:15px;margin:0}
 .timeline li.decisive::after{content:"";position:absolute;left:50%;top:-8px;width:7px;height:7px;background:var(--side);transform:translateX(-50%) rotate(45deg)}
 /* The scoreboard and, when a Jogada de Efeito is on, its confrontation share one place: the confrontation lies over the
    scoreboard, which waits dimmed underneath. The place is as tall as the taller of the two. */
@@ -748,7 +755,7 @@ img.card{height:auto;container-type:normal}
 .album-empty{grid-column:1/-1;padding:2rem;text-align:center;color:var(--grey);background:var(--tray);border-radius:var(--radius)}
 
 /* ---------- Diálogos ---------- */
-dialog{--pad:1.5rem;width:min(520px,94vw);max-height:92vh;padding:var(--pad);color:var(--white);background:var(--black);border:0;border-top:5px solid var(--lime);border-radius:var(--radius);overflow:auto}
+dialog{--pad:1.5rem;width:min(520px,94vw);max-height:92vh;max-height:92dvh;overscroll-behavior:contain;padding:var(--pad);color:var(--white);background:var(--black);border:0;border-top:5px solid var(--lime);border-radius:var(--radius);overflow:auto}
 dialog.wide{width:min(920px,94vw)}
 dialog::backdrop{background:rgba(35,11,77,.85);backdrop-filter:blur(5px)}
 dialog>p{color:var(--grey)}
@@ -767,7 +774,9 @@ dialog>p{color:var(--grey)}
 .agent-row:hover{background:color-mix(in srgb,var(--role) 28%,#1d1d1d)}
 .agent-row.current{box-shadow:inset 0 0 0 2px var(--lime)}
 .agent-row .role-icon,.agent-row .agent-icon{grid-row:span 2;width:2.6rem;height:2.6rem}
-.agent-row b{font:400 2.1rem/.9 var(--display);text-transform:uppercase;color:var(--white)}
+.agent-row b{display:flex;align-items:center;gap:.4rem;font:400 2.1rem/.9 var(--display);text-transform:uppercase;color:var(--white)}
+/* The symbol of the agent's role, in the role's colour, right before the name. */
+.agent-row b .role-icon{grid-row:auto;width:.62em;height:.62em;color:var(--role)}
 .agent-row .fit{font:700 .95rem/1 var(--data);letter-spacing:.05em;color:var(--grey);text-align:right}
 .agent-row .fit.good{color:var(--lime)}.agent-row .fit.bad{color:var(--coral)}
 .agent-row small{grid-column:2/-1;font-size:.82rem;color:var(--dim)}
@@ -783,11 +792,13 @@ dialog>p{color:var(--grey)}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}}
 .walkout{position:absolute;inset:0;z-index:2;display:grid;place-items:center;width:100%;overflow:hidden;color:var(--white);background:radial-gradient(60% 70% at 50% 50%,var(--purple),var(--black));animation:walk-out .45s ease both;animation-delay:7.1s}
 .walk-step{grid-area:1/1;display:grid;justify-items:center;gap:1rem;opacity:0;animation:walk 1.2s var(--ease) both;animation-delay:calc(.4s + var(--s)*1.2s)}
-.walk-step b{font:400 clamp(3.4rem,9vw,6.4rem)/1 var(--display);text-transform:uppercase;text-align:center}
-.walk-step .role-icon,.walk-step .agent-icon,.walk-step .logo{width:8rem;height:8rem;color:var(--role)}
+/* Every part of the reveal is sized by the height of the screen as well as by its width: on a low screen (a small
+   notebook, a phone lying down) the dialog is low too, and nothing of the reveal may be cut by it. */
+.walk-step b{font:400 min(clamp(3.4rem,9vw,6.4rem),18vh)/1 var(--display);text-transform:uppercase;text-align:center}
+.walk-step .role-icon,.walk-step .agent-icon,.walk-step .logo{width:min(8rem,24vh);height:min(8rem,24vh);color:var(--role)}
 .walk-step .logo-dot{width:3rem;height:3rem}
-.walk-ovr b{font-size:clamp(9rem,26vw,17rem);color:var(--lime)}
-.walk-card{grid-area:1/1;width:min(56vw,250px);opacity:0;animation:walk-card 1.9s var(--ease) both;animation-delay:5.2s}
+.walk-ovr b{font-size:min(clamp(9rem,26vw,17rem),56vh);color:var(--lime)}
+.walk-card{grid-area:1/1;width:min(56vw,250px,50vh);opacity:0;animation:walk-card 1.9s var(--ease) both;animation-delay:5.2s}
 .pack-pick{animation:rise .5s var(--ease) both;animation-delay:7.2s}
 dialog.skipped .walkout{display:none}
 dialog.skipped .pack-pick{animation:none}
@@ -920,6 +931,23 @@ dialog.skipped .pack-pick{animation:none}
   .duel-card.with-photo,.duel-card.them.with-photo{grid-template-columns:minmax(0,150px)}
   .duel .cutout{display:none}
   .ribbon .help{font-size:0;gap:0}
+  /* The rival's panel is now under everything else, so its button comes along with the screen: a bar that holds on
+     to the bottom, in every tab. Notices come down from the top instead, where they cover nothing to be touched. */
+  .screen-hub{padding-bottom:0}
+  .play-bar{position:sticky;bottom:0;z-index:15;display:flex;align-items:center;gap:.8rem;margin:1.4rem calc(-1*var(--gutter)) 0;padding:.5rem var(--gutter) max(.5rem,env(safe-area-inset-bottom));
+    background:rgba(20,20,20,.97);border-top:3px solid var(--team);box-shadow:0 -10px 24px rgba(0,0,0,.4)}
+  .play-rival{flex:1;min-width:0;display:flex;align-items:center;gap:.65rem;min-height:48px}
+  .play-rival .logo{width:2.7rem;height:2.7rem}
+  .play-rival .logo-dot{margin:0 .5rem}
+  .play-rival>span{display:grid;gap:.2rem;min-width:0}
+  .play-rival small{font:700 .7rem/1.1 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--grey);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .play-versus{display:flex;align-items:baseline;gap:.4rem;font:400 1.9rem/.85 var(--display)}
+  .play-versus b{font-weight:400;color:var(--side)}
+  .play-versus i{font-size:1rem;font-style:normal;color:var(--dim)}
+  .play-rival em{font:600 .88rem/1.2 var(--body);font-style:normal;color:var(--lime)}
+  .play-bar .btn{flex:none;min-height:48px;padding:.7rem 1.1rem}
+  #toast{top:calc(4.7rem + env(safe-area-inset-top));bottom:auto;transform:translate(-50%,calc(-100% - 6rem))}
+  #toast.on{transform:translate(-50%,0)}
 }
 @media (max-width:860px){
   .path-name{display:none}
@@ -958,51 +986,408 @@ dialog.skipped .pack-pick{animation:none}
   .post-grid{grid-template-columns:minmax(0,1fr)}
   .mvp .card,.mvp .cutout{max-width:190px;margin-inline:auto}
   .detail{grid-template-columns:1fr}
-  .detail-art{max-width:210px;margin:0 auto}
+  .detail-art{width:min(210px,100%);margin:0 auto}
   .end-lineup{gap:.4rem}
   .history li{grid-template-columns:1fr auto}
   .history span{grid-column:1/-1}
+  /* The match is one column here, taller than the screen. Its controls hold on to the bottom of the screen, under the
+     thumb, so the round can be started and a play called wherever the page is. They come last in the column for that. */
+  .match{display:flex;flex-direction:column}
+  .screen-match{padding-bottom:0}
+  .controls{order:9;position:sticky;bottom:0;z-index:15;margin:1rem calc(-1*var(--gutter)) 0;padding:.5rem var(--gutter) max(.5rem,env(safe-area-inset-bottom));background:rgba(20,20,20,.97);box-shadow:0 -10px 24px rgba(0,0,0,.4)}
+  .controls.over .btn{flex:1}
+  .settings-pop{top:auto;bottom:calc(100% + 8px)}
+  .play-layer{scroll-margin-bottom:9.5rem}
+  /* The kills of the round: two columns of five places, all there from the start, so the scoreboard under them stays
+     where it is while they come in. The first column fills first. */
+  .feed{--kill:1.45rem;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:1.5rem calc(var(--kill)*5 + 12px);align-items:center;gap:.45rem .7rem;min-height:0;padding:.7rem .8rem .8rem}
+  .feed .eyebrow{margin:0;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .feed h3{font-size:1.5rem;margin:0;white-space:nowrap}
+  .kills{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(5,var(--kill));grid-auto-flow:column;gap:3px .4rem}
+  .kills li{gap:.3rem;padding:0 .4rem;font-size:.84rem}
+  .kills .weapon-icon{height:.8rem;max-width:2.5rem}
 }
-@media (max-width:520px){
-  .ribbon-bar{gap:.6rem;padding-inline:.75rem}
+/* ---------- Celular ---------- */
+/* One hand, one thumb, a screen about 360 to 430 wide. The rule here is the same as on a desk: what the player decides
+   with is on the screen at once (the five starters and the bench, the three cards of a draft or of a pack, the five who
+   can go to a confrontation), and what moves the game on is under the thumb. */
+@media (max-width:700px){
+  /* --- frame --- */
+  .screen{padding-top:.8rem}
+  .ribbon-bar{gap:.6rem;padding-bottom:.25rem;padding-top:max(.25rem,env(safe-area-inset-top))}
+  .ribbon-end{gap:.5rem}
   .brand b,.brand em{display:none}
   .brand .crest{height:2.1rem;margin:0}
   .path{justify-content:flex-start}
   .path-stage:not(.now){display:none}
   .path-stage.now .path-name{display:block}
+  .path-stage{justify-items:start}
+  .path-name{font-size:.7rem}
   .wallet{font-size:1.05rem;padding:.35rem .55rem}
+  /* In a match the page is the scoreboard: the top bar goes up with the page instead of taking a tenth of the screen. */
+  .ribbon:has(+ .screen-match){position:static}
+  .band{--chamfer:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);margin-bottom:.8rem}
+  .band-body{padding:.6rem 1rem .65rem}
+  .band h1{font-size:clamp(2.2rem,11vw,3rem)}
+  .band-note{font-size:.95rem}
+  .band.compact .band-body{grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:.1rem .8rem;padding:.5rem 1rem .5rem}
+  .band.compact .band-kicker{grid-column:1/-1;font-size:.7rem;letter-spacing:.08em}
+  .band.compact h1{font-size:clamp(1.7rem,8.4vw,2.2rem)}
+  .band.compact .band-note{font-size:1.5rem;text-align:right;padding-bottom:.12em}
+  .panel{padding:1rem}
+  h2{font-size:2.2rem}
+  .eyebrow{font-size:.7rem}
+
+  /* --- início --- */
+  .hero{gap:.5rem}
+  .hero-art{height:clamp(168px,50vw,214px)}
+  .hero-fan .card,.hero-art:hover .hero-fan .card{width:min(27%,112px);bottom:3%;transform:translateX(calc(-50% + (var(--i) - 2)*42%)) rotate(calc((var(--i) - 2)*6deg))}
+  .stamp{width:min(52%,240px)}
+  .lockup{width:min(62%,230px)}
+  .hero-title{display:flex;flex-wrap:wrap;gap:0 .2em;font-size:clamp(3.4rem,17vw,4.6rem);padding-top:.26em}
+  .team-name{max-width:none;margin:.9rem 0 .8rem}
+  .team-name span,.career dt,.album-link span{font-size:.68rem}
+  .team-name input{height:3.4rem;font-size:2rem}
+  .modes{gap:.6rem}
+  /* Each way to play in one line: where the run stands on the left, what to do with it on the right. */
+  .mode{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:.3rem .8rem;padding:.65rem .8rem .8rem}
+  .mode .eyebrow{grid-column:1/-1}
+  .mode h2{font-size:1.9rem}
+  .mode-actions{flex-direction:column;align-items:stretch;gap:.4rem;margin:0}
+  .mode .btn.big{min-height:48px;padding:.6rem 1rem;font-size:.84rem}
+  .mode .link{align-self:center}
+  .hero-foot{align-items:stretch;gap:.8rem 1.2rem;margin-top:1rem}
+  .career{gap:1.2rem}
+  .career dd,.album-link b{font-size:2.1rem}
+  .album-link{margin-left:auto}
+  .screen-home::after{height:110px;margin-top:1.6rem}
+
+  /* --- draft --- */
+  /* A card of the draft in two strips: the card with who he is and how he fits, and under it his six attributes side
+     by side. Three of them make about one screen, so the choice is made looking at all three. */
+  .contracts{padding:.6rem .7rem;margin-bottom:.7rem}
+  .contracts .label{margin-bottom:.45rem}
+  .contracts .agent{font-size:.8rem}
+  .offers{gap:.6rem}
+  .offer{grid-template-columns:92px minmax(0,1fr) auto;gap:.4rem .75rem;align-items:start;padding:.65rem .7rem .7rem}
+  .offer-art{grid-column:1;grid-row:1/4}
+  .offer-info{display:contents}
+  .offer-info h2{grid-column:2;grid-row:1;align-self:center;font-size:2rem;white-space:nowrap}
+  .offer-info .btn{grid-column:3;grid-row:1;padding:.5rem .8rem;font-size:.76rem}
+  .offer-info .team-line{grid-column:2/-1;grid-row:2}
+  .offer-info .facts{grid-column:2/-1;grid-row:3;gap:.3rem;font-size:.86rem}
+  .offer-info .stats{grid-column:1/-1;grid-row:4;grid-template-columns:repeat(6,minmax(0,1fr));gap:.3rem .5rem;margin-top:.15rem}
+  .offer-info .stats dt{font-size:.64rem;letter-spacing:.06em}
+  .offer-info .stats dd{font-size:1rem}
+  .team-line .logo{width:2rem;height:2rem}
+  .draft-roster{gap:.4rem;margin-top:.8rem}
+  .mini{position:relative;grid-template-columns:30px minmax(0,1fr);gap:.45rem;padding:.3rem .4rem .3rem .3rem}
+  .mini .card{width:30px}
+  .mini-info b{padding-right:1.5rem}
+  .mini-ovr{position:absolute;right:.4rem;top:.25rem;font-size:1.35rem}
+  .mini.empty{grid-template-columns:26px minmax(0,1fr)}
+  .mini.empty i{width:26px;height:48px;font-size:1.8rem}
+  .perk-row{gap:.6rem;margin-bottom:.8rem}
+  .perk-card{gap:.45rem;padding:.9rem 1rem 1rem}
+  .perk-card b{font-size:2.3rem}
+
+  /* --- elenco --- */
+  .tabs{gap:1.3rem;margin-bottom:.7rem}
+  .tabs button{min-height:44px;font-size:2.2rem;padding-bottom:.3rem}
+  /* The five starters in one row, whole, with the bench in the same columns right under them: who plays, on which
+     agent, what each one gains or loses and who is tied to whom, without moving the page. A card is read by its name
+     and its overall; the rest of it is one touch away, in "Ver carta". */
+  .stage{--gap:.4rem;padding:.9rem .5rem .3rem;overflow:visible}
+  .stage-row,.bonds{grid-template-columns:repeat(5,minmax(0,1fr));min-width:0}
+  .slot{gap:.3rem}
+  .slot.selected .slot-card,.bench-card.selected{transform:translateY(-5px)}
+  .slot.empty>span,.bench-card.empty span{font-size:.68rem;letter-spacing:.04em}
+  .agent-btn{flex-direction:column;justify-content:center;gap:.2rem;min-height:48px;padding:.3rem .1rem .25rem;font-size:.7rem;letter-spacing:.02em}
+  .agent-btn b{flex:none;max-width:100%}
+  .agent-btn i{display:none}
+  .agent-btn .agent-icon,.agent-btn .role-icon{width:1.6rem;height:1.6rem}
+  .mods{flex-direction:column;flex-wrap:nowrap;gap:.05rem;min-height:2.3em;font-size:.7rem;line-height:1.15;letter-spacing:0}
+  .slot-team .logo{width:1.5rem;height:1.5rem}
+  .bonds{height:42px}
+  .bond{height:32px}
+  .bond b{padding:.15rem .4rem;font-size:.74rem}
+  .under-stage{gap:.9rem;margin-top:.8rem}
+  .bench{padding-inline:.5rem}
+  .bench-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.4rem}
+  .bench-card{width:auto}
+  .bench-card span{gap:.2rem;font-size:.68rem;letter-spacing:.02em;white-space:nowrap;overflow:hidden}
+  .bench-card .agent-icon{width:1.1rem;height:1.1rem}
+  .hub-main>.contracts{margin-top:.9rem}
+  /* What can be done with the selected card: on the bottom of the screen, over the bar of the next match, so nothing
+     on the page moves when a card is touched. The card itself says which one it is, by standing out. */
+  .selection{position:fixed;left:0;right:0;bottom:0;z-index:16;flex-wrap:nowrap;gap:.5rem;margin:0;padding:.5rem var(--gutter) max(.5rem,env(safe-area-inset-bottom));min-height:67px;
+    background:var(--black);border-left:0;border-top:3px solid var(--lime);border-radius:0;box-shadow:0 -10px 24px rgba(0,0,0,.45)}
+  .selection p{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .selection div{flex:1;flex-wrap:nowrap}
+  .selection .btn{flex:1;min-height:48px;padding-inline:.6rem;white-space:nowrap}
+  .selection .link{min-height:48px;padding-inline:.6rem}
+  .play-bar{gap:.6rem}
+  .play-bar .btn{padding-inline:.9rem}
+  .next h2{font-size:2.5rem}
+  .map-shot{height:88px;margin:-1rem -1rem .8rem}
+  .versus b{font-size:2.9rem}
+
+  /* --- loja --- */
+  /* Everything for sale is a row: what it is on the left, what it costs on the right. */
+  .shop{gap:1.3rem}
+  .shop-block>h2{margin-bottom:.45rem}
+  .packs{gap:.5rem}
+  .pack,.perk-pack{grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.1rem .8rem;padding:.5rem .8rem .55rem .65rem}
+  .pack-art,.perk-pack .pack-art{grid-row:1/3;width:44px;height:62px;margin:0}
+  .pack-art .crest,.perk-pack .pack-art .crest{height:1.6rem}
+  .pack-funcao .pack-art .role-icon{width:1.7rem;height:1.7rem}
+  .pack b{align-self:end;font-size:1.75rem}
+  .perk-pack b{font-size:1.55rem}
+  .pack small{align-self:start;font-size:.84rem}
+  .perk-pack small{font-size:.84rem;line-height:1.3}
+  .perk-pack-info{grid-row:1/3}
+  .pack .price,.perk-pack .price{grid-column:3;grid-row:1/3;flex-direction:column;align-items:flex-end;gap:.2rem;margin:0;font-size:1.05rem}
+  .pack .price>span:not(.coin),.perk-pack .price>span:not(.coin){font:700 .68rem/1 var(--ui);letter-spacing:.06em;color:var(--grey)}
+  .market,.market.wide{grid-template-columns:minmax(0,1fr);gap:.6rem}
+  /* A card of the market: the card, who he is and how he fits beside it, and the two buttons under both. The narrow
+     middle column only exists to give "Comprar" the wider half of that last line. */
+  .market-card{grid-template-columns:96px minmax(0,.34fr) minmax(0,1fr);grid-template-rows:auto 1fr auto;gap:.5rem .75rem;padding:.7rem}
+  .market-art{grid-column:1;grid-row:1/3;align-self:start}
+  .market-card .team-line{grid-column:2/-1;grid-row:1}
+  .market-card .facts{grid-column:2/-1;grid-row:2;font-size:.86rem}
+  .market-card .btn{min-height:46px;padding:.4rem .6rem}
+  .market-card [data-action="compare"]{grid-column:1/3;grid-row:3;font-size:.7rem;line-height:1.2}
+  .market-card [data-action="buy-player"]{grid-column:3;grid-row:3;font-size:.8rem}
+  .market-card [data-action="buy-player"]:first-of-type{grid-column:1/-1}
+  .agent-offers{gap:.5rem}
+  .agent-offer{grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto;align-items:center;gap:.2rem .7rem;padding:.55rem .7rem .6rem}
+  .agent-offer>.role-icon,.agent-offer>.agent-icon{width:2.8rem;height:2.8rem}
+  .agent-offer b{font-size:1.9rem}
+  .agent-offer p{margin-top:.25rem;font-size:.84rem;line-height:1.3}
+  .agent-offer .btn{grid-column:3;grid-row:1;align-self:center;margin:0;padding:.6rem .7rem;font-size:.78rem}
+  .shop-foot .btn{width:100%}
+
+  /* --- stats --- */
+  /* The table is wider than the screen and slides sideways; the player's name stays put on the left, so every number
+     that passes is still somebody's. */
+  .stats-wrap{padding:.2rem 0 .6rem;overscroll-behavior-x:contain}
+  .stats-table tbody th,.stats-table thead tr:last-child th:first-child{position:sticky;left:0;z-index:1;box-shadow:10px 0 10px -10px rgba(0,0,0,.8)}
+  .stats-table thead tr:last-child th:first-child{background:#1c1330}
+  .stats-table tbody th{background:#2a2040;padding-left:.4rem}
+  .stats-table tbody tr.reserve th{background:#231a37}
+  .stats-who{min-height:44px}
+  .stats-who small,.stats-who .mug{display:none}
+  .stats-who b{width:5.4rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stats-table thead button{min-width:40px;min-height:40px}
+
+  /* --- partida --- */
+  .arena{padding:.55rem .8rem .5rem}
+  .arena-map{margin-bottom:.35rem}
+  .arena-map b{font-size:1.2rem}
+  /* The names go above the score, each on its own side, so a long one never pushes the other off the screen. */
+  .bug{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.4rem .8rem}
+  .bug-team.us{grid-area:1/1;justify-content:flex-start;text-align:left}
+  .bug-team.them{grid-area:1/2;justify-content:flex-end;text-align:right}
+  .bug-score{grid-area:2/1/3/3;justify-content:center;gap:.8rem}
+  .bug-score>b{font-size:3.7rem}
+  .bug-score .bug-mid{min-width:6.5rem;min-height:3.7rem;gap:.25rem}
+  .bug-team b{font-size:1.45rem;line-height:1;overflow-wrap:anywhere}
+  .bug-team .crest,.bug-team .logo{display:none}
+  .bug-team small{display:none}
+  .bug-meta{margin-top:.3rem}
+  .bug-side{margin-top:.3rem}
+  .freeze-clock{font-size:2.3rem}
+  .timeline{gap:2px;margin:.5rem 0 .6rem}
+  .timeline li{height:24px}
+  .timeline li.half{margin-left:6px}
+  .timeline li span{font-size:.64rem}
+  /* Two lines of controls on the bottom of the screen: what decides the round on top, how it is watched under it. */
+  .controls{gap:.4rem}
+  .play-call,.tray .play-call,.plays-out{flex:1 1 calc(100% - 8.1rem);max-width:none;min-width:0}
+  .plays-out{padding:.3rem .7rem;font-size:.64rem;line-height:1.25}
+  .controls .flow{flex:0 0 7.6rem;min-width:0;margin:0;padding-inline:.4rem}
+  .controls .flow .wide{display:none}
+  .controls>.speed{flex:1}
+  .controls>.speed button{flex:1;min-height:44px}
+  .controls .gear{min-height:44px}
+  /* The round's buys and the two teams come first: what the freezetime is decided with, and where every kill shows as
+     it happens. The list of kills, with who and with what, comes after them. */
+  .match-side{order:1}
+  .board{gap:.7rem;padding:.6rem}
+  .buys p i{font-size:1.7rem}
+  .squad caption b{font-size:1.6rem}
+  .play-layer{scroll-margin-top:10px}
+  /* Who goes to the confrontation: five rows that fit on one screen, each with the card, the two attributes that
+     count and nothing else. */
+  .moment .band{margin-bottom:.5rem}
+  .moment .band h1{font-size:1.9rem}
+  .moment-rule{gap:.3rem .5rem;margin-bottom:.5rem;padding:.4rem .6rem}
+  .moment-rule b{font-size:1.6rem}
+  .actors{gap:.4rem;margin-bottom:.4rem}
+  .actor{grid-template-columns:44px minmax(0,1fr);gap:.6rem;padding:.35rem .6rem .4rem .45rem}
+  .actor-info{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:.15rem .7rem}
+  .actor-name{grid-column:1;grid-row:1}
+  .actor-name b{font-size:1.5rem;line-height:1.1}
+  .actor-name small{margin-top:.1rem}
+  .actor em{grid-column:1;grid-row:2}
+  .actor-stats{grid-column:2;grid-row:1/3;grid-template-columns:repeat(2,4.2rem);gap:.6rem}
+  .actor-stats small{font-size:.66rem;letter-spacing:.08em}
+  .actor-stats b{font-size:1.7rem}
+  /* The confrontation shows itself on a clock, so all of it is on the screen at once: the two cards, small, and the
+     attributes right under them. */
+  .moment.resolved{padding:.7rem .7rem .8rem}
+  .moment.resolved>.eyebrow{margin-bottom:.5rem}
+  .duel{gap:.5rem .8rem;margin-bottom:.5rem}
+  .duel-card,.duel-card.with-photo,.duel-card.them.with-photo{grid-template-columns:minmax(0,92px)}
+  .duel-card figcaption{gap:.15rem .5rem;margin-top:.35rem;padding-top:.3rem}
+  .duel-card figcaption b{font-size:1.5rem}
+  .duel-card figcaption .team{display:none}
+  .duel-row{gap:.6rem;padding:.3rem .7rem}
+  .duel-row b{font-size:2.1rem}
+  .duel-row.tie b{font-size:1.6rem}
+  .duel-row>span{font-size:.72rem;letter-spacing:.1em}
+  .duel-score{margin-top:.2rem;font-size:3.4rem}
+  .aftermath{min-height:2.6rem}
+  .aftermath strong{font-size:2.4rem}
+
+  /* --- depois da partida, fim da run, álbum --- */
+  /* What the match paid and the way on come before the two scoreboards, which are there for who wants to look. */
+  .post-head{margin-bottom:.9rem}
+  .post-head h1{font-size:clamp(3.6rem,19vw,5rem)}
+  .post-grid{gap:.7rem}
+  .mvp{order:0;display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:.2rem .9rem;text-align:left}
+  .mvp .eyebrow{grid-column:1/-1}
+  .mvp .card,.mvp .cutout{grid-column:1;grid-row:2/4;max-width:none;margin:0}
+  .mvp h3{grid-column:2;align-self:end;margin:0;font-size:2.2rem;overflow-wrap:anywhere}
+  .kda{grid-column:2;align-self:start;font-size:2.2rem}
+  .rewards{order:1}
+  .post-board{order:2}
+  .post-board .squad td.cr,.post-board .squad td.wp,.post-board .squad thead th:nth-child(n+7){display:none}
+  .reward-coins{margin-bottom:.5rem;font-size:3.2rem}
+  .team-photo{padding:0 4%;margin-bottom:1rem}
+  .team-photo figcaption b{display:none}
+  .end-lineup{gap:.3rem;margin-bottom:1rem}
+  .end-lineup figcaption{flex-direction:column;gap:.2rem;font-size:.7rem;letter-spacing:.02em}
+  .history{margin-bottom:1.2rem;padding:.5rem}
+  .end-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+  .end-actions .btn.primary{grid-column:1/-1}
+  .end-actions .btn.big{min-height:52px;padding:.7rem .6rem;font-size:.84rem}
+  .album-filters{display:flex;margin-bottom:.8rem}
+  .album-filters button{flex:1;min-height:44px;padding:0 .3rem;text-align:center}
+  .album{gap:.6rem}
+  .album-team{padding:.6rem .6rem .7rem}
+  .album-cards{grid-template-columns:repeat(5,minmax(0,1fr));gap:.35rem}
+
+  /* --- janelas --- */
+  /* A dialog is a sheet that comes up from the bottom of the screen, as wide as the screen: its buttons end up where
+     the thumb already is. */
+  dialog,dialog.wide{--pad:1rem;--pad-b:max(var(--pad),env(safe-area-inset-bottom));width:100%;max-width:100%;margin:auto 0 0;padding-bottom:var(--pad-b);border-radius:14px 14px 0 0;animation:sheet .28s var(--ease)}
+  @keyframes sheet{from{opacity:0;transform:translateY(28px)}}
+  .dialog-head{gap:.6rem;margin-bottom:.7rem}
+  .dialog-head h2{font-size:2.3rem}
+  .dialog-actions{bottom:calc(-1*var(--pad-b));gap:.5rem;margin-bottom:calc(-1*var(--pad-b));padding:.7rem var(--pad) var(--pad-b)}
+  .dialog-actions .btn{flex:1 1 auto;min-height:48px;padding-inline:.8rem}
+  .impact{gap:.35rem;margin-top:.7rem}
+  .impact-line{flex-wrap:wrap;gap:.2rem .45rem;padding:.35rem .6rem}
+  .impact-line span{font-size:.72rem;letter-spacing:.1em}
+  .impact-line b{font-size:1.5rem}
+  .impact-line em{min-width:0;font-size:1.05rem}
+  .formation-change span{flex:1 1 100%}
+  .formation-change .formation-icon{width:1.1rem;height:1.1rem}
+  /* Picking an agent: what the pick does stays on top of the sheet while the list of agents moves under it. */
+  .agent-preview{display:flex;flex-direction:column;align-items:stretch;gap:.5rem}
+  .agent-side{order:-1;position:sticky;top:calc(-1*var(--pad));z-index:2;grid-template-columns:60px minmax(0,1fr);justify-items:stretch;align-items:center;gap:.6rem;margin:0 calc(-1*var(--pad));padding:.5rem var(--pad);
+    background:var(--black);box-shadow:0 12px 12px -12px rgba(0,0,0,.85)}
+  .agent-side .card{width:60px}
+  .agent-side .impact{margin:0}
+  .agent-preview .agent-list{max-height:none;overflow:visible;padding:0;margin-bottom:.4rem}
+  .agent-preview .agent-row{padding:.5rem .6rem .5rem .5rem}
+  .agent-row b{font-size:1.8rem}
+  .swap-cards{grid-template-columns:minmax(0,128px) auto minmax(0,128px)}
+  .swap-cards>i{font-size:2rem}
+  /* The card beside who the player is; his numbers under both. */
+  .detail{grid-template-columns:118px minmax(0,1fr);grid-template-rows:auto 1fr;gap:.6rem .9rem}
+  .detail-art{grid-column:1;grid-row:1/3;width:auto;margin:0}
+  .detail-info{display:contents}
+  .detail-info>*{grid-column:1/-1}
+  .detail-info>p:first-child,.detail-info>p:first-child+p:not(.label){grid-column:2}
+  .detail-info .label{margin:.2rem 0 -.3rem}
+  .detail-info .stats dd{font-size:1.3rem}
+  .guide-lede{font-size:.95rem}
+  /* The three cards of a pack, one under the other, all on the screen: the card, how it fits, and the button. */
+  .pack-cards{flex-direction:column;flex-wrap:nowrap;gap:.6rem}
+  .pulled{grid-template-columns:96px minmax(0,1fr);grid-template-rows:auto 1fr auto;gap:.4rem .75rem;width:100%}
+  .pulled .card{grid-column:1;grid-row:1/4}
+  .pulled .team-line,.pulled .facts,.pulled .btn{grid-column:2}
+  .pulled .facts{font-size:.86rem}
+  .walk-step .role-icon,.walk-step .agent-icon,.walk-step .logo{width:min(6rem,24vh);height:min(6rem,24vh)}
+
+  /* --- tutorial --- */
+  .tour-card{width:calc(100vw - 24px);padding:.8rem 1rem .9rem}
+  .tour-card h2{font-size:2rem}
+  .tour-card p{font-size:.95rem;line-height:1.4}
+  .tour-card .tour-count{font-size:.7rem}
+  /* The smallest labels of the game, one step up: a phone is read at arm's length, not at a desk. */
+  .map-shot span,.arena-map span,.formation-now,.stats-table .groups>*{font-size:.68rem}
+}
+@media (max-width:520px){
   /* On a phone the scoreboard keeps what the round is played with (credits, weapon, shield) and drops the pictures. */
   .squad td.c-mug,.squad thead th.c-mug,.squad td.c-agent,.squad thead th.c-agent{display:none}
   .squad tbody th{border-left:3px solid var(--side)}
   .squad thead th:nth-child(n+4):nth-child(-n+6){width:1.9rem}
-  .squad thead th:nth-child(7){width:4.3rem}
-  .squad thead th:nth-child(8){width:4.5rem}
+  .squad thead th:nth-child(7){width:3.9rem}
+  .squad thead th:nth-child(8){width:4.3rem}
   .squad td,.squad tbody th{padding-inline:.3rem}
   .squad td{font-size:1.05rem}
   .squad td.cr{font-size:.95rem}
   .squad td.wp .weapon{gap:.25rem}
   .squad td.wp .weapon-icon{height:.9rem;max-width:2.7rem}
-  .squad caption b{font-size:1.7rem;margin-right:.45rem}
-  .board{padding:.7rem}
-  .freeze-clock{font-size:2.5rem}
-  .bug-score .bug-mid{min-width:6.5rem;min-height:4.4rem}
-  .play-call,.tray .play-call,.plays-out{flex-basis:100%;max-width:none}
-  .controls .flow{flex:1;min-width:0;margin-left:0;padding-inline:.6rem}
-  .controls .flow .wide{display:none}
-  /* The names go above the score, each on its own side, so a long one never pushes the other off the screen. */
-  .bug{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.5rem .8rem}
-  .bug-team.us{grid-area:1/1;justify-content:flex-start;text-align:left}
-  .bug-team.them{grid-area:1/2;justify-content:flex-end;text-align:right}
-  .bug-score{grid-area:2/1/3/3;justify-content:center;gap:.8rem}
-  .bug-team b{font-size:1.5rem;line-height:1;overflow-wrap:anywhere}
-  .bug-team .crest,.bug-team .logo{display:none}
-  .arena{padding-inline:.9rem}
-  .bug-team small{display:none}
-  .bug-meta{margin-top:.35rem}
-  .career{gap:1.2rem}
-  .tabs button{font-size:2.4rem}
-  .team-photo figcaption b{display:none}
+  .squad caption b{margin-right:.45rem}
+  .who b{font-size:.8rem}
+  .ready{width:8px;height:8px;margin-left:.35rem}
 }
+/* A phone lying down has almost no height: the top bar goes up with the page. */
+@media (max-height:500px){
+  .ribbon{position:static}
+}
+/* ---------- Dedo em vez de mouse ---------- */
+/* What is touched is at least as tall as a fingertip, on any screen touched with a finger and on every narrow one. */
+@media (pointer:coarse),(max-width:700px){
+  .btn.small{min-height:44px}
+  .link{display:inline-flex;align-items:center;min-height:44px}
+  .x{width:2.75rem;height:2.75rem}
+  .help,.brand{min-width:44px;min-height:44px;justify-content:center}
+  .agent-btn{min-height:44px}
+  .album-filters button,.settings-pop button{min-height:44px}
+  .settings-pop .speed button{min-width:44px}
+  .compare-picker select{min-height:48px}
+}
+/* A finger doesn't hover: what would rise under a pointer stays put, and answers to the touch itself instead. */
+@media (hover:none){
+  .offer-art:hover,.perk-card:hover,.slot-card:hover,.bench-card:not(.selected):hover:not(.empty),.pack:hover:not(:disabled),.perk-pack:hover:not(:disabled),.market-art:hover,.rival-cards button:hover,.actor:hover:not(:disabled),.album-card:hover{transform:none}
+  .offer-art:hover{filter:none}
+  .btn:active:not(:disabled),.offer-art:active,.perk-card:active,.slot-card:active,.bench-card:active:not(.empty),.pack:active:not(:disabled),.perk-pack:active:not(:disabled),.market-art:active,.rival-cards button:active,.actor:active:not(:disabled),.agent-btn:active,.agent-row:active,.album-card:active,.mini:active:not(.empty){transform:scale(.97)}
+  img{-webkit-touch-callout:none}
+  button{-webkit-user-select:none;user-select:none}
+}
+/* A phone repaints a background fixed to the screen at every step of a scroll, and blurs what is behind a bar the same
+   way. The background becomes a layer of its own, which costs nothing to scroll over, and the blurs that move go. */
+@media (pointer:coarse){
+  body{background:var(--purple)}
+  body::before{content:"";position:fixed;left:0;right:0;top:0;height:100vh;height:100lvh;z-index:-1;pointer-events:none;
+    background:radial-gradient(1100px 620px at 50% -180px,var(--purple-hi),transparent 70%),linear-gradient(180deg,transparent 55%,rgba(35,11,77,.85))}
+  .ribbon-bar{background:rgba(20,20,20,.96);backdrop-filter:none}
+  dialog::backdrop{background:rgba(35,11,77,.93);backdrop-filter:none}
+}
+/* Where the system asks for less motion (in Windows, with the animation effects turned off), everything stands still,
+   except the reveal of a pack: it is what opening a pack is, not an ornament. It keeps its timing and loses what moves:
+   each part only appears and goes, without growing, turning or sliding. */
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
+  *:not(.walkout,.walk-step,.walk-card,.pack-pick),*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
+  .walk-step{animation-name:walk-still}
+  .walk-card{animation-name:walk-card-still}
+  .pack-pick{animation-name:appear}
 }
+@keyframes walk-still{0%,100%{opacity:0}18%,80%{opacity:1}}
+@keyframes walk-card-still{0%{opacity:0}30%,100%{opacity:1}}
+@keyframes appear{from{opacity:0}}
