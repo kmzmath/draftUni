@@ -56,13 +56,17 @@ export function weightedSample(list,random=Math.random,weight=cardWeight) {
 
 // ---------- Contratos de agente e draft ----------
 export function agentPopularity(players) { const count={};for(const p of players)count[p.comfort]=(count[p.comfort]||0)+1;return count; }
-export function startingPool(players,random) {
+export function startingPool(players,random,count=ROLES.length*2) {
   // Two contracts per role. Popular comfort picks show up a little more often, so most runs start with usable ones.
   const popularity=agentPopularity(players),weight=agent=>Math.sqrt((popularity[agent]||0)+2);
-  return ROLES.flatMap(role=>{
+  const pairs=ROLES.map(role=>{
     const options=Object.keys(AGENTS).filter(a=>AGENTS[a]===role),first=weightedSample(options,random,weight);
     return [first,weightedSample(options.filter(a=>a!==first),random,weight)];
   });
+  // With fewer contracts than that, the roles left with a single one are drawn; every role keeps at least one.
+  const lean=[];
+  while(lean.length<ROLES.length*2-count)lean.push(sample(ROLES.filter(role=>!lean.includes(role)),random));
+  return ROLES.flatMap((role,i)=>lean.includes(role)?pairs[i].slice(0,1):pairs[i]);
 }
 // The role a card is drafted as: its own, or for Flex the role it played most.
 export function draftRole(player) {
@@ -346,7 +350,7 @@ function buyPhase(match,t){
 }
 
 // ---------- Partida ----------
-export function createMatch({lineup,opponent,seed,perks=[]}){
+export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS}){
   const error=validLineup(lineup)||validLineup(opponent.lineup);if(error)throw new Error(error);
   const random=rng(seed);
   // likes: the weapons this player prefers, most liked first. Everyone has a rifle; some are AWPers, a few have a quirk.
@@ -358,7 +362,7 @@ export function createMatch({lineup,opponent,seed,perks=[]}){
   };
   const team=(name,slots)=>({name,lineup:slots.map(s=>({...s})),players:slots.map(row),lossStreak:0,wonLast:false});
   // plays: what each team still has, [yours, the rival's]; playsMax: what each started the match with.
-  const mine=PLAYS+(perks.includes('quarta_jogada')?1:0);
+  const mine=ownPlays+(perks.includes('quarta_jogada')?1:0);
   const match={teams:[team('Seu elenco',lineup),team(opponent.name,opponent.lineup)],perks,random,seed,
     score:[0,0],round:1,startSide:sample(['Ataque','Defesa'],random),plays:[mine,PLAYS],playsMax:[mine,PLAYS],
     used:[],enemyUsed:[],log:[],pending:null,prepared:null,over:false,eventsResolved:0,eventsWon:0};

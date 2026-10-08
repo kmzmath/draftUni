@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=347551d508';
+import * as E from './engine.js?v=d803d29969';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -37,14 +37,87 @@ const ROLE_PLURAL = {Duelista:'Duelistas',Iniciador:'Iniciadores',Controlador:'C
 // How rarely a rule-changing staff bonus is offered, against 1 for the others.
 const RARE_WEIGHT = .35;
 
+
+// ---------- A escada de dificuldade ----------
+// Ten steps a run can be played on, each adding one rule to the ones before it. A run carries its step in
+// run.ascension; a run without one is the game as it is, and so is every Desafio do dia, which has to be the same run
+// for everybody. The steps go from the rule that weighs least on the result to the one that weighs most, as measured
+// with each rule alone in scripts/simulate.mjs, which is also where the numbers behind the rules are tuned.
+// Stacked rules weigh more than the sum of each alone, and the ones that cut into the chance of each game (the ones
+// in reserve below) most of all: that is why the ladder is made of light rules and ends on a single heavy one.
+// The number behind each rule that has one. They are tuned with the simulator, which can also try other numbers
+// without touching this file; the texts of the rules are written from them.
+export const LADDER_VALUES = {market:3,coins:150,streak:40,rivals:.15,contracts:6,stage:150,pay:70,prices:1.05,roster:7,plays:2,groups:2};
+const V = LADDER_VALUES;
+export const LADDER = [
+  {key:'market',text:`O mercado mostra ${V.market} cartas em vez de 4`},
+  {key:'coins',text:`A run começa com ${V.coins} moedas em vez de ${START_COINS}`},
+  {key:'streak',text:`Vitórias seguidas pagam no máximo ${V.streak} moedas em vez de ${STREAK_MAX}`},
+  {key:'rivals',text:'Os rivais de cada jogo vêm mais fortes'},
+  {key:'contracts',text:`${V.contracts} contratos de agente no começo em vez de ${E.ROLES.length*2}`},
+  {key:'stage',text:`Fase vencida paga ${V.stage} moedas em vez de ${STAGE_BONUS}`},
+  {key:'pay',text:`Vitória paga ${V.pay} moedas em vez de ${WIN_BONUS}`},
+  {key:'prices',text:`Pacotes, mercado e contratos custam ${Math.round((V.prices-1)*100)}% mais`},
+  {key:'roster',text:`Elenco de no máximo ${V.roster} cartas em vez de ${ROSTER_MAX}`},
+  {key:'final',text:'A final é em dois jogos: é preciso vencer os dois'}
+];
+// Rules that are written and tested but not on the ladder: each weighs too much on top of the others for the last
+// step to stay winnable. The simulator can put them on a ladder to weigh them (--escada, --regras).
+export const SPARE_RULES = [
+  {key:'plays',text:`Você tem ${V.plays} Jogadas de Efeito por partida em vez de ${E.PLAYS}`},
+  {key:'staff',text:'Sem bônus depois do draft; o primeiro vem ao vencer a classificatória'},
+  {key:'groups',text:`A Fase de Grupos cai com ${V.groups} derrotas em vez de ${STAGES[1].losses}`}
+];
+// The rules a run is played under: the ones of its step and of every step before it.
+export const rulesOf = run=>LADDER.slice(0,run?.ascension||0);
+const on = (run,key)=>rulesOf(run).some(step=>step.key===key);
+// The stages as this run plays them.
+export const stagesOf = run=>STAGES.map(stage=>
+  stage.key==='groups'&&on(run,'groups')?{...stage,losses:V.groups}
+  :stage.key==='playoffs'&&on(run,'final')?{...stage,wins:stage.wins+1,targets:[...stage.targets,stage.targets.at(-1)],labels:[...stage.labels.slice(0,-1),'Final · Jogo 1','Final · Jogo 2']}
+  :stage);
+export const winBonus = run=>on(run,'pay')?V.pay:WIN_BONUS;
+export const stageBonus = run=>on(run,'stage')?V.stage:STAGE_BONUS;
+export const rosterMax = run=>on(run,'roster')?V.roster:ROSTER_MAX;
+// What something costs in this run's shop, from its price in the game as it is.
+const priced = (run,cost)=>on(run,'prices')?Math.round(cost*V.prices/10)*10:cost;
+export const packsOf = run=>PACKS.map(pack=>on(run,'prices')?{...pack,cost:priced(run,pack.cost)}:pack);
+// The strength asked of the rival of the next game.
+export function rivalTarget(run) {
+  const stage=stagesOf(run)[run.stage],record=run.record[run.stage];
+  return stage.targets[Math.min(record.w+record.l,stage.targets.length-1)]+(on(run,'rivals')?V.rivals:0);
+}
+
+// ---------- Períodos ----------
+// What the player sees of the ladder: its steps are the períodos of the traditional mode. A title in that mode opens
+// the 1st período, and a title on a período opens the one after it. The Desafio do dia opens nothing.
+export const PERIODS = LADDER.length;
+export const periodName = step=>`${step}º período`;
+// The períodos a career holds: `period`, the highest one open, and `cleared`, the highest one won. Whatever is saved
+// is only trusted when it makes sense, and a career with a title from before the períodos existed has the 1st open.
+export function periodsOf(career) {
+  const whole=value=>Number.isInteger(value)&&value>=0;
+  const period=whole(career?.period)?Math.min(PERIODS,career.period):career?.titles>0?1:0;
+  return {period,cleared:whole(career?.cleared)?Math.min(period,career.cleared):0};
+}
+// What a finished run leaves: the same two numbers, and `opened`, the período this run has just opened (0 for none).
+export function periodsAfter(career,run) {
+  const {period,cleared}=periodsOf(career);
+  if(run.result!=='champion'||run.daily)return {period,cleared,opened:0};
+  const won=run.ascension||0,next=Math.min(PERIODS,won+1);
+  return {period:Math.max(period,next),cleared:Math.max(cleared,won),opened:next>period?next:0};
+}
+// Which run this is, as the results name it.
+export const modeLine = run=>run.daily?`Desafio #${dailyNumber(run.daily)} · ${dayLabel(run.daily)}`:run.ascension?`Modo tradicional · ${periodName(run.ascension)}`:'Modo tradicional';
+
 export function indexDb(db) { return {...db,byId:new Map(db.players.map(p=>[p.id,p]))}; }
 // Every random decision of the run draws from its own stream, derived from the seed and a counter,
 // so a saved run continues exactly as it would have.
 function roll(run) { return E.rng((run.seed+Math.imul(++run.rolls,0x9E3779B1))>>>0); }
 const round10 = value=>Math.round(value/10)*10;
 const discount = run=>run.perks.includes('negociador')?.8:1;
-export const agentPrice = run=>round10(AGENT_PRICE*discount(run));
-export const playerPrice = (run,player)=>round10((30+(player.ovr-72)**2*2)*discount(run));
+export const agentPrice = run=>priced(run,round10(AGENT_PRICE*discount(run)));
+export const playerPrice = (run,player)=>priced(run,round10((30+(player.ovr-72)**2*2)*discount(run)));
 export const sellValue = player=>round10(playerPrice({perks:[]},player)/2);
 export const rosterIds = run=>[...run.lineup.map(s=>s.id),...run.bench];
 export const lineupSlots = (run,db)=>run.lineup.map(s=>({player:db.byId.get(s.id),agent:s.agent}));
@@ -52,14 +125,15 @@ export const opponentLineup = (run,db)=>run.opponent.ids.map((id,i)=>({player:db
 export const lineupError = (run,db)=>E.validLineup(lineupSlots(run,db),run.pool);
 // Any card can be sold, so the team may be left with fewer than five starters. It can't play like that: see forfeitMatch.
 export const shortHanded = run=>run.lineup.length<5;
-export function matchLabel(stage,game) {
-  return stage===0?`Classificatória · Jogo ${game+1}`:stage===1?`Grupos · Jogo ${game+1}`:STAGES[2].labels[Math.min(game,2)];
+export function matchLabel(stage,game,run) {
+  const labels=stagesOf(run)[2].labels;
+  return stage===0?`Classificatória · Jogo ${game+1}`:stage===1?`Grupos · Jogo ${game+1}`:labels[Math.min(game,labels.length-1)];
 }
-export function nextMatchLabel(run) { const r=run.record[run.stage];return matchLabel(run.stage,r.w+r.l); }
+export function nextMatchLabel(run) { const r=run.record[run.stage];return matchLabel(run.stage,r.w+r.l,run); }
 // While a match is being played the roster and the shop are frozen: the match must end the way it started.
 function idle(run) { if(run.live)throw new Error('Há uma partida em andamento'); }
 function pay(run,cost) { if(run.coins<cost)throw new Error('Moedas insuficientes');run.coins-=cost; }
-function needSeat(run) { if(rosterIds(run).length>=ROSTER_MAX)throw new Error(`Elenco cheio (${ROSTER_MAX}). Libere uma vaga vendendo um jogador`); }
+function needSeat(run) { if(rosterIds(run).length>=rosterMax(run))throw new Error(`Elenco cheio (${rosterMax(run)}). Libere uma vaga vendendo um jogador`); }
 // A new card goes to the bench, unless a starting place is open: then it starts, on the best free agent under contract.
 function seat(run,db,id) {
   if(!shortHanded(run))return run.bench.push(id);
@@ -74,12 +148,16 @@ function distinct(list,count,random,weight) {
 
 // ---------- Início e draft ----------
 // `daily` is the day (see dayKey) of the Desafio do dia this run belongs to; a run of the traditional mode has none.
-export function createRun(db,seed,{daily}={}) {
+// `ascension` is the step of the ladder the run is played on (see LADDER); the Desafio do dia never has one.
+export function createRun(db,seed,{daily,ascension=0}={}) {
+  if(!Number.isInteger(ascension)||ascension<0||ascension>LADDER.length)throw new Error('Este degrau não existe');
   const run={version:3,seed:seed>>>0,rolls:0,status:'draft',pool:[],lineup:[],bench:[],coins:START_COINS,stage:0,
     record:STAGES.map(()=>({w:0,l:0})),history:[],usedTeams:[],perks:[],perkOffer:null,draft:{picked:[],choices:[],plan:[]},
     shop:null,pack:null,opponent:null,matchSeed:0,live:null,result:null};
   if(daily)run.daily=daily;
-  run.pool=E.startingPool(db.players,roll(run));
+  else if(ascension)run.ascension=ascension;
+  if(on(run,'coins'))run.coins=V.coins;
+  run.pool=E.startingPool(db.players,roll(run),on(run,'contracts')?V.contracts:undefined);
   run.draft.plan=E.draftPlan(roll(run));
   offerDraft(run,db);
   return run;
@@ -95,7 +173,7 @@ export function draftPick(run,db,id) {
   const picked=run.draft.picked.map(id=>db.byId.get(id));
   run.lineup=E.assignAgents(picked.slice(0,5),run.pool).map(s=>({id:s.player.id,agent:s.agent}));
   run.bench=[picked[5].id];run.draft.choices=[];
-  offerPerk(run,db);
+  if(on(run,'staff'))prepareHub(run,db);else offerPerk(run,db);
 }
 
 // ---------- Comissão técnica ----------
@@ -110,7 +188,7 @@ function offerPerk(run,db) {
   run.status='perk';
 }
 // What the next advantage pack costs in this run, or null when there is no bonus left to offer.
-export const perkPackCost = run=>perksLeft(run).length?PERK_PACK_COST+PERK_PACK_STEP*(run.perkPacks||0):null;
+export const perkPackCost = run=>perksLeft(run).length?priced(run,PERK_PACK_COST+PERK_PACK_STEP*(run.perkPacks||0)):null;
 // Buys an advantage pack in the shop. The choice among its three bonuses is made on the staff screen, and then the
 // run is back in the same shop, before the same match (run.perkBought is what tells this choice from the campaign's).
 export function openPerkPack(run,db) {
@@ -132,8 +210,7 @@ export function choosePerk(run,db,key) {
 
 // ---------- Próximo jogo e loja ----------
 function prepareHub(run,db) {
-  const stage=STAGES[run.stage],record=run.record[run.stage];
-  const target=stage.targets[Math.min(record.w+record.l,stage.targets.length-1)];
+  const target=rivalTarget(run);
   const rival=E.buildOpponent(db.players,{target,excludeIds:rosterIds(run),excludeTeams:run.usedTeams},roll(run));
   run.opponent={team:rival.name,rating:rival.rating,level:rival.level,strength:rival.strength,mains:rival.mains,
     ids:rival.lineup.map(s=>s.player.id),agents:rival.lineup.map(s=>s.agent)};
@@ -145,7 +222,7 @@ function makeShop(run,db) {
   const random=roll(run),[lo,hi]=STAGES[run.stage].market;
   // The next opponent's cards stay off the shelf so you never face a player you are fielding.
   const taken=new Set([...rosterIds(run),...run.opponent.ids]);
-  const market=distinct(db.players.filter(p=>!taken.has(p.id)&&p.ovr>=lo&&p.ovr<=hi),run.perks.includes('vitrine')?6:4,random);
+  const market=distinct(db.players.filter(p=>!taken.has(p.id)&&p.ovr>=lo&&p.ovr<=hi),(on(run,'market')?V.market:4)+(run.perks.includes('vitrine')?2:0),random);
   const comfort=new Set(rosterIds(run).map(id=>db.byId.get(id).comfort));
   const agents=distinct(Object.keys(E.AGENTS).filter(agent=>!run.pool.includes(agent)),3,random,agent=>comfort.has(agent)?4:1);
   return {market:market.map(p=>({id:p.id,sold:false})),agents:agents.map(agent=>({agent,sold:false}))};
@@ -186,10 +263,10 @@ export function sellPlayer(run,db,id) {
 // The role pack on this shop's shelf, or null when the shop has none (a run saved before role packs existed).
 export function rolePack(run) {
   const role=run.shop?.role;
-  return role?{key:'funcao',role,name:`Pacote de ${ROLE_PLURAL[role]}`,cost:ROLE_PACK_COST[run.stage],range:[...STAGES[run.stage].market]}:null;
+  return role?{key:'funcao',role,name:`Pacote de ${ROLE_PLURAL[role]}`,cost:priced(run,ROLE_PACK_COST[run.stage]),range:[...STAGES[run.stage].market]}:null;
 }
 // What a pack key stands for in this run's shop: one of the three packs by overall, or the role pack.
-export const packFor = (run,key)=>key==='funcao'?rolePack(run):PACKS.find(p=>p.key===key)||null;
+export const packFor = (run,key)=>key==='funcao'?rolePack(run):packsOf(run).find(p=>p.key===key)||null;
 // The name of a pack already opened (run.pack).
 export const packName = pack=>pack.role?`Pacote de ${ROLE_PLURAL[pack.role]}`:PACKS.find(p=>p.key===pack.key).name;
 export function openPack(run,db,key) {
@@ -243,7 +320,7 @@ export function beginMatch(run,db) {
   // its seed and those decisions, so replaying them rebuilds it exactly. That is what makes a reload pointless: the same
   // match comes back, with the same plays already spent and the same choices already made.
   run.live??={calls:[],picks:[],rounds:0};
-  const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks});
+  const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:on(run,'plays')?V.plays:undefined});
   let used=0;
   while(!match.over){
     if(!match.pending&&run.live.calls.includes(match.round))E.callPlay(match);
@@ -277,15 +354,15 @@ export function forfeitMatch(run,db) {
 export function recordMatch(run,db,match) {
   if(run.status==='over')throw new Error('A run já foi encerrada');
   if(run.status!=='hub')throw new Error('Nenhuma partida preparada');
-  const won=match.score[0]>match.score[1],stage=STAGES[run.stage],record=run.record[run.stage],forfeit=!!match.forfeit;
-  const label=matchLabel(run.stage,record.w+record.l);
+  const won=match.score[0]>match.score[1],stage=stagesOf(run)[run.stage],record=run.record[run.stage],forfeit=!!match.forfeit;
+  const label=matchLabel(run.stage,record.w+record.l,run);
   if(won)record.w++;else record.l++;
   const played=forfeit?0:MATCH_PAY+(run.perks.includes('patrocinio')?60:0);
   // Wins in a row, this one included. The sequence carries over from one stage to the next.
   let streak=0;
   if(won){streak=1;for(let i=run.history.length-1;i>=0&&run.history[i].won;i--)streak++;}
-  const streakCoins=streakBonus(streak);
-  let coins=played+(won?WIN_BONUS+(run.perks.includes('bicho')?40:0):0)+streakCoins,outcome='continue',spare=0,forgiven=false;
+  const streakCoins=on(run,'streak')?Math.min(V.streak,streakBonus(streak)):streakBonus(streak);
+  let coins=played+(won?winBonus(run)+(run.perks.includes('bicho')?40:0):0)+streakCoins,outcome='continue',spare=0,forgiven=false;
   if(record.l>=stage.losses){
     // Repescagem: the first defeat that would end the run is played, paid and remembered, but doesn't count. The
     // bonus is spent with it and leaves the staff.
@@ -300,7 +377,7 @@ export function recordMatch(run,db,match) {
     // A stage fits wins+losses-1 games. Winning it early pays the games left unplayed. Each one also pays the price
     // of a new set of offers, because a game that is not played is a visit to the shop that never happens.
     spare=(stage.wins+stage.losses-1-record.w-record.l)*(played+REROLL_COST);
-    coins+=STAGE_BONUS+spare;
+    coins+=stageBonus(run)+spare;
   }
   // What each starter did in a match that was actually played, added up over the run.
   if(match.teams){
@@ -343,14 +420,15 @@ export function resultLine(run) {
   if(run.result==='abandoned')return `desistiu ${where}`;
   if(run.stage<2)return `caiu ${where}`;
   const last=run.history.at(-1)?.label;
-  return last==='Final'?'vice-campeão':last==='Semifinal'?'caiu na semifinal':'caiu nas quartas de final';
+  // the final is one game, or two on the período that plays it twice
+  return last?.startsWith('Final')?'vice-campeão':last==='Semifinal'?'caiu na semifinal':'caiu nas quartas de final';
 }
 // The result of a run as a few lines to paste anywhere: which challenge, how far the team went, every match as a
 // square (one group of squares per stage) and the totals.
 export function shareText(run,team) {
   const wins=run.history.filter(h=>h.won).length,diff=run.history.reduce((sum,h)=>sum+h.score[0]-h.score[1],0);
   const squares=STAGES.map((_,stage)=>run.history.filter(h=>h.stage===stage).map(h=>h.won?'🟩':'🟥').join('')).filter(Boolean).join(' ');
-  return [`Univavá Draft · ${run.daily?`Desafio #${dailyNumber(run.daily)} · ${dayLabel(run.daily)}`:'Modo tradicional'}`,
+  return [`Univavá Draft · ${modeLine(run)}`,
     `${team||'Seu time'}: ${resultLine(run)}`,squares,
     `${wins} V · ${run.history.length-wins} D · saldo de rounds ${diff>0?'+':''}${diff}`].join('\n');
 }

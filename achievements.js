@@ -2,9 +2,9 @@
 // Cada uma tem um nome e o que pede. Nenhuma dá moedas nem bônus: são só para mostrar.
 // O que já saiu fica guardado entre as runs como {got:{id:dia}, formations:[...]}: o dia em que cada conquista saiu
 // e, para a Estrategista, as formações com que o time já venceu.
-import * as E from './engine.js?v=347551d508';
-import {lineupSlots,lineupError} from './campaign.js?v=347551d508';
-import {albumSummary} from './album.js?v=347551d508';
+import * as E from './engine.js?v=d803d29969';
+import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=d803d29969';
+import {albumSummary} from './album.js?v=d803d29969';
 
 export const GROUPS = ['Campanha','Partida','Jogada de Efeito','Elenco','Álbum'];
 export const ACHIEVEMENTS = [
@@ -17,6 +17,8 @@ export const ACHIEVEMENTS = [
   ['wire','Campanha','No sufoco','Avançar de fase no último jogo possível'],
   ['daily','Campanha','Campeão do dia','Ser campeão no Desafio do dia'],
   ['regular','Campanha','Assíduo','Jogar o Desafio do dia em 7 dias'],
+  ['passed','Campanha','Aprovado','Ser campeão no 1º período'],
+  ['graduate','Campanha','Formado',`Ser campeão no ${PERIODS}º período`],
   ['sweep','Partida','Atropelo','Vencer uma partida por 13 a 0'],
   ['swept','Partida','Dia para esquecer','Perder uma partida por 0 a 13'],
   ['overtime','Partida','Prorrogação','Vencer uma partida na prorrogação'],
@@ -48,6 +50,8 @@ const SELECAO = 90, BEST = 93, VAULT = 1000;
 // ---------- O que cada momento do jogo prova ----------
 // Each function gives the ids a moment has earned, whether or not they had come out before: award() keeps the news.
 
+// The períodos a title was won on: the first one is behind whoever won any, since each opens the next.
+const periods = cleared=>[...(cleared>=1?['passed']:[]),...(cleared>=PERIODS?['graduate']:[])];
 // How far a campaign has got: the stage it is in, the playoff games already won, and the title.
 function reached(stage,playoffWins,champion) {
   const got=[];
@@ -86,6 +90,7 @@ export function fromMatch({match,summary,run},feats) {
   got.push(...reached(run.stage,run.record?.[2]?.w||0,champion));
   if(champion&&run.history.every(game=>game.won))got.push('unbeaten');
   if(champion&&run.daily)got.push('daily');
+  if(champion)got.push(...periods(run.ascension||0));
   // a stage has as many games as wins and losses it allows, less one: none was left over
   if(summary.outcome==='advanced'&&summary.spare===0)got.push('wire');
   return got;
@@ -111,6 +116,7 @@ export function fromState({run,db,career,album}) {
   if(titles>=3)got.push('three');
   if(Object.values(days).some(day=>/^campeão/i.test(day?.line||'')))got.push('daily');
   if(Object.keys(days).length>=7)got.push('regular');
+  got.push(...periods(career?.cleared||0));
   // a lineup counts when it is one that can play: five starters, each on an agent of his own
   if(run?.status==='hub'&&run.lineup.length===5&&!lineupError(run,db)){
     const lineup=lineupSlots(run,db),values=lineup.map(slot=>E.effective(slot.player,slot.agent,lineup,run.perks).value);

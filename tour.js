@@ -2,12 +2,14 @@
 // As telas não trazem texto explicativo; tudo o que precisa ser explicado mora aqui.
 
 // Cada passo aponta para um elemento (el) e traz um título e um texto. Passos cujo elemento não está na tela são pulados.
+const PERIOD_OPENED = {el:'.period-opened',title:'Período liberado',text:'O título abriu um período novo no modo tradicional. Nele vale a regra mostrada aqui, somada às de todos os períodos anteriores: são 10 no total. Na próxima run você escolhe em qual período jogar'};
 export const TOURS = {
   home:[
     {el:'.hero-title',title:'Univavá Draft',text:'Você é um bom técnico? Tente montar seu time dos sonhos com as cartinhas de todo mundo que jogou o Univavá, e leve seu time à glória! Passando pelo caminho completo: classificatória, fase de grupos e Playoffs!'},
     {el:'.team-name',title:'Seu time',text:'Dê um nome ao seu time. Ele aparece no placar das partidas e pode ser trocado aqui quando quiser'},
     {el:'.mode.daily',title:'Desafio do dia',text:'Uma run por dia, igual para todo mundo: os mesmos contratos, o mesmo draft, os mesmos bônus oferecidos e os mesmos rivais. Só dá para jogar uma vez. No fim, copie o resultado para comparar com os amigos. O desafio vira à meia-noite de Brasília'},
     {el:'.mode.free',title:'Modo tradicional',text:'Uma run sorteada só para você, quantas vezes quiser. Cada run começa com um draft novo e termina no título ou na eliminação. As duas runs ficam salvas, cada uma no seu lugar: dá para fechar o jogo e continuar depois'},
+    {el:'.period-pips',title:'Períodos',text:'Cada título no modo tradicional abre um período: uma run com uma regra a mais, que se soma às dos períodos anteriores. São 10, do 1º ao 10º. Ao começar uma run você escolhe em qual jogar, entre os que já abriu. Os losangos acesos são os períodos que você já venceu. O Desafio do dia não tem períodos'},
     {el:'.career',title:'Seu histórico',text:'Runs jogadas, títulos e a melhor campanha até agora, somando os dois modos'},
     {el:'.album-link',title:'Álbum de cartinhas',text:'Toda carta que joga uma partida pelo seu time entra no álbum. Acha que consegue colecionar todo mundo?'},
     {el:'.feats-link',title:'Conquistas',text:'Os feitos do seu time ficam marcados aqui, do 13 a 0 ao título. Consegue completar todas?'},
@@ -15,7 +17,7 @@ export const TOURS = {
   ],
   draft:[
     {el:'.band',title:'O draft',text:'São 6 escolhas: 5 titulares e 1 reserva. Em cada uma você fica com 1 de 3 cartas, sempre de funções diferentes. Cada função aparece pelo menos 2 vezes ao longo do draft'},
-    {el:'.contracts',title:'Contratos de agente',text:'Você só pode pickar agentes que você tem o contrato! Cada jogador tem seu main e joga melhor com ele. Estes 8, 2 de cada função, foram sorteados para esta run. Você pode comprar novos agentes na loja!'},
+    {el:'.contracts',title:'Contratos de agente',text:'Você só pode pickar agentes que você tem o contrato! Cada jogador tem seu main e joga melhor com ele. Estes foram sorteados para esta run, com todas as funções. Você pode comprar novos agentes na loja!'},
     {el:'.offer',title:'A carta',text:'Overall, equipe e atributos do jogador. Clique na carta ou em Escolher para ficar com ela'},
     {el:'.offer .facts',title:'Encaixe no seu time',text:'O agente mostrado é o de conforto da carta. Tente usar os mains dos jogadores! Além disso, jogadores da mesma equipe possuem sinergia e jogam melhor juntos!'},
     {el:'.offer .stats',title:'Atributos',text:'ACS, KAST, KPR, MPR, APR e Swing decidem os confrontos da partida. A barrinha mostra o quão bom é cada stat comparado com as demais cartas do jogo!'},
@@ -26,6 +28,7 @@ export const TOURS = {
   ],
   'hub:lineup':[
     {el:'.band',title:'A fase',text:'O jogo da vez e seu saldo de vitórias e derrotas nesta fase. Os losangos no topo mostram quantas vitórias faltam para avançar; os círculos, quantas derrotas ainda cabem'},
+    {el:'.period-tag',title:'Período',text:'Esta run é de um período: valem a regra dele e as de todos os anteriores. Clique aqui para ver a lista'},
     {el:'.stage',title:'Titulares',text:'Os cinco que entram na partida. Clique em um jogador e depois em outro para trocar. Quando envolve o banco, você vê quem sai, quem entra e o overall efetivo do time antes e depois, e então confirma'},
     {el:'.slot .card',title:'Overall efetivo',text:'A Nota de cada jogador muda conforme a escalação: verde quando o jogador rende mais que o overall original, vermelho quando rende menos'},
     {el:'.slot .mods:not(:empty)',title:'De onde vem a mudança',text:'Conforto +1: o jogador está no agente mais jogado dele. Equipe: +1 para cada outro titular da mesma equipe, então dois juntos valem +1 cada, três valem +2, quatro +3 e os cinco +4. Função secundária -1. Fora da função -3'},
@@ -77,8 +80,11 @@ export const TOURS = {
     {el:'.band',title:'Fim da run',text:'Até onde a campanha chegou'},
     {el:'.history',title:'Campanha',text:'Todas as partidas da run, com adversário e placar'},
     {el:'[data-action="copy-result"]',title:'Copiar resultado',text:'Copia um resumo em texto: até onde o time foi, cada partida como um quadrado verde ou vermelho, vitórias, derrotas e saldo de rounds. É só colar onde quiser'},
+    PERIOD_OPENED,
     {el:'[data-action="new-run"]',title:'De novo',text:'Uma nova run começa com outro sorteio de contratos e outro draft'}
   ],
+  // Opens by itself, once, on the end of the run that opens the first período (see openTour in app.js).
+  periods:[PERIOD_OPENED],
   feats:[
     {el:'.band',title:'Conquistas',text:'Quantos feitos você já marcou, somando o Desafio do dia e o modo tradicional'},
     {el:'.feat',title:'Um feito',text:'Cada conquista diz o que pede. Quando você consegue, o símbolo acende e o dia fica anotado. Conquistas não dão moedas nem bônus: são só para mostrar'}

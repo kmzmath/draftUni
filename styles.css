@@ -1005,6 +1005,60 @@ dialog.skipped .pack-pick{animation:none}
 @keyframes stick{from{opacity:0;scale:1.5}}
 @keyframes reveal{from{opacity:0;transform:translateX(40px)}}
 
+/* ---------- Períodos ---------- */
+/* The período of the run on the top bar: the tag of the mode, as a button that opens the rules in force. */
+.period-tag{display:inline-flex;align-items:baseline;gap:.4em;transition:background .15s}
+.period-tag:hover:not(:disabled){background:var(--lime-hi)}
+.period-tag:disabled{cursor:default}
+/* The períodos already won, on the tile of the traditional mode: the marks of the top bar, ten of them. */
+.period-pips{display:flex;align-items:center;gap:7px;min-height:1.1rem;padding-left:3px}
+.period-pips .pip{width:10px;height:10px;border-color:rgba(255,255,255,.45)}
+.period-pips .pip.on{border-color:var(--lime)}
+/* The list of the períodos: one row each, the number and the rule it adds. A lime edge marks the ones in force. In
+   the dialog that starts a run each row is a button, and the chosen one is framed. */
+.periods{display:grid;gap:4px;margin:0 0 .3rem;padding:0;list-style:none}
+.period{display:grid;grid-template-columns:2.5rem minmax(0,1fr) auto;align-items:center;gap:.75rem;width:100%;min-height:46px;padding:.4rem .85rem .4rem .5rem;text-align:left;
+  color:var(--dim);background:rgba(255,255,255,.05);border-left:3px solid rgba(255,255,255,.14);border-radius:4px;transition:background .15s,color .15s,border-color .15s}
+.period b{font:400 1.8rem/1 var(--display);text-align:center}
+.period>span:not(.sr-only){font:500 .93rem/1.3 var(--body)}
+.period.on{color:var(--white);border-left-color:var(--lime)}
+.period.on b{color:var(--lime)}
+.period-base{justify-self:center;width:.62rem;height:.62rem;background:var(--lime);transform:rotate(45deg)}
+button.period:hover:not(:disabled){background:rgba(255,255,255,.1)}
+button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:inset 0 0 0 1px rgba(209,243,80,.6)}
+.period.locked{color:#6f6f6f;background:rgba(255,255,255,.025)}
+.period-lock{position:relative;width:.82rem;height:.6rem;margin-top:.36rem;background:currentColor;border-radius:2px}
+.period-lock::before{content:"";position:absolute;left:50%;bottom:100%;width:.52rem;height:.4rem;margin-left:-.26rem;box-sizing:border-box;border:2px solid currentColor;border-bottom:0;border-radius:.3rem .3rem 0 0}
+.period-note{margin-top:.8rem;font:600 .92rem/1.3 var(--body);color:var(--coral)}
+/* The período a title has just opened, on the last screen of the run. */
+.period-opened{max-width:660px;margin:0 auto 2rem;padding:1.1rem 1.3rem 1.25rem;background:var(--tray);border-top:5px solid var(--lime);border-radius:var(--radius)}
+.period-opened .eyebrow{margin-bottom:.35rem}
+.period-opened h2{font-size:3.4rem;line-height:.95;color:var(--lime)}
+.period-opened h2+p{margin-top:.45rem;font:500 1.02rem/1.35 var(--body);color:var(--white);text-wrap:balance}
+@media (max-width:860px){
+  /* On a narrow bar the tag is its number alone, in a box a finger can reach. */
+  .mode-tag.period-tag{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0;background:none}
+  .period-tag span{display:none}
+  .period-tag b{padding:.45rem .5rem;font-size:.74rem;background:var(--lime);border-radius:4px;transition:background .15s}
+  .period-tag:hover:not(:disabled) b{background:var(--lime-hi)}
+}
+@media (max-width:700px){
+  /* A run of a período has one more thing on a bar that was already full: the tag keeps its finger-sized box but
+     takes less room in the row, the gaps close a little and the name of the stage is set smaller. */
+  .mode-tag.period-tag{margin-inline:-7px}
+  .ribbon-bar:has(.period-tag){gap:.45rem}
+  .ribbon-bar:has(.period-tag) .ribbon-end{gap:.4rem}
+  .ribbon-bar:has(.period-tag) :is(.path,.path-stage){min-width:0}
+  .ribbon-bar:has(.period-tag) .path-name{max-width:100%;font-size:.62rem;letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* On the tile of a phone the result and its button share a row: the marks get the row under them, edge to edge. */
+  .period-pips{grid-column:1/-1;grid-row:3;margin-top:.2rem}
+  .period{grid-template-columns:2.1rem minmax(0,1fr) auto;gap:.6rem;min-height:48px;padding-right:.7rem}
+  .period b{font-size:1.6rem}
+  .period>span:not(.sr-only){font-size:.9rem}
+  .period-opened{margin-bottom:1.4rem;padding:1rem 1rem 1.1rem}
+  .period-opened h2{font-size:2.7rem}
+}
+
 /* ---------- Telas menores ---------- */
 @media (max-width:1080px){
   .hub{grid-template-columns:minmax(0,1fr)}

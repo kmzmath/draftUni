@@ -1,6 +1,6 @@
 // A imagem do resultado de uma run, para copiar e colar: o desafio, o time, até onde foi, os titulares e cada partida.
 // shareModel diz o que vai na imagem (texto e medidas); shareImage desenha isso num canvas e devolve o PNG.
-import * as C from './campaign.js?v=347551d508';
+import * as C from './campaign.js?v=d803d29969';
 
 const WIDTH = 1200, MARGIN = 48, CARD = {w:200,h:320,gap:26}, ROW = 54;
 const TOP = 380, CARDS_AT = TOP+34, LIST_AT = CARDS_AT+CARD.h+86, FOOT = 112;
@@ -11,7 +11,7 @@ export function shareModel(run,team,db) {
   const wins=run.history.filter(h=>h.won).length,diff=run.history.reduce((sum,h)=>sum+h.score[0]-h.score[1],0),line=C.resultLine(run);
   const matches=run.history.map(h=>({label:h.label,opponent:h.opponent,score:h.forfeit?'W.O.':`${h.score[0]}-${h.score[1]}`,won:h.won}));
   return {
-    kicker:`Univavá Draft · ${run.daily?`Desafio #${C.dailyNumber(run.daily)} · ${C.dayLabel(run.daily)}`:'Modo tradicional'}`,
+    kicker:`Univavá Draft · ${C.modeLine(run)}`,
     title:line[0].toUpperCase()+line.slice(1),champion:run.result==='champion',team:team||'Seu time',
     totals:`${wins} V · ${run.history.length-wins} D · saldo de rounds ${diff>0?'+':''}${diff}`,
     cards:C.lineupSlots(run,db).map(s=>({image:s.player.image,name:s.player.name,agent:s.agent})),

@@ -1,29 +1,31 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=347551d508';
-import * as C from './campaign.js?v=347551d508';
-import * as S from './screens.js?v=347551d508';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=347551d508';
-import {startTour,closeTour,tourOpen} from './tour.js?v=347551d508';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=347551d508';
-import {stamp,cleanAlbum} from './album.js?v=347551d508';
-import {initTips,refreshTips} from './tip.js?v=347551d508';
-import {shareModel,copyShareImage} from './share.js?v=347551d508';
-import {staleSave,stampSave} from './save.js?v=347551d508';
-import * as A from './achievements.js?v=347551d508';
-import {playChime} from './sound.js?v=347551d508';
+import * as E from './engine.js?v=d803d29969';
+import * as C from './campaign.js?v=d803d29969';
+import * as S from './screens.js?v=d803d29969';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=d803d29969';
+import {startTour,closeTour,tourOpen} from './tour.js?v=d803d29969';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=d803d29969';
+import {stamp,cleanAlbum} from './album.js?v=d803d29969';
+import {initTips,refreshTips} from './tip.js?v=d803d29969';
+import {shareModel,copyShareImage} from './share.js?v=d803d29969';
+import {staleSave,stampSave} from './save.js?v=d803d29969';
+import * as A from './achievements.js?v=d803d29969';
+import {playChime} from './sound.js?v=d803d29969';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice';
 // Two runs can be under way at once, each in its own slot: the traditional one, started whenever the player wants, and
 // the Desafio do dia. ctx.run is the one on screen (ctx.slots[ctx.mode]). ctx.today is the day of today's challenge.
-// career.daily remembers the result of each challenge already played; ctx.album, every card already fielded;
-// ctx.feats, the conquests already won.
+// career.daily remembers the result of each challenge already played; career.period and career.cleared, the períodos
+// of the traditional mode already open and already won (see periodsOf in campaign.js); ctx.album, every card already
+// fielded; ctx.feats, the conquests already won. ui.opened is the período the run on screen has just opened.
 const ctx={db:null,run:null,mode:'free',slots:{free:null,daily:null},today:'',album:{},feats:A.cleanFeats(null),match:null,summary:null,screen:'home',showcase:[],team:'',prefs:null,
-  career:{runs:0,titles:0,best:'',bestRank:-1,daily:{}},
-  ui:{tab:'lineup',selected:null,paused:false,speed:1,showEvent:false,play:null,duel:null,freeze:null,settings:false,sort:null,albumFilter:'all'}};
+  career:{runs:0,titles:0,best:'',bestRank:-1,daily:{},period:0,cleared:0},
+  ui:{tab:'lineup',selected:null,paused:false,speed:1,showEvent:false,play:null,duel:null,freeze:null,settings:false,sort:null,albumFilter:'all',opened:0}};
 // What the player chose to keep between visits: the team's name, match speed, how the freezetime before each round
-// works (automatic or on a click, and for how many seconds) and which screens the tutorial already explained.
-const prefs=ctx.prefs={team:'',speed:1,freezeAuto:false,freezeSet:false,freeze:FREEZE_DEFAULT,tourOff:false,seen:{}};
+// works (automatic or on a click, and for how many seconds), which screens the tutorial already explained and the
+// período chosen for the last run.
+const prefs=ctx.prefs={team:'',speed:1,freezeAuto:false,freezeSet:false,freeze:FREEZE_DEFAULT,tourOff:false,seen:{},period:null};
 let timer=null,duelTimer=null,clockTimer=null,shownKey='',toastTimer=null,packShown=0;
 
 // Storage can be unavailable (private mode, blocked site data): the game then simply doesn't remember.
@@ -141,7 +143,8 @@ function runClock(){
 // The tutorial of each screen opens by itself the first time; the Ajuda button opens it again on demand.
 const tourName = key=>key.startsWith('draft')?'draft':key==='match:result'?null:key;
 function openTour(key,auto){
-  const name=tourName(key);
+  // The first período a title opens is explained on the spot, whatever the tutorial already showed of the end screen.
+  const name=auto&&key==='end'&&ctx.ui.opened&&!prefs.seen.periods?'periods':tourName(key);
   if(!name||$('#dialog').open||(auto&&(prefs.tourOff||prefs.seen[name])))return;
   // By itself the tutorial is the short one; asked for through Ajuda, it is the whole one.
   const started=startTour(name,{brief:auto,onClose(){schedule();render();},onOff(){prefs.tourOff=true;store(PREFS_KEY,prefs);}});
@@ -194,6 +197,10 @@ function enterMatch(){
 function recordCareer(run){
   const last=run.history.at(-1),champion=run.result==='champion';
   const rank=champion?100:run.stage*10+run.record[run.stage].w;
+  // A title in the traditional mode opens the next período, and the next run opens on it.
+  const {opened,...periods}=C.periodsAfter(ctx.career,run);
+  Object.assign(ctx.career,periods);
+  if(opened){ctx.ui.opened=opened;prefs.period=opened;store(PREFS_KEY,prefs);}
   ctx.career.runs++;if(champion)ctx.career.titles++;
   if(rank>ctx.career.bestRank){ctx.career.bestRank=rank;ctx.career.best=champion?'Campeão':run.stage===2&&last?last.label:C.STAGES[run.stage].name;}
   // A finished Desafio do dia leaves its result behind, with the text to share, for the last two months of days.
@@ -203,12 +210,13 @@ function recordCareer(run){
   }
   store(CAREER_KEY,ctx.career);
 }
-// A new run of the traditional mode, with a seed of its own. The one it replaces, if unfinished, is counted as it stands.
-function startRun(){
+// A new run of the traditional mode, with a seed of its own, on a período the player has open (0 for none). The one
+// it replaces, if unfinished, is counted as it stands.
+function startRun(period=0){
   const old=ctx.slots.free;
   if(old&&old.status!=='over')recordCareer(old);
-  ctx.slots.free=C.createRun(ctx.db,crypto.getRandomValues(new Uint32Array(1))[0]);
-  activate('free');ctx.ui.tab='lineup';
+  ctx.slots.free=C.createRun(ctx.db,crypto.getRandomValues(new Uint32Array(1))[0],{ascension:Math.min(period,C.periodsOf(ctx.career).period)});
+  activate('free');ctx.ui.tab='lineup';ctx.ui.opened=0;
   route();
 }
 // Back into a run already started. A pack left open comes back open.
@@ -304,7 +312,7 @@ function finishMatch(){
 // ---------- Ações ----------
 // Each action may return false to skip the re-render (dialogs render themselves).
 const actions={
-  home(){clearTimeout(timer);clearTimeout(duelTimer);ctx.screen='home';ctx.today=C.dayKey();},
+  home(){clearTimeout(timer);clearTimeout(duelTimer);ctx.screen='home';ctx.today=C.dayKey();ctx.ui.opened=0;},
   album(){ctx.screen='album';},
   feats(){ctx.screen='feats';},
   'album-filter'(id){ctx.ui.albumFilter=id;},
@@ -333,8 +341,22 @@ const actions={
   help(){openTour(entryKey(),false);return false;},
   'skip-walkout'(){if(Date.now()-packShown>=SKIP_AFTER)$('#dialog').classList.add('skipped');return false;},
   close(){closeDialog();return false;},
-  'new-run'(){const free=ctx.slots.free;if(free&&free.status!=='over'){openDialog(S.confirmNewRun());return false;}startRun();},
+  // With a período open, a new run starts by choosing one: the dialog also says when a run would be left behind.
+  'new-run'(){
+    const free=ctx.slots.free;
+    if(C.periodsOf(ctx.career).period){
+      openDialog(S.periodDialog(ctx));
+      // the list can be longer than the dialog: it opens showing the período that comes chosen
+      $('#dialog [aria-pressed="true"]')?.scrollIntoView({block:'center'});
+      return false;
+    }
+    if(free&&free.status!=='over'){openDialog(S.confirmNewRun());return false;}
+    startRun();
+  },
   'confirm-new-run'(){closeDialog();startRun();},
+  'pick-period'(id){openDialog(S.periodDialog(ctx,Number(id)));return false;},
+  'start-period'(id){closeDialog();prefs.period=Number(id);store(PREFS_KEY,prefs);startRun(Number(id));},
+  'period-rules'(){openDialog(S.periodRules(ctx.run));return false;},
   continue(){resume('free');},
   'draft-pick'(id){C.draftPick(ctx.run,ctx.db,id);route();},
   // A bonus bought in the shop sends the player back to the shop; one given by the campaign, to the lineup.
@@ -457,6 +479,8 @@ function validSave(run){
   try{
     const ids=[...C.rosterIds(run),...run.draft.picked,...run.draft.choices,...(run.opponent?.ids||[]),...(run.shop?.market.map(o=>o.id)||[]),...(run.pack?.cards||[])];
     const agents=[...run.pool,...run.lineup.map(s=>s.agent),...(run.opponent?.agents||[]),...(run.shop?.agents.map(o=>o.agent)||[])];
+    // the step of the ladder, when the run has one, is one that exists, and never on a Desafio do dia
+    if(run.ascension!==undefined&&(!Number.isInteger(run.ascension)||run.ascension<1||run.ascension>C.LADDER.length||run.daily))return false;
     return run.version===3&&Array.isArray(run.draft.plan)&&ids.every(id=>ctx.db.byId.has(id))&&agents.every(agent=>E.AGENTS[agent])
       &&[...run.perks,...(run.perkOffer||[])].every(key=>E.PERKS[key])&&(!run.pack||(run.pack.key==='funcao'?E.ROLES.includes(run.pack.role):C.PACKS.some(p=>p.key===run.pack.key)))
       &&Number.isFinite(run.coins)&&C.STAGES[run.stage]&&run.record.length===C.STAGES.length&&run.lineup.length<=5
@@ -476,6 +500,7 @@ function readSlot(mode){
 function readCareer(){
   ctx.career={runs:0,titles:0,best:'',bestRank:-1,daily:{},...(load(CAREER_KEY)||{})};
   if(!ctx.career.daily||typeof ctx.career.daily!=='object')ctx.career.daily={};
+  Object.assign(ctx.career,C.periodsOf(ctx.career));
 }
 // Another tab saved something. If it is the run on this tab's screen, this tab is now behind and starts over from
 // what was saved. Anything else (the run of the other mode, the history, the album) is simply read again.
@@ -492,7 +517,7 @@ addEventListener('storage',event=>{
 });
 async function init(){
   try{
-    const response=await fetch('players.json?v=347551d508');
+    const response=await fetch('players.json?v=d803d29969');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -503,12 +528,13 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=347551d508');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=d803d29969');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
   if([1,2,4].includes(saved_prefs.speed))prefs.speed=saved_prefs.speed;
   prefs.tourOff=saved_prefs.tourOff===true;prefs.seen={...(saved_prefs.seen||{})};
+  if(Number.isInteger(saved_prefs.period))prefs.period=saved_prefs.period;
   prefs.freezeAuto=prefs.freezeSet=savedFreezeAuto(saved_prefs);prefs.freeze=cleanFreeze(saved_prefs.freeze);
   if(typeof saved_prefs.team==='string')ctx.team=prefs.team=saved_prefs.team.replace(/\s+/g,' ').trim().slice(0,24);
   ctx.ui.speed=prefs.speed;

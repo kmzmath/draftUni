@@ -1,5 +1,5 @@
 // Componentes de interface compartilhados pelas telas. Tudo aqui devolve HTML em texto.
-import * as E from './engine.js?v=347551d508';
+import * as E from './engine.js?v=d803d29969';
 
 export const $ = selector=>document.querySelector(selector);
 export const esc = value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -110,6 +110,8 @@ const FEAT_SIGNS = {
     line:'M16.5 29.5C16.5 32.4 18.3 34.6 21 35.2'},                                 // as gotas de suor
   daily:{f:'M24 17.5A6.5 6.5 0 1 0 24 30.5A6.5 6.5 0 1 0 24 17.5Z',s:'M24 7V12.5M24 35.5V41M7 24H12.5M35.5 24H41M12 12 15.9 15.9M32.1 32.1 36 36M36 12 32.1 15.9M15.9 32.1 12 36'}, // o sol
   regular:{s:'M13 15H35V36H13ZM13 22.5H35M18.5 10.5V17M29.5 10.5V17'},                    // o calendário
+  passed:{f:'M32 10 38 16 22 32 12.5 35.5 16 26Z',line:'M28 14 34 20M16 26 22 32'},     // o lápis
+  graduate:{f:'M24 12 40 19.5 24 27 8 19.5ZM14.5 25.2 24 29.6 33.5 25.2V32C33.5 34.8 29.2 37 24 37C18.8 37 14.5 34.8 14.5 32Z',s:'M38 19.5V31'}, // o capelo
   // Partida
   sweep:{f:'M28 6 11 27H22L19 42 37 20H26Z'},                                     // o raio
   swept:{s:'M9 14 19 24 26 18 38 33M38 23V33H28'},                                // a queda

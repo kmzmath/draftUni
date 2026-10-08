@@ -1,12 +1,12 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=347551d508';
-import * as C from './campaign.js?v=347551d508';
-import {previewChange} from './impact.js?v=347551d508';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=347551d508';
-import {albumSummary,cardStatus} from './album.js?v=347551d508';
-import * as A from './achievements.js?v=347551d508';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=347551d508';
+import * as E from './engine.js?v=d803d29969';
+import * as C from './campaign.js?v=d803d29969';
+import {previewChange} from './impact.js?v=d803d29969';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=d803d29969';
+import {albumSummary,cardStatus} from './album.js?v=d803d29969';
+import * as A from './achievements.js?v=d803d29969';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=d803d29969';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -34,7 +34,7 @@ function teamLine(name) {
 
 // ---------- Moldura ----------
 function path(run) {
-  return `<ol class="path" aria-label="Campanha">${C.STAGES.map((stage,i)=>{
+  return `<ol class="path" aria-label="Campanha">${C.stagesOf(run).map((stage,i)=>{
     const record=run.record[i],state=run.result==='champion'||i<run.stage?'done':i===run.stage?'now':'next';
     const pips=(count,filled,kind)=>Array.from({length:count},(_,n)=>`<i class="pip ${kind} ${n<filled?'on':''}"></i>`).join('');
     return `<li class="path-stage ${state}"><span class="path-name">${stage.name}</span><span class="pips" role="img" aria-label="${record.w} de ${stage.wins} vitórias, ${record.l} de ${stage.losses} derrotas">${pips(stage.wins,record.w,'win')}<i class="pip-gap"></i>${pips(stage.losses,record.l,'loss')}</span></li>`;
@@ -45,27 +45,30 @@ export function chrome(ctx,content) {
   return `<header class="ribbon"><div class="ribbon-bar">
     <button class="brand" data-action="home" ${ctx.screen==='match'?'disabled':''} aria-label="Univavá Draft: tela inicial">${crest()}<b>UNIVAVÁ</b><em>DRAFT</em></button>
     ${inRun?path(run):'<span class="ribbon-fill"></span>'}
-    <div class="ribbon-end">${inRun&&run.daily?`<span class="mode-tag" data-tip="Desafio do dia ${C.dayLabel(run.daily)}">Desafio #${C.dailyNumber(run.daily)}</span>`:''}${inRun?`<span class="wallet" data-tip="Moedas da run">${coin(run.coins)}</span>`:''}<button class="help" data-action="help" aria-label="Ajuda: explica esta tela passo a passo"><i aria-hidden="true">?</i>Ajuda</button></div>
+    <div class="ribbon-end">${inRun&&run.daily?`<span class="mode-tag" data-tip="Desafio do dia ${C.dayLabel(run.daily)}">Desafio #${C.dailyNumber(run.daily)}</span>`:''}${
+      inRun&&run.ascension?`<button class="mode-tag period-tag" data-action="period-rules"${ctx.screen==='match'?' disabled':''} aria-label="${C.periodName(run.ascension)}: regras desta run"><b>${run.ascension}º</b><span> período</span></button>`:''}${inRun?`<span class="wallet" data-tip="Moedas da run">${coin(run.coins)}</span>`:''}<button class="help" data-action="help" aria-label="Ajuda: explica esta tela passo a passo"><i aria-hidden="true">?</i>Ajuda</button></div>
   </div>${ticker()}</header>
   <main id="main" class="screen screen-${ctx.screen}">${content}</main>`;
 }
 
 // ---------- Início ----------
 // The first screen offers the two ways to play, side by side: the Desafio do dia (one run a day, the same for everybody)
-// and the traditional mode. Each tile shows where that run stands and what can be done with it.
+// and the traditional mode. Each tile shows where that run stands and what can be done with it. Once a título has
+// opened the períodos, the tile of the traditional mode also carries ten marks: the períodos already won.
 function modes(ctx) {
   const {slots,today,career}=ctx,free=slots.free,daily=slots.daily;
   const going=daily&&daily.status!=='over',day=going?daily.daily:today;
   const done=going?'':daily?.daily===today?C.resultLine(daily):career.daily[today]?.line||'';
-  const freeOn=free&&free.status!=='over';
+  const freeOn=free&&free.status!=='over',periods=C.periodsOf(career);
   return `<div class="modes">
     <article class="mode daily"><p class="eyebrow">Desafio do dia · #${C.dailyNumber(day)} · ${C.dayLabel(day)}</p>
       <h2>${esc(capital(going?C.resultLine(daily):done||'ainda não jogado'))}</h2>
       <div class="mode-actions">${going?'<button class="btn primary big" data-action="daily">Continuar desafio</button><button class="link" data-action="daily-quit">Desistir</button>'
         :done?'<button class="btn" data-action="copy-result" data-id="daily">Copiar resultado</button>'
         :'<button class="btn primary big" data-action="daily">Jogar desafio</button>'}</div></article>
-    <article class="mode free"><p class="eyebrow">Modo tradicional</p>
-      <h2>${esc(capital(free?C.resultLine(free):'nenhuma run'))}</h2>
+    <article class="mode free"><p class="eyebrow">${free?C.modeLine(free):'Modo tradicional'}</p>
+      <h2>${esc(capital(free?C.resultLine(free):'nenhuma run'))}</h2>${
+        periods.period?`<span class="period-pips" role="img" aria-label="Períodos vencidos: ${periods.cleared} de ${C.PERIODS}">${Array.from({length:C.PERIODS},(_,i)=>`<i class="pip win${i<periods.cleared?' on':''}"></i>`).join('')}</span>`:''}
       <div class="mode-actions">${freeOn?'<button class="btn primary big" data-action="continue">Continuar run</button><button class="btn" data-action="new-run">Nova run</button>'
         :'<button class="btn primary big" data-action="new-run">Começar run</button>'}</div></article>
   </div>`;
@@ -167,9 +170,9 @@ function lineupTab(ctx) {
         <button class="btn small" data-action="sell" data-id="${picked.id}">Vender ${coin(C.sellValue(picked))}</button>
         <button class="link" data-action="deselect">Cancelar</button></div></div>`:''}
     <div class="under-stage"><div class="bench">
-      <p class="label">Reservas <span>${C.rosterIds(run).length} / ${C.ROSTER_MAX}</span></p>
+      <p class="label">Reservas <span>${C.rosterIds(run).length} / ${C.rosterMax(run)}</span></p>
       <div class="bench-row">${bench.map(p=>`<button class="bench-card ${ui.selected===p.id?'selected':''}" data-action="select" data-id="${p.id}" aria-pressed="${ui.selected===p.id}" aria-label="${esc(p.name)}, reserva">${cardArt(p)}<span>${agentIcon(p.comfort)}${esc(p.comfort)}</span></button>`).join('')}
-        ${Array.from({length:C.ROSTER_MAX-5-bench.length},()=>`<div class="bench-card empty"><span>Vaga</span></div>`).join('')}</div>
+        ${Array.from({length:C.rosterMax(run)-5-bench.length},()=>`<div class="bench-card empty"><span>Vaga</span></div>`).join('')}</div>
     </div>${staff(run)}</div>
     <div class="contracts tray"><p class="label">Contratos de agente <span>${run.pool.length} / ${Object.keys(E.AGENTS).length}</span></p>
       <div class="chips">${E.ROLES.flatMap(role=>run.pool.filter(agent=>E.AGENTS[agent]===role)).map(agent=>{
@@ -177,7 +180,7 @@ function lineupTab(ctx) {
 }
 function marketCard(offer,ctx) {
   const {db,run}=ctx,p=db.byId.get(offer.id),price=C.playerPrice(run,p),roster=C.rosterIds(run).map(id=>db.byId.get(id));
-  const blocked=offer.sold?'Comprado':roster.length>=C.ROSTER_MAX?'Elenco cheio':run.coins<price?'Faltam moedas':'';
+  const blocked=offer.sold?'Comprado':roster.length>=C.rosterMax(run)?'Elenco cheio':run.coins<price?'Faltam moedas':'';
   return `<article class="market-card ${offer.sold?'sold':''}">
     <button class="market-art" data-action="detail" data-id="${p.id}" aria-label="Ver carta de ${esc(p.name)}">${cardArt(p)}</button>
     ${teamLine(p.team)}
@@ -187,9 +190,9 @@ function marketCard(offer,ctx) {
   </article>`;
 }
 function shopTab(ctx) {
-  const {db,run}=ctx,roster=C.rosterIds(run).map(id=>db.byId.get(id)),full=roster.length>=C.ROSTER_MAX;
+  const {db,run}=ctx,roster=C.rosterIds(run).map(id=>db.byId.get(id)),full=roster.length>=C.rosterMax(run);
   // The three packs by overall, and the role pack of this shop: one role, in the colour and with the symbol of that role.
-  const packs=[...C.PACKS,C.rolePack(run)].filter(Boolean),reroll=C.rerollCost(run),perkCost=C.perkPackCost(run);
+  const packs=[...C.packsOf(run),C.rolePack(run)].filter(Boolean),reroll=C.rerollCost(run),perkCost=C.perkPackCost(run);
   return `<div class="shop">
     <section class="shop-block"><h2>Pacotes</h2>
       <div class="packs">${packs.map((pack,i)=>{const blocked=full?'Elenco cheio':run.coins<pack.cost?'Faltam moedas':'';
@@ -291,7 +294,7 @@ function statsTab(ctx) {
         <td class="num run">${done(r,'m')}</td><td class="num">${done(r,'k')}</td><td class="num">${done(r,'d')}</td><td class="num">${done(r,'a')}</td></tr>`;}).join('')}</tbody></table></div>`;
 }
 export function hub(ctx) {
-  const tab=ctx.ui.tab,run=ctx.run,stage=C.STAGES[run.stage],record=run.record[run.stage];
+  const tab=ctx.ui.tab,run=ctx.run,stage=C.stagesOf(run)[run.stage],record=run.record[run.stage];
   return `${band(stage.name,C.nextMatchLabel(run),`${record.w} V · ${record.l} D`,'compact')}
   <div class="hub ${tab==='stats'?'wide':''}">
     <section class="hub-main">
@@ -490,14 +493,14 @@ const rating = p=>p.k*2+p.a-p.d*.5;
 // are the defeats the stage allows: the ones already taken, and this one, given back. On the way in the mark fills as
 // a defeat and is then cleared while the bonus is spent, and the stamp lands on top: the run goes on.
 function secondLife(run,entry) {
-  const stage=C.STAGES[entry.stage],lost=run.record[entry.stage].l;
+  const stage=C.stagesOf(run)[entry.stage],lost=run.record[entry.stage].l;
   return `<div class="second-life"><strong class="life-stamp">Segunda vida</strong><span class="life-marks" role="img" aria-label="${lost} de ${stage.losses} derrotas: esta não contou">${
     Array.from({length:stage.losses},(_,i)=>`<i class="life ${i<lost?'lost':i===lost?'saved':''}"></i>`).join('')}</span><span class="life-perk">${E.PERKS.repescagem.name}</span></div>`;
 }
 // The conquests that came out with this match, under what it paid.
 const postFeats = summary=>summary.feats?.length?`<div class="post-feats"><p class="eyebrow">Conquistas</p><ul>${summary.feats.map(id=>`<li>${achievementIcon(id)}<b>${A.BY_ID[id].name}</b></li>`).join('')}</ul></div>`:'';
 export function postmatch(ctx) {
-  const {match:m,run,summary,db}=ctx,won=summary.won,entry=run.history.at(-1),stage=C.STAGES[entry.stage];
+  const {match:m,run,summary,db}=ctx,won=summary.won,entry=run.history.at(-1),stage=C.stagesOf(run)[entry.stage];
   const headline={continue:summary.forgiven?'Salvo pela Repescagem! Esta derrota não contou. Você perdeu "Repescagem" de sua comissão técnica':'',
     advanced:run.stage===2?'Classificados para os Playoffs!':'Classificados para a Fase de Grupos!',eliminated:exitLine(run),champion:'Campeão do Univavá'}[summary.outcome];
   // The games of the first two stages already carry the stage in their name; a playoff game gets it in front.
@@ -523,7 +526,7 @@ export function postmatch(ctx) {
       <section class="panel post-board">${teamTable(ctx,matchView(ctx),0)}${teamTable(ctx,matchView(ctx),1)}</section>
       <section class="panel rewards"><p class="eyebrow">Moedas</p>
         <p class="reward-coins">+ ${coin(summary.coins)}</p>
-        <ul><li>Partida <b>+${C.MATCH_PAY}</b></li>${won?`<li>Vitória <b>+${C.WIN_BONUS}</b></li>`:''}${summary.streakCoins?`<li>${summary.streak} vitórias seguidas <b>+${summary.streakCoins}</b></li>`:''}${run.perks.includes('patrocinio')?'<li>Patrocínio <b>+60</b></li>':''}${won&&run.perks.includes('bicho')?'<li>Bicho <b>+40</b></li>':''}${summary.outcome==='advanced'?`<li>Fase vencida <b>+${C.STAGE_BONUS}</b></li>`:''}${summary.spare?`<li>Jogos que sobraram <b>+${summary.spare}</b></li>`:''}
+        <ul><li>Partida <b>+${C.MATCH_PAY}</b></li>${won?`<li>Vitória <b>+${C.winBonus(run)}</b></li>`:''}${summary.streakCoins?`<li>${summary.streak} vitórias seguidas <b>+${summary.streakCoins}</b></li>`:''}${run.perks.includes('patrocinio')?'<li>Patrocínio <b>+60</b></li>':''}${won&&run.perks.includes('bicho')?'<li>Bicho <b>+40</b></li>':''}${summary.outcome==='advanced'?`<li>Fase vencida <b>+${C.stageBonus(run)}</b></li>`:''}${summary.spare?`<li>Jogos que sobraram <b>+${summary.spare}</b></li>`:''}
           <li>Confrontos <b>${m.eventsWon} / ${m.eventsResolved}</b></li></ul>
         ${postFeats(summary)}<button class="btn primary big" data-action="after-match">${cta}</button></section>
     </div>
@@ -531,11 +534,14 @@ export function postmatch(ctx) {
 }
 export function end(ctx) {
   const {run,db}=ctx,champion=run.result==='champion',lineup=C.lineupSlots(run,db),wins=run.history.filter(h=>h.won).length;
+  // The período this title has just opened, with the rule it adds.
+  const opened=ctx.ui?.opened,rule=C.LADDER[opened-1];
   return `<div class="end ${champion?'champion':''}">
-    ${band(`${run.daily?`Desafio #${C.dailyNumber(run.daily)} · ${C.dayLabel(run.daily)}`:champion?'Univavá 2026':'Run encerrada'} · ${ourName(ctx)}`,champion?'Campeão do Univavá':exitLine(run),`${wins} V em ${plural(run.history.length,'partida','partidas')}`)}
+    ${band(`${run.daily?`Desafio #${C.dailyNumber(run.daily)} · ${C.dayLabel(run.daily)}`:champion?'Univavá 2026':'Run encerrada'}${run.ascension?` · ${C.periodName(run.ascension)}`:''} · ${ourName(ctx)}`,champion?'Campeão do Univavá':exitLine(run),`${wins} V em ${plural(run.history.length,'partida','partidas')}`)}
     ${champion?`<div class="team-photo">${mark('finger','sticker finger')}${lineup.map((s,i)=>`<figure style="--i:${i}">${cutout(s.player)||mark('silhouette','cutout blank')}<figcaption>${agentIcon(s.agent)}<b>${esc(s.player.name)}</b></figcaption></figure>`).join('')}${mark('pennant','sticker pennant')}</div>`:''}
     <div class="end-lineup">${lineup.map((s,i)=>`<figure style="--i:${i}">${cardArt(s.player)}<figcaption>${agentIcon(s.agent)}${s.agent}</figcaption></figure>`).join('')}</div>
     <ol class="history tray">${run.history.map(h=>`<li class="${h.won?'won':'lost'}"><span>${esc(h.label)}</span><b>${teamLogo(h.opponent)}${esc(h.opponent)}</b><em>${h.forfeit?'W.O.':`${h.score[0]}-${h.score[1]}`}</em></li>`).join('')}</ol>
+    ${rule?`<div class="period-opened"><p class="eyebrow">Período liberado</p><h2>${C.periodName(opened)}</h2><p>${rule.text}</p></div>`:''}
     <div class="end-actions">${run.daily?'<button class="btn primary big" data-action="home">Início</button>':'<button class="btn primary big" data-action="new-run">Nova run</button>'}
       <button class="btn big" data-action="copy-result">Copiar resultado</button><button class="btn big" data-action="copy-image">Copiar imagem</button></div>
   </div>`;
@@ -663,7 +669,7 @@ export function compareDialog(ctx,id,targetId=null){
   const {run,db}=ctx,candidate=db.byId.get(id),lineup=C.lineupSlots(run,db);
   const target=lineup.find(s=>s.player.id===targetId)||lineup.find(s=>s.player.role===candidate.role)||lineup[0];
   const impact=previewChange(run,db,{type:'replace',id,other:target.player.id}),price=C.playerPrice(run,candidate);
-  const offer=run.shop.market.find(o=>o.id===id&&!o.sold),blocked=!offer?'Indisponível':C.rosterIds(run).length>=C.ROSTER_MAX?'Elenco cheio':run.coins<price?'Faltam moedas':'';
+  const offer=run.shop.market.find(o=>o.id===id&&!o.sold),blocked=!offer?'Indisponível':C.rosterIds(run).length>=C.rosterMax(run)?'Elenco cheio':run.coins<price?'Faltam moedas':'';
   const statsRows=Object.keys(E.STAT_NAMES).map(key=>{const a=target.player.stats[key],b=candidate.stats[key],benefit=(b-a)*(key==='mpr'?-1:1);
     return `<tr><th scope="row">${statLabel(key)}</th><td>${statText(key,a)}</td><td class="${changeTone(benefit)}">${statText(key,b)}</td></tr>`;}).join('');
   return `${dialogHead('Mercado · comparação',esc(candidate.name))}
@@ -714,6 +720,25 @@ export function confirmQuitDaily(ctx) {
   return `${dialogHead(`Desafio #${C.dailyNumber(run.daily)} · ${C.dayLabel(run.daily)}`,'Desistir do desafio?')}
     <p>O desafio deste dia termina onde está e não pode ser jogado de novo</p>
     <div class="dialog-actions"><button class="btn danger" data-action="confirm-daily-quit">Desistir</button><button class="btn" data-action="close" autofocus>Continuar jogando</button></div>`;
+}
+// The períodos of the traditional mode, chosen when a run starts: one row for each, with the rule it adds to the ones
+// before it. The chosen one and every one under it are in force; the ones still closed are there too, out of reach.
+// It opens on the período chosen the last time, or on the highest one open.
+export function periodDialog(ctx,picked) {
+  const open=C.periodsOf(ctx.career).period,want=picked??ctx.prefs?.period,chosen=Number.isInteger(want)&&want>=0&&want<=open?want:open;
+  const free=ctx.slots.free,going=free&&free.status!=='over';
+  const row=(step,text)=>`<li><button class="period${step<=chosen?' on':''}${step>open?' locked':''}" data-action="pick-period" data-id="${step}" aria-pressed="${step===chosen}"${step>open?' disabled':''}>${
+    step?`<b>${step}º</b>`:'<i class="period-base" aria-hidden="true"></i>'}<span>${text}</span>${step>open?'<span class="sr-only">, bloqueado</span><i class="period-lock" aria-hidden="true"></i>':''}</button></li>`;
+  return `${dialogHead('Modo tradicional','Períodos')}
+    <ol class="periods" aria-label="Período da run">${row(0,'Sem período')}${C.LADDER.map((step,i)=>row(i+1,step.text)).join('')}</ol>
+    ${going?'<p class="period-note">A run atual será abandonada</p>':''}
+    <div class="dialog-actions"><button class="btn primary" data-action="start-period" data-id="${chosen}"${going?'':' autofocus'}>${chosen?`Começar no ${C.periodName(chosen)}`:'Começar sem período'}</button><button class="btn" data-action="close"${going?' autofocus':''}>${going?'Continuar a atual':'Cancelar'}</button></div>`;
+}
+// The rules in force on the run on screen: the ones of its período and of every one before it.
+export function periodRules(run) {
+  return `${dialogHead('Modo tradicional',C.periodName(run.ascension))}
+    <ol class="periods">${C.rulesOf(run).map((step,i)=>`<li class="period on"><b>${i+1}º</b><span>${step.text}</span></li>`).join('')}</ol>
+    <div class="dialog-actions"><button class="btn" data-action="close" autofocus>Fechar</button></div>`;
 }
 export function confirmNewRun() {
   return `${dialogHead('Run em andamento','Começar outra run?')}
