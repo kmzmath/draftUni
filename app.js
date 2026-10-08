@@ -1,21 +1,24 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=31930249b4';
-import * as C from './campaign.js?v=31930249b4';
-import * as S from './screens.js?v=31930249b4';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=31930249b4';
-import {startTour,closeTour,tourOpen} from './tour.js?v=31930249b4';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=31930249b4';
-import {stamp,cleanAlbum} from './album.js?v=31930249b4';
-import {initTips,refreshTips} from './tip.js?v=31930249b4';
-import {shareModel,copyShareImage} from './share.js?v=31930249b4';
-import {staleSave,stampSave} from './save.js?v=31930249b4';
+import * as E from './engine.js?v=347551d508';
+import * as C from './campaign.js?v=347551d508';
+import * as S from './screens.js?v=347551d508';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=347551d508';
+import {startTour,closeTour,tourOpen} from './tour.js?v=347551d508';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=347551d508';
+import {stamp,cleanAlbum} from './album.js?v=347551d508';
+import {initTips,refreshTips} from './tip.js?v=347551d508';
+import {shareModel,copyShareImage} from './share.js?v=347551d508';
+import {staleSave,stampSave} from './save.js?v=347551d508';
+import * as A from './achievements.js?v=347551d508';
+import {playChime} from './sound.js?v=347551d508';
 
-const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album';
+const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice';
 // Two runs can be under way at once, each in its own slot: the traditional one, started whenever the player wants, and
 // the Desafio do dia. ctx.run is the one on screen (ctx.slots[ctx.mode]). ctx.today is the day of today's challenge.
-// career.daily remembers the result of each challenge already played; ctx.album, every card already fielded.
-const ctx={db:null,run:null,mode:'free',slots:{free:null,daily:null},today:'',album:{},match:null,summary:null,screen:'home',showcase:[],team:'',prefs:null,
+// career.daily remembers the result of each challenge already played; ctx.album, every card already fielded;
+// ctx.feats, the conquests already won.
+const ctx={db:null,run:null,mode:'free',slots:{free:null,daily:null},today:'',album:{},feats:A.cleanFeats(null),match:null,summary:null,screen:'home',showcase:[],team:'',prefs:null,
   career:{runs:0,titles:0,best:'',bestRank:-1,daily:{}},
   ui:{tab:'lineup',selected:null,paused:false,speed:1,showEvent:false,play:null,duel:null,freeze:null,settings:false,sort:null,albumFilter:'all'}};
 // What the player chose to keep between visits: the team's name, match speed, how the freezetime before each round
@@ -56,6 +59,33 @@ function announce(message){$('#announcer').textContent=message;}
 function toast(message){
   const el=$('#toast');el.textContent=message;el.classList.add('on');announce(message);
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('on'),3200);
+}
+
+// ---------- Conquistas ----------
+// A conquest that has just come out is shown in a banner at the top of the screen, one at a time when several come
+// together, and said once to who listens to the screen instead of looking at it.
+const featQueue=[];let featTimer=null;
+function nextFeat(){
+  const el=$('#feat'),id=featQueue.shift();
+  featTimer=null;
+  if(!id){el.classList.remove('on');return;}
+  el.innerHTML=S.featBanner(id);
+  // the banner comes in again for each one, with its sound
+  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  playChime();
+  featTimer=setTimeout(nextFeat,featQueue.length?2400:3600);
+}
+function celebrate(ids){
+  featQueue.push(...ids);
+  announce(`${ids.length>1?'Conquistas':'Conquista'}: ${ids.map(id=>A.BY_ID[id].name).join(', ')}.`);
+  if(!featTimer)nextFeat();
+}
+// Marks what a moment brought (`ids`) together with whatever the game as it stands proves by now (the lineup, the
+// coins, the history, the album), saves it and shows what is new. Gives back the new ones.
+function earn(ids=[]){
+  const fresh=A.award(ctx.feats,[...ids,...A.fromState(ctx)],C.dayKey());
+  if(fresh.length){store(FEATS_KEY,ctx.feats);celebrate(fresh);}
+  return fresh;
 }
 
 // ---------- Renderização ----------
@@ -243,7 +273,10 @@ function step(){
 // The confrontation of a Jogada de Efeito, one step at a time; when it ends, the round is played back like any other.
 function duelClock(){
   clearTimeout(duelTimer);
-  const duel=ctx.ui.duel,contest=duel.record.event.contest;
+  const duel=ctx.ui.duel,contest=duel.record.event.contest,wait=S.duelStepMs(contest,duel.step)*Math.max(.55,PACE[ctx.ui.speed]);
+  // When the step began and how long it lasts: what moves during a step (the coin of the draw) follows this clock, so
+  // a screen drawn again in the middle of the step doesn't start it over.
+  Object.assign(duel,{stepAt:Date.now(),stepMs:Math.round(wait)});
   duelTimer=setTimeout(()=>{
     if(ctx.ui.duel!==duel)return;
     if(duel.step<S.duelSteps(contest)-1){duel.step++;render();duelClock();return;}
@@ -252,7 +285,7 @@ function duelClock(){
     ctx.ui.duel=null;
     if(ctx.match.over)announce(`Fim de jogo: ${ctx.match.score[0]} a ${ctx.match.score[1]}.`);
     schedule();render();
-  },S.duelStepMs(contest,duel.step)*Math.max(.55,PACE[ctx.ui.speed]));
+  },wait);
 }
 function finishMatch(){
   clearTimeout(timer);clearTimeout(duelTimer);ctx.ui.play=null;ctx.ui.duel=null;
@@ -261,6 +294,10 @@ function finishMatch(){
   stamp(ctx.album,ctx.match.teams[0].lineup.map(s=>s.player.id),{won:ctx.summary.won,title:ctx.summary.outcome==='champion'});
   store(ALBUM_KEY,ctx.album);
   if(ctx.run.status==='over')recordCareer(ctx.run);
+  // What the match brought. The formation of a win is kept even when it completes nothing yet.
+  const won=A.fromMatch({match:ctx.match,summary:ctx.summary,run:ctx.run},ctx.feats);
+  store(FEATS_KEY,ctx.feats);
+  ctx.summary.feats=earn(won);
   ctx.screen='postmatch';
 }
 
@@ -269,6 +306,7 @@ function finishMatch(){
 const actions={
   home(){clearTimeout(timer);clearTimeout(duelTimer);ctx.screen='home';ctx.today=C.dayKey();},
   album(){ctx.screen='album';},
+  feats(){ctx.screen='feats';},
   'album-filter'(id){ctx.ui.albumFilter=id;},
   // Desafio do dia: one run a day, with the seed of the day. A challenge still being played comes first, whatever its day.
   daily(){
@@ -326,17 +364,18 @@ const actions={
   compare(id){openDialog(S.compareDialog(ctx,id),{kind:'wide'});return false;},
   'set-agent'(id,el){C.setAgent(ctx.run,ctx.db,id,el.dataset.agent);closeDialog();},
   'open-pack'(key){C.openPack(ctx.run,ctx.db,key);saveRun();render();showPack();return false;},
-  'take-card'(id){C.takePackCard(ctx.run,ctx.db,id);closeDialog();toast(`${name(id)} ${arrival(id)}`);},
+  'take-card'(id){C.takePackCard(ctx.run,ctx.db,id);closeDialog();toast(`${name(id)} ${arrival(id)}`);earn(A.fromPack(ctx.db.byId.get(id)));},
   'buy-player'(id){C.buyPlayer(ctx.run,ctx.db,id);closeDialog();toast(`${name(id)} ${arrival(id)}`);},
   'buy-agent'(agent){C.buyAgent(ctx.run,ctx.db,agent);toast(`${agent} contratado. Já pode ser escalado`);},
   reroll(){C.rerollShop(ctx.run,ctx.db);},
-  play(){enterMatch();announce('Partida iniciada. Você pode pausar quando quiser.');},
+  play(){enterMatch();announce('Partida iniciada. Você pode pausar quando quiser.');earn(A.fromKickoff(ctx.match.teams[0].lineup));},
   // From the bar at the bottom of a narrow screen to the rival's panel, further down the page.
   'see-rival'(){$('.panel.next')?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return false;},
   forfeit(){openDialog(S.forfeitDialog(ctx));return false;},
   'confirm-forfeit'(){
     closeDialog();ctx.match=null;ctx.summary=C.forfeitMatch(ctx.run,ctx.db);
     if(ctx.run.status==='over')recordCareer(ctx.run);
+    ctx.summary.feats=earn();
     ctx.screen='postmatch';announce('Derrota por W.O.');
   },
   pause(){ctx.ui.paused=!ctx.ui.paused;schedule();},
@@ -388,6 +427,7 @@ document.addEventListener('click',event=>{
   if(behind('free')||behind('daily')){resync();return;}
   try{
     if(actions[el.dataset.action](el.dataset.id,el)===false)return;
+    earn();
     if(saveRun())render();
   }catch(error){toast(error.message);}
 });
@@ -441,17 +481,18 @@ function readCareer(){
 // what was saved. Anything else (the run of the other mode, the history, the album) is simply read again.
 addEventListener('storage',event=>{
   if(event.storageArea!==localStorage||!ctx.db)return;
-  const mode=event.key===RUN_KEY?'free':event.key===DAILY_KEY?'daily':null,playing=!['home','album'].includes(ctx.screen);
+  const mode=event.key===RUN_KEY?'free':event.key===DAILY_KEY?'daily':null,playing=!['home','album','feats'].includes(ctx.screen);
   if(event.key===null||(playing&&mode===ctx.mode)){resync();return;}
   if(mode){ctx.slots[mode]=readSlot(mode);if(mode===ctx.mode)ctx.run=ctx.slots[mode];}
   else if(event.key===CAREER_KEY)readCareer();
   else if(event.key===ALBUM_KEY)ctx.album=cleanAlbum(load(ALBUM_KEY),ctx.db.byId);
+  else if(event.key===FEATS_KEY)ctx.feats=A.cleanFeats(load(FEATS_KEY));
   else return;
   if(!playing&&!$('#dialog').open)render();
 });
 async function init(){
   try{
-    const response=await fetch('players.json?v=31930249b4');
+    const response=await fetch('players.json?v=347551d508');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -462,7 +503,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=31930249b4');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=347551d508');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
@@ -475,6 +516,10 @@ async function init(){
   ctx.album=cleanAlbum(load(ALBUM_KEY),ctx.db.byId);
   for(const mode of ['free','daily'])ctx.slots[mode]=readSlot(mode);
   ctx.run=ctx.slots.free;
+  // The conquests already won, plus what the saved history, album and runs already prove (titles, the best campaign,
+  // the cards of the album): those are marked here without ceremony, because they were not won just now.
+  ctx.feats=A.cleanFeats(load(FEATS_KEY));
+  if(['free','daily'].map(mode=>A.award(ctx.feats,A.fromState({...ctx,run:ctx.slots[mode]}),ctx.today)).flat().length)store(FEATS_KEY,ctx.feats);
   render();
   // Back from a reload forced by another tab (see resync).
   let notice=null;

@@ -1,5 +1,5 @@
 // Componentes de interface compartilhados pelas telas. Tudo aqui devolve HTML em texto.
-import * as E from './engine.js?v=31930249b4';
+import * as E from './engine.js?v=347551d508';
 
 export const $ = selector=>document.querySelector(selector);
 export const esc = value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -88,6 +88,64 @@ const formationDrawing = key=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 // Each drawing becomes a mask once (see .shape in the styles), so the symbol takes the colour of the text around it.
 const FORMATION_SHAPES = Object.fromEntries([...Object.keys(FORMATION_SIGNS),'livre'].map(key=>[key,`url('data:image/svg+xml,${encodeURIComponent(formationDrawing(key))}')`]));
 export const formationIcon = key=>`<i class="formation-icon shape" style="--shape:${FORMATION_SHAPES[key]||FORMATION_SHAPES.livre}" aria-hidden="true"></i>`;
+
+// ---------- Conquistas ----------
+// O símbolo de cada conquista, na mesma linguagem dos de formação: uma peça cheia de onde o sinal é recortado. A peça
+// aqui é a de seis lados, a de um distintivo, para não se confundir com a das formações nem com o disco das funções.
+// The drawings are 48 x 48. A sign is made of layers, in this order: `s`, a path stroked with the width of a band, and
+// `f`, a shape, both cut out of the piece; `keep`, a shape, and `line`, a thin stroke, which put the piece back inside
+// what was cut (the pad of a plaster, the facets of a stone); and `top`, a shape cut out in front of all the rest,
+// with a rim of piece around it that sets it apart from what is behind.
+const FEAT_PIECE = 'M24 1 45 13V35L24 47 3 35V13Z',FEAT_BAND = 4.4;
+const FEAT_SIGNS = {
+  // Campanha
+  groups:{s:'M13 24.5 21 32.5 35.5 16'},                                          // classificado: o visto
+  playoffs:{s:'M11 14H21V34H11M21 24H37'},                                        // a chave do mata-mata
+  final:{s:'M11 14 20 24 11 34M37 14 28 24 37 34'},                               // dois que se encontram
+  champion:{f:'M15 10H33V17C33 24 29.5 28 26.5 29V34H31V38H17V34H21.5V29C18.5 28 15 24 15 17Z',s:'M15 13H10.5V17Q10.5 21 15.5 22M33 13H37.5V17Q37.5 21 32.5 22'}, // a taça
+  three:{f:'M9.1 12H19.9V16.2C19.9 20.4 17.8 22.8 16 23.4V26.4H18.7V28.8H10.3V26.4H13V23.4C11.2 22.8 9.1 20.4 9.1 16.2ZM38.9 12H28.1V16.2C28.1 20.4 30.2 22.8 32 23.4V26.4H29.3V28.8H37.7V26.4H35V23.4C36.8 22.8 38.9 20.4 38.9 16.2Z',
+    top:'M17 18H31V23.5C31 28.9 28.3 32 26 32.8V36.7H29.5V39.8H18.5V36.7H22V32.8C19.7 32 17 28.9 17 23.5Z'}, // três taças: uma na frente, duas atrás
+  unbeaten:{s:'M24 11A13 13 0 1 0 24 37A13 13 0 1 0 24 11Z',f:'M24 18 30 24 24 30 18 24Z'}, // o anel inteiro
+  wire:{f:'M22 8C22 8 11.5 21.5 11.5 29C11.5 34.8 16.2 39.5 22 39.5C27.8 39.5 32.5 34.8 32.5 29C32.5 21.5 22 8 22 8ZM37 10.5C37 10.5 33 15.8 33 18.8C33 21 34.8 22.8 37 22.8C39.2 22.8 41 21 41 18.8C41 15.8 37 10.5 37 10.5Z',
+    line:'M16.5 29.5C16.5 32.4 18.3 34.6 21 35.2'},                                 // as gotas de suor
+  daily:{f:'M24 17.5A6.5 6.5 0 1 0 24 30.5A6.5 6.5 0 1 0 24 17.5Z',s:'M24 7V12.5M24 35.5V41M7 24H12.5M35.5 24H41M12 12 15.9 15.9M32.1 32.1 36 36M36 12 32.1 15.9M15.9 32.1 12 36'}, // o sol
+  regular:{s:'M13 15H35V36H13ZM13 22.5H35M18.5 10.5V17M29.5 10.5V17'},                    // o calendário
+  // Partida
+  sweep:{f:'M28 6 11 27H22L19 42 37 20H26Z'},                                     // o raio
+  swept:{s:'M9 14 19 24 26 18 38 33M38 23V33H28'},                                // a queda
+  overtime:{s:'M24 11A13 13 0 1 0 24 37A13 13 0 1 0 24 11ZM24 17V24.5L29.5 29'},  // o relógio
+  comeback:{s:'M13 12V25A8.5 8.5 0 0 0 30 25V13M23 19 30 11.5 37 19'},            // a volta por cima
+  streak:{f:'M25 6C27 14 36 19 36 29C36 36 31 41 24 41C17 41 12 36 12 29C12 24 15 21 17 16C18 21 21 23 22 19C23 15 24 10 25 6Z'}, // a chama
+  upset:{s:'M11 22 22 11M11 33 33 11M15 39 37 17M26 39 37 28'},                       // as listras da zebra
+  carry:{f:'M21.9 36 36 21.9A7 7 0 0 0 26.1 12L12 26.1A7 7 0 0 0 21.9 36Z',
+    keep:'M30.8 24.6 23.4 17.2 17.2 23.4 24.6 30.8ZM31.3 19.2a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0 -2.6 0ZM27.5 15.4a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0 -2.6 0ZM17.9 32.6a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0 -2.6 0ZM14.1 28.8a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0 -2.6 0Z'}, // o curativo
+  ace:{f:'M24 7C30 15 38 21 38 28.5C38 33 34.5 36 30.5 36C28.5 36 26.8 35.2 25.6 33.8L27.5 41H20.5L22.4 33.8C21.2 35.2 19.5 36 17.5 36C13.5 36 10 33 10 28.5C10 21 18 15 24 7Z'}, // o ás de espadas
+  eco:{s:'M24 15A9 9 0 1 0 24 33A9 9 0 1 0 24 15ZM11 11 17.6 17.6M37 11 30.4 17.6M11 37 17.6 30.4M37 37 30.4 30.4'}, // o sinal dos créditos
+  // Jogada de Efeito
+  hot:{f:'M15 24V13.3A1.8 1.8 0 0 1 18.6 13.3V24ZM19.8 24V11.3A1.8 1.8 0 0 1 23.4 11.3V24ZM24.6 24V12.8A1.8 1.8 0 0 1 28.2 12.8V24ZM29.4 24V16.3A1.8 1.8 0 0 1 33 16.3V24ZM15 23H33V34A5 5 0 0 1 28 39H20A5 5 0 0 1 15 34ZM15.4 34 9.3 27.6A2.3 2.3 0 0 1 12.6 24.4L15.4 27.3Z',
+    keep:'M24.3 24.2C25.3 27.2 28.6 28.7 28.6 32.3C28.6 35 26.6 37 24 37C21.4 37 19.4 35 19.4 32.3C19.4 30.5 20.6 29.3 21.3 27.6C21.8 29.4 22.9 29.9 23.3 28.5C23.7 27 24 25.6 24.3 24.2Z'}, // a mão com fogo
+  detail:{s:'M21 11A9.5 9.5 0 1 0 21 30A9.5 9.5 0 1 0 21 11ZM28 27.5 38 37.5'},   // a lupa
+  // Elenco
+  home:{s:'M9 25 24 11 39 25M14.5 21.5V37H33.5V21.5'},                            // a casa
+  mains:{s:'M24 40 15.3 26.6A11 11 0 1 1 32.7 26.6Z',f:'M24 16.4A3.6 3.6 0 1 0 24 23.6A3.6 3.6 0 1 0 24 16.4Z'}, // cada um no seu lugar
+  selecao:{f:'M24 7 29 18.6 41.6 19.7 32 28 34.9 40.3 24 33.8 13.1 40.3 16 28 6.4 19.7 19 18.6Z'}, // a estrela
+  best:{f:'M11 32 9.5 15 18 22.5 24 10 30 22.5 38.5 15 37 32ZM13 35H35V38.5H13Z'},        // a coroa
+  strategist:{s:'M24 9 38.3 19.4 32.8 36.2H15.2L9.7 19.4Z',f:'M24 20.4A3.6 3.6 0 1 0 24 27.6A3.6 3.6 0 1 0 24 20.4Z'}, // as cinco formações
+  find:{f:'M15 10H33L40 19 24 40 8 19Z',line:'M8.5 19H39.5M15 10.5 19.5 19 24 10.5 28.5 19 33 10.5M19.5 19 24 39 28.5 19'}, // o diamante
+  vault:{s:'M31.5 17C31.5 13.8 28.3 12 24 12C19.7 12 16.5 14 16.5 17.6C16.5 21.3 19.8 22.7 24 23.7C28.2 24.7 31.5 26.2 31.5 30C31.5 33.6 28.3 35.8 24 35.8C19.7 35.8 16.5 33.9 16.5 30.6M24 7.5V40.5'}, // o cifrão
+  // Álbum
+  album50:{s:'M16 11H32V37H16Z',f:'M24 19 29 24 24 29 19 24Z'},                    // uma carta
+  album150:{s:'M13 17H27V36H13ZM19 17V11H35V32H27'},                               // cartas empilhadas
+  albumAll:{s:'M24 15V38M24 15C20.5 12 14.5 12 11 13.5V34.5C14.5 33 20.5 33 24 38M24 15C27.5 12 33.5 12 37 13.5V34.5C33.5 33 27.5 33 24 38'}, // o álbum aberto
+  team:{f:'M17 8C18.5 11.5 21 13 24 13C27 13 29.5 11.5 31 8L41 14 36.5 22.5 33 20.5V40H15V20.5L11.5 22.5 7 14Z'} // a camisa
+};
+const featDrawing = sign=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><mask id="m"><path fill="#fff" d="${FEAT_PIECE}"/>${
+  sign?.s?`<path fill="none" stroke="#000" stroke-width="${FEAT_BAND}" stroke-miterlimit="8" d="${sign.s}"/>`:''}${sign?.f?`<path fill="#000" d="${sign.f}"/>`:''}${
+  sign?.keep?`<path fill="#fff" stroke="none" d="${sign.keep}"/>`:''}${sign?.line?`<path fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" d="${sign.line}"/>`:''}${
+  sign?.top?`<path fill="#fff" stroke="#fff" stroke-width="3.6" stroke-linejoin="round" d="${sign.top}"/><path fill="#000" d="${sign.top}"/>`:''}</mask><rect width="48" height="48" mask="url(#m)"/></svg>`;
+const FEAT_SHAPES = Object.fromEntries(Object.entries(FEAT_SIGNS).map(([id,sign])=>[id,`url('data:image/svg+xml,${encodeURIComponent(featDrawing(sign))}')`]));
+const FEAT_BLANK = `url('data:image/svg+xml,${encodeURIComponent(featDrawing(null))}')`;
+export const achievementIcon = id=>`<i class="feat-icon shape" style="--shape:${FEAT_SHAPES[id]||FEAT_BLANK}" aria-hidden="true"></i>`;
 export const agentChip = (agent,note='')=>`<span class="agent role-${roleKey(E.AGENTS[agent])}">${agentIcon(agent)}<b>${esc(agent)}</b>${note}</span>`;
 export const coin = n=>`<span class="coin"><i aria-hidden="true"></i>${num(n)}<span class="sr-only"> moedas</span></span>`;
 const luminance = hex=>{const n=parseInt(hex.slice(1),16);return (.2126*(n>>16&255)+.7152*(n>>8&255)+.0722*(n&255))/255;};

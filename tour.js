@@ -10,6 +10,7 @@ export const TOURS = {
     {el:'.mode.free',title:'Modo tradicional',text:'Uma run sorteada só para você, quantas vezes quiser. Cada run começa com um draft novo e termina no título ou na eliminação. As duas runs ficam salvas, cada uma no seu lugar: dá para fechar o jogo e continuar depois'},
     {el:'.career',title:'Seu histórico',text:'Runs jogadas, títulos e a melhor campanha até agora, somando os dois modos'},
     {el:'.album-link',title:'Álbum de cartinhas',text:'Toda carta que joga uma partida pelo seu time entra no álbum. Acha que consegue colecionar todo mundo?'},
+    {el:'.feats-link',title:'Conquistas',text:'Os feitos do seu time ficam marcados aqui, do 13 a 0 ao título. Consegue completar todas?'},
     {el:'.help',title:'Ajuda',text:'Este botão explica a tela em que você estiver, passo a passo. Sempre que precisar de uma ajudinha é só clicar!'}
   ],
   draft:[
@@ -77,6 +78,10 @@ export const TOURS = {
     {el:'.history',title:'Campanha',text:'Todas as partidas da run, com adversário e placar'},
     {el:'[data-action="copy-result"]',title:'Copiar resultado',text:'Copia um resumo em texto: até onde o time foi, cada partida como um quadrado verde ou vermelho, vitórias, derrotas e saldo de rounds. É só colar onde quiser'},
     {el:'[data-action="new-run"]',title:'De novo',text:'Uma nova run começa com outro sorteio de contratos e outro draft'}
+  ],
+  feats:[
+    {el:'.band',title:'Conquistas',text:'Quantos feitos você já marcou, somando o Desafio do dia e o modo tradicional'},
+    {el:'.feat',title:'Um feito',text:'Cada conquista diz o que pede. Quando você consegue, o símbolo acende e o dia fica anotado. Conquistas não dão moedas nem bônus: são só para mostrar'}
   ],
   album:[
     {el:'.band',title:'Álbum de cartinhas',text:'Quantas cartas você já tem, quantas já foram campeãs com você e quantas equipes estão completas'},

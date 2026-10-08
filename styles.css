@@ -685,6 +685,24 @@ img.card{height:auto;container-type:normal}
 .duel-row>span{font:600 .8rem/1 var(--data);letter-spacing:.16em;text-transform:uppercase;color:var(--grey);text-align:center}
 .duel-row.tie{background:rgba(209,243,80,.14)}
 .duel-row.tie b{font-size:1.9rem}
+/* The draw: a coin with a team on each side. It goes up and comes down while it spins, and lies on the side of who
+   took it. The time of the toss (--ms) and how far into it the screen was drawn (--at) come from the screen. */
+.duel-row.draw{padding-block:.55rem}
+.duel-row.draw>span{display:grid;justify-items:center;gap:.4rem}
+.duel-row.draw em{font-style:normal}
+.toss{display:block;perspective:520px}
+.coin-toss{position:relative;display:block;width:4rem;height:4rem;transform-style:preserve-3d;transform:rotateX(var(--end))}
+.coin-toss .face{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;background:var(--black);box-shadow:inset 0 0 0 3px var(--side),0 6px 14px rgba(0,0,0,.5);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.coin-toss .face.them{transform:rotateX(180deg)}
+.coin-toss .face img{width:58%;height:58%;object-fit:contain}
+.coin-toss .face .logo-dot{width:1.2rem;height:1.2rem}
+.toss.tossing{animation:toss-arc var(--ms) cubic-bezier(.3,0,.3,1) var(--at) both}
+.coin-toss.tossing{animation:toss-spin var(--ms) cubic-bezier(.2,.55,.3,1) var(--at) both}
+.toss.landed{animation:toss-land .4s var(--ease) both}
+@keyframes toss-spin{from{transform:rotateX(0)}to{transform:rotateX(var(--end))}}
+@keyframes toss-arc{0%,100%{transform:none}45%{transform:translateY(-1.5rem) scale(1.18)}}
+@keyframes toss-land{from{transform:scale(1.22)}}
+@keyframes toss-swap{0%{opacity:0}50%{opacity:1}}
 .duel-score{display:flex;justify-content:center;align-items:baseline;gap:.9rem;margin-top:.4rem;font:400 5rem/.9 var(--display)}
 .duel-score i{font-size:2rem;color:var(--dim);font-style:normal}
 .aftermath{display:grid;justify-items:center;min-height:3.4rem;text-align:center}
@@ -696,6 +714,41 @@ img.card{height:auto;container-type:normal}
 .post-head h1{font-size:clamp(5rem,14vw,11rem);line-height:.8;padding-top:.24em;margin-bottom:.5rem}
 .post.won h1{color:var(--lime)}.post.lost h1{color:var(--coral)}
 .post-head h1 span{color:var(--white);margin-left:.12em}
+/* Second life (see secondLife). As it stands when the screen is at rest: the word "Derrota" steps back, the stamp is
+   on, the defeat given back is an open ring in lime and the bonus that paid for it is crossed out. */
+.post.spared .post-head h1{opacity:.5}
+.second-life{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1.2rem;margin:.1rem 0 1rem}
+.life-stamp{padding:.4rem 1rem .3rem;font:400 3rem/1 var(--display);letter-spacing:.02em;text-transform:uppercase;color:var(--black);background:var(--lime);transform:rotate(-3deg);
+  clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 9px,100% calc(100% - 9px),calc(100% - 9px) 100%,9px 100%,0 calc(100% - 9px),0 9px)}
+.life-marks{display:inline-flex;align-items:center;gap:.55rem}
+.life{width:1.6rem;height:1.6rem;border-radius:50%;border:3px solid rgba(255,255,255,.35)}
+.life.lost{background:var(--coral);border-color:var(--coral)}
+.life.saved{border-color:var(--lime);box-shadow:0 0 0 5px rgba(209,243,80,.2)}
+.life-perk{position:relative;padding:.4rem .7rem;font:700 .74rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);background:rgba(255,255,255,.08);border-radius:4px}
+.life-perk::after{content:"";position:absolute;left:.45rem;right:.45rem;top:50%;height:2px;margin-top:-1px;background:currentColor;transform-origin:left}
+/* On the way in it is told in order: the mark fills as a defeat, the bonus shows up in its gold and is spent on it, the
+   mark is cleared, and only then the stamp lands and "Derrota" steps back. */
+.enter .life.saved{animation:life-save 1.9s var(--ease) .5s both}
+.enter .life-perk{animation:life-spend 1.9s var(--ease) .5s both}
+.enter .life-perk::after{animation:life-strike .3s var(--ease) 1.9s both}
+.enter .life-stamp{animation:life-stamp .5s var(--ease) 2s both}
+.enter .post.spared .post-head h1{animation:life-dim .6s ease 2s both}
+@keyframes life-save{
+  0%,10%{background:transparent;border-color:rgba(255,255,255,.35);box-shadow:none;transform:none}
+  20%{background:var(--coral);border-color:var(--coral);box-shadow:none;transform:scale(1.4)}
+  30%,54%{background:var(--coral);border-color:var(--coral);box-shadow:none;transform:none}
+  66%{background:var(--white);border-color:var(--white);box-shadow:0 0 0 12px rgba(209,243,80,.55);transform:scale(1.6)}
+}
+@keyframes life-save-still{
+  0%,10%{background:transparent;border-color:rgba(255,255,255,.35);box-shadow:none}
+  20%,54%{background:var(--coral);border-color:var(--coral);box-shadow:none}
+  66%{background:var(--white);border-color:var(--white);box-shadow:0 0 0 12px rgba(209,243,80,.55)}
+}
+@keyframes life-spend{0%,24%{opacity:0}34%,54%{opacity:1;color:var(--black);background:var(--gold)}66%{color:var(--black);background:var(--white)}}
+@keyframes life-strike{from{transform:scaleX(0)}}
+@keyframes life-stamp{from{opacity:0;transform:rotate(-3deg) scale(1.9)}}
+@keyframes life-stamp-still{from{opacity:0}}
+@keyframes life-dim{from{opacity:1}}
 .post-rival{display:flex;align-items:center;gap:.5rem;font:700 .86rem/1 var(--ui);margin-bottom:.4rem}
 .post-rival .logo{width:2rem;height:2rem}
 .post-grid{display:grid;grid-template-columns:240px minmax(0,1fr) 290px;gap:1rem;align-items:start}
@@ -753,6 +806,37 @@ img.card{height:auto;container-type:normal}
 .album-card.missing img{filter:grayscale(1) brightness(.34) contrast(.9)}
 .album-card.champion::after{content:"★";position:absolute;right:-4px;top:-6px;display:grid;place-items:center;width:1.3rem;height:1.3rem;font:700 .8rem/1 var(--body);color:var(--black);background:var(--gold);border-radius:50%;box-shadow:0 0 0 2px var(--black)}
 .album-empty{grid-column:1/-1;padding:2rem;text-align:center;color:var(--grey);background:var(--tray);border-radius:var(--radius)}
+
+/* ---------- Conquistas ---------- */
+/* The symbol of a conquest (see achievementIcon): dimmed while it is still to come, lime once it is won. */
+.feat-icon{width:3.6rem;height:3.6rem;flex:none;color:rgba(255,255,255,.22)}
+.feats{display:grid;gap:1.8rem}
+.feat-group h2{display:flex;align-items:baseline;gap:.8rem;margin-bottom:.6rem}
+.feat-group h2 span{font-size:.58em;letter-spacing:.03em;color:rgba(255,255,255,.62)}
+.feat-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:.7rem}
+.feat{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:.9rem;padding:.8rem 1rem .85rem .85rem;background:var(--tray);border-radius:var(--radius)}
+.feat>div{display:grid;gap:.28rem;min-width:0}
+.feat b{font:400 1.9rem/1 var(--display);letter-spacing:.01em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+.feat span{font:500 .9rem/1.35 var(--body);color:var(--grey)}
+.feat small{font:600 .8rem/1 var(--data);letter-spacing:.1em;color:var(--lime)}
+.feat.got{background:linear-gradient(100deg,rgba(209,243,80,.13),transparent 60%),var(--tray)}
+.feat.got .feat-icon{color:var(--lime)}
+.feat.got b{color:var(--white)}
+/* What a match brought, under what it paid. */
+.post-feats{margin-top:.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.14)}
+.rewards .post-feats ul{gap:.45rem;margin:0;color:var(--white)}
+.rewards .post-feats li{justify-content:flex-start;align-items:center;gap:.6rem}
+.rewards .post-feats li b{font:400 1.6rem/1 var(--display);text-transform:uppercase}
+.post-feats .feat-icon{width:2rem;height:2rem;color:var(--lime)}
+/* A conquest that has just come out: a cream banner that comes down from the top of the screen and goes back. */
+#feat{position:fixed;left:50%;top:5.4rem;z-index:61;display:flex;align-items:center;gap:.8rem;width:max-content;max-width:min(92vw,460px);padding:.6rem 1.3rem .65rem .9rem;color:var(--purple);background:var(--cream);
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  transform:translate(-50%,calc(-100% - 7rem));visibility:hidden;pointer-events:none;transition:transform .45s var(--ease),visibility .45s}
+#feat.on{transform:translate(-50%,0);visibility:visible}
+#feat .feat-icon{width:2.7rem;height:2.7rem;color:var(--purple)}
+#feat span{display:grid;gap:.2rem;min-width:0}
+#feat small{font:700 .66rem/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--grey-text)}
+#feat b{font:400 2rem/1 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
 
 /* ---------- Diálogos ---------- */
 dialog{--pad:1.5rem;width:min(520px,94vw);max-height:92vh;max-height:92dvh;overscroll-behavior:contain;padding:var(--pad);color:var(--white);background:var(--black);border:0;border-top:5px solid var(--lime);border-radius:var(--radius);overflow:auto}
@@ -948,6 +1032,7 @@ dialog.skipped .pack-pick{animation:none}
   .play-bar .btn{flex:none;min-height:48px;padding:.7rem 1.1rem}
   #toast{top:calc(4.7rem + env(safe-area-inset-top));bottom:auto;transform:translate(-50%,calc(-100% - 6rem))}
   #toast.on{transform:translate(-50%,0)}
+  #feat{top:calc(9.3rem + env(safe-area-inset-top))}
 }
 @media (max-width:860px){
   .path-name{display:none}
@@ -1059,7 +1144,9 @@ dialog.skipped .pack-pick{animation:none}
   .hero-foot{align-items:stretch;gap:.8rem 1.2rem;margin-top:1rem}
   .career{gap:1.2rem}
   .career dd,.album-link b{font-size:2.1rem}
-  .album-link{margin-left:auto}
+  /* The history takes a line of its own, and the album and the conquests share the one under it. */
+  .hero-foot .career{flex:1 1 100%}
+  .album-link{flex:1}
   .screen-home::after{height:110px;margin-top:1.6rem}
 
   /* --- draft --- */
@@ -1245,6 +1332,8 @@ dialog.skipped .pack-pick{animation:none}
   .duel-row{gap:.6rem;padding:.3rem .7rem}
   .duel-row b{font-size:2.1rem}
   .duel-row.tie b{font-size:1.6rem}
+  .duel-row.draw{padding-block:.4rem}
+  .coin-toss{width:3.3rem;height:3.3rem}
   .duel-row>span{font-size:.72rem;letter-spacing:.1em}
   .duel-score{margin-top:.2rem;font-size:3.4rem}
   .aftermath{min-height:2.6rem}
@@ -1254,6 +1343,9 @@ dialog.skipped .pack-pick{animation:none}
   /* What the match paid and the way on come before the two scoreboards, which are there for who wants to look. */
   .post-head{margin-bottom:.9rem}
   .post-head h1{font-size:clamp(3.6rem,19vw,5rem)}
+  .second-life{gap:.6rem .9rem;margin-bottom:.8rem}
+  .life-stamp{font-size:2.3rem}
+  .life{width:1.4rem;height:1.4rem}
   .post-grid{gap:.7rem}
   .mvp{order:0;display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:.2rem .9rem;text-align:left}
   .mvp .eyebrow{grid-column:1/-1}
@@ -1277,6 +1369,12 @@ dialog.skipped .pack-pick{animation:none}
   .album{gap:.6rem}
   .album-team{padding:.6rem .6rem .7rem}
   .album-cards{grid-template-columns:repeat(5,minmax(0,1fr));gap:.35rem}
+  .feats{gap:1.2rem}
+  .feat-list{gap:.5rem}
+  .feat{gap:.75rem;padding:.65rem .8rem .7rem .7rem}
+  .feat-icon{width:3rem;height:3rem}
+  .feat b{font-size:1.7rem}
+  #feat b{font-size:1.7rem}
 
   /* --- janelas --- */
   /* A dialog is a sheet that comes up from the bottom of the screen, as wide as the screen: its buttons end up where
@@ -1383,7 +1481,15 @@ dialog.skipped .pack-pick{animation:none}
    except the reveal of a pack: it is what opening a pack is, not an ornament. It keeps its timing and loses what moves:
    each part only appears and goes, without growing, turning or sliding. */
 @media (prefers-reduced-motion:reduce){
-  *:not(.walkout,.walk-step,.walk-card,.pack-pick),*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
+  *:not(.walkout,.walk-step,.walk-card,.pack-pick,.face,.life,.life-perk,.life-stamp),*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
+  /* The second life is told in the same order, only with what lights up and goes out: nothing grows or drops. */
+  .enter .life.saved{animation-name:life-save-still}
+  .enter .life-stamp{animation-name:life-stamp-still}
+  /* The coin of a draw doesn't turn or fly there: its two sides take turns in the same place until the draw is shown. */
+  .toss.tossing,.toss.landed,.coin-toss.tossing{animation:none}
+  .coin-toss.tossing{transform:none}
+  .coin-toss.tossing .face{transform:none}
+  .coin-toss.tossing .face.them{animation:toss-swap .36s steps(1) infinite}
   .walk-step{animation-name:walk-still}
   .walk-card{animation-name:walk-card-still}
   .pack-pick{animation-name:appear}

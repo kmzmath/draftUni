@@ -1,11 +1,12 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=31930249b4';
-import * as C from './campaign.js?v=31930249b4';
-import {previewChange} from './impact.js?v=31930249b4';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=31930249b4';
-import {albumSummary,cardStatus} from './album.js?v=31930249b4';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,agentIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=31930249b4';
+import * as E from './engine.js?v=347551d508';
+import * as C from './campaign.js?v=347551d508';
+import {previewChange} from './impact.js?v=347551d508';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=347551d508';
+import {albumSummary,cardStatus} from './album.js?v=347551d508';
+import * as A from './achievements.js?v=347551d508';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=347551d508';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -40,7 +41,7 @@ function path(run) {
   }).join('')}</ol>`;
 }
 export function chrome(ctx,content) {
-  const run=ctx.run,inRun=run&&ctx.screen!=='home'&&ctx.screen!=='album';
+  const run=ctx.run,inRun=run&&!['home','album','feats'].includes(ctx.screen);
   return `<header class="ribbon"><div class="ribbon-bar">
     <button class="brand" data-action="home" ${ctx.screen==='match'?'disabled':''} aria-label="Univavá Draft: tela inicial">${crest()}<b>UNIVAVÁ</b><em>DRAFT</em></button>
     ${inRun?path(run):'<span class="ribbon-fill"></span>'}
@@ -70,7 +71,7 @@ function modes(ctx) {
   </div>`;
 }
 export function home(ctx) {
-  const {career}=ctx,summary=albumSummary(ctx.album,ctx.db.players);
+  const {career}=ctx,summary=albumSummary(ctx.album,ctx.db.players),feats=A.count(ctx.feats);
   return `<section class="hero">
     <div class="hero-copy">
       ${mark('lockup','lockup','Valorant Universitário')||'<p class="eyebrow">Valorant universitário</p>'}
@@ -80,6 +81,7 @@ export function home(ctx) {
       <div class="hero-foot">
         <dl class="career"><div><dt>Runs</dt><dd>${career.runs}</dd></div><div><dt>Títulos</dt><dd>${career.titles}</dd></div><div><dt>Melhor campanha</dt><dd>${esc(career.best||'-')}</dd></div></dl>
         <button class="album-link" data-action="album" aria-label="Álbum de cartinhas: ${summary.have} de ${summary.total}"><span>Álbum</span><b>${summary.have}<small> / ${summary.total}</small></b></button>
+        <button class="album-link feats-link" data-action="feats" aria-label="Conquistas: ${feats.have} de ${feats.total}"><span>Conquistas</span><b>${feats.have}<small> / ${feats.total}</small></b></button>
       </div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -417,7 +419,7 @@ function duelRows(contest) {
   if(contest.tiebreak){
     const level=contest.tiebreak==='coin',label=contest.edgeBonus?`Overall + Sangue frio (+${contest.edgeBonus})`:'Overall efetivo';
     rows.push({kind:level?'tie':`tie ${contest.won?'win':'loss'}`,ours:contest.contestOvr,label:level?`${label} · empate`:label,theirs:contest.enemyOvr});
-    if(level)rows.push({kind:`tie ${contest.won?'win':'loss'}`,ours:contest.won?'✓':'-',label:'Sorteio',theirs:contest.won?'-':'✓'});
+    if(level)rows.push({kind:`tie ${contest.won?'win':'loss'}`,ours:contest.won?'✓':'-',label:'Sorteio',theirs:contest.won?'-':'✓',draw:true});
   }
   return rows;
 }
@@ -425,7 +427,21 @@ function duelRows(contest) {
 // had to decide it (the overall, the draw), one more point for who took that. A confrontation never ends level.
 const duelScore = contest=>[contest.own+(contest.tiebreak&&contest.won?1:0),contest.enemy+(contest.tiebreak&&!contest.won?1:0)];
 export const duelSteps = contest=>2*duelRows(contest).length+2;
-export const duelStepMs = (contest,step)=>step===0?1100:step===duelSteps(contest)-1?2400:step%2?850:950;
+// The step in which the draw is asked is the toss of the coin: it gets the time a toss takes to be watched.
+const TOSS_MS = 1900;
+export function duelStepMs(contest,step) {
+  if(step===0)return 1100;
+  if(step===duelSteps(contest)-1)return 2400;
+  if(step%2===0)return 950;
+  return duelRows(contest)[(step-1)/2]?.draw?TOSS_MS:850;
+}
+// The draw of a confrontation that was level even on the overall: a coin with a team on each side. It spins for as
+// long as its step lasts (five turns, and half a turn more when the rival's side ends up) and then lies on the side
+// of who took it. `clock` is how long the step lasts and how much of it has gone by, so a screen that is drawn
+// again in the middle of the toss goes on from where the coin was instead of tossing it again.
+function tossCoin(ctx,contest,state,{ms,elapsed}) {
+  return `<span class="toss ${state}" aria-hidden="true" style="--ms:${ms}ms;--at:${-elapsed}ms"><i class="coin-toss ${state}" style="--end:${1800+(contest.won?0:180)}deg"><span class="face us">${crest()}</span><span class="face them">${teamLogo(ctx.match.teams[1].name)}</span></i></span><em>Sorteio</em>`;
+}
 // One side of the confrontation. `team` is the line under the name: the rival's team, or the player's own.
 // A player with a photo stands next to his card, on the outer side: photo then card for yours, card then photo for the
 // rival. They are written in that order so the layout doesn't depend on reordering them.
@@ -437,9 +453,12 @@ function duelist(player,agent,side,team,effective) {
 function momentResult(ctx) {
   const {record:r,step}=ctx.ui.duel,event=r.event,c=event.contest,rows=duelRows(c),called=step===duelSteps(c)-1,[ours,theirs]=duelScore(c);
   // Row i is asked at step 1+2i and revealed at step 2+2i.
+  // How long the step on screen lasts and how far into it the clock is: the app says both (see duelClock).
+  const clock={ms:ctx.ui.duel.stepMs??duelStepMs(c,step),elapsed:ctx.ui.duel.stepAt?Math.max(0,Math.round(Date.now()-ctx.ui.duel.stepAt)):0};
   const row=(v,i)=>{const asked=1+2*i,shown=step>asked;
     if(step<asked)return '';
-    return `<div class="duel-row ${shown?v.kind:''} ${step===asked?'new':''}"><b class="${shown?(step===asked+1?'pop':''):'ask'}">${shown?v.ours:'?'}</b><span>${v.label}</span><b class="${shown?(step===asked+1?'pop':''):'ask'}">${shown?v.theirs:'?'}</b></div>`;};
+    return `<div class="duel-row ${v.draw?'draw ':''}${shown?v.kind:''} ${step===asked?'new':''}"><b class="${shown?(step===asked+1?'pop':''):'ask'}">${shown?v.ours:'?'}</b><span>${
+      v.draw?tossCoin(ctx,c,shown?'landed':'tossing',clock):v.label}</span><b class="${shown?(step===asked+1?'pop':''):'ask'}">${shown?v.theirs:'?'}</b></div>`;};
   return `<section class="moment resolved ${called?(r.won?'won':'lost'):''}" aria-labelledby="moment-title">
     <p class="eyebrow" id="moment-title">Round ${r.round} · ${event.by?'Jogada de Efeito do rival':'Sua Jogada de Efeito'} · ${event.label}</p>
     <div class="duel">
@@ -467,6 +486,16 @@ export function match(ctx) {
 
 // ---------- Depois da partida ----------
 const rating = p=>p.k*2+p.a-p.d*.5;
+// Second life: the defeat that would have ended the run didn't count, because the staff had the Repescagem. The marks
+// are the defeats the stage allows: the ones already taken, and this one, given back. On the way in the mark fills as
+// a defeat and is then cleared while the bonus is spent, and the stamp lands on top: the run goes on.
+function secondLife(run,entry) {
+  const stage=C.STAGES[entry.stage],lost=run.record[entry.stage].l;
+  return `<div class="second-life"><strong class="life-stamp">Segunda vida</strong><span class="life-marks" role="img" aria-label="${lost} de ${stage.losses} derrotas: esta não contou">${
+    Array.from({length:stage.losses},(_,i)=>`<i class="life ${i<lost?'lost':i===lost?'saved':''}"></i>`).join('')}</span><span class="life-perk">${E.PERKS.repescagem.name}</span></div>`;
+}
+// The conquests that came out with this match, under what it paid.
+const postFeats = summary=>summary.feats?.length?`<div class="post-feats"><p class="eyebrow">Conquistas</p><ul>${summary.feats.map(id=>`<li>${achievementIcon(id)}<b>${A.BY_ID[id].name}</b></li>`).join('')}</ul></div>`:'';
 export function postmatch(ctx) {
   const {match:m,run,summary,db}=ctx,won=summary.won,entry=run.history.at(-1),stage=C.STAGES[entry.stage];
   const headline={continue:summary.forgiven?'Salvo pela Repescagem! Esta derrota não contou. Você perdeu "Repescagem" de sua comissão técnica':'',
@@ -474,19 +503,19 @@ export function postmatch(ctx) {
   // The games of the first two stages already carry the stage in their name; a playoff game gets it in front.
   const where=entry.stage===2?`${stage.name} · ${esc(entry.label)}`:esc(entry.label);
   const cta={continue:'Voltar ao elenco',advanced:run.status==='perk'?'Escolher bônus':'Voltar ao elenco',eliminated:'Ver resumo',champion:'Comemorar'}[summary.outcome];
-  if(summary.forfeit)return `<div class="post lost forfeit">
+  if(summary.forfeit)return `<div class="post lost forfeit${summary.forgiven?' spared':''}">
     <header class="post-head"><p class="eyebrow">${where}</p>
-      <h1>Derrota <span>W.O.</span></h1>
+      <h1>Derrota <span>W.O.</span></h1>${summary.forgiven?secondLife(run,entry):''}
       <p class="post-rival">${teamMark(entry.opponent)}</p>${headline?`<p class="lede">${headline}</p>`:''}</header>
     <div class="post-grid"><section class="panel rewards"><p class="eyebrow">Moedas</p>
       <p class="reward-coins">+ ${coin(0)}</p>
       <ul><li>Partida não disputada <b>+0</b></li></ul>
-      <button class="btn primary big" data-action="after-match">${cta}</button></section></div>
+      ${postFeats(summary)}<button class="btn primary big" data-action="after-match">${cta}</button></section></div>
   </div>`;
   const mvpRow=[...m.teams[0].players].sort((a,b)=>rating(b)-rating(a))[0],mvp=db.byId.get(mvpRow.id);
-  return `<div class="post ${won?'won':'lost'}">
+  return `<div class="post ${won?'won':'lost'}${summary.forgiven?' spared':''}">
     <header class="post-head"><p class="eyebrow">${where}</p>
-      <h1>${won?'Vitória':'Derrota'} <span>${m.score[0]}-${m.score[1]}</span></h1>
+      <h1>${won?'Vitória':'Derrota'} <span>${m.score[0]}-${m.score[1]}</span></h1>${summary.forgiven?secondLife(run,entry):''}
       <p class="post-rival">${teamMark(entry.opponent)}</p>${headline?`<p class="lede">${headline}</p>`:''}</header>
     <div class="post-grid">
       <section class="panel mvp ${hasPhoto(mvp.id)?'with-photo':''}"><p class="eyebrow">Destaque</p>${cutout(mvp)||cardArt(mvp)}
@@ -496,7 +525,7 @@ export function postmatch(ctx) {
         <p class="reward-coins">+ ${coin(summary.coins)}</p>
         <ul><li>Partida <b>+${C.MATCH_PAY}</b></li>${won?`<li>Vitória <b>+${C.WIN_BONUS}</b></li>`:''}${summary.streakCoins?`<li>${summary.streak} vitórias seguidas <b>+${summary.streakCoins}</b></li>`:''}${run.perks.includes('patrocinio')?'<li>Patrocínio <b>+60</b></li>':''}${won&&run.perks.includes('bicho')?'<li>Bicho <b>+40</b></li>':''}${summary.outcome==='advanced'?`<li>Fase vencida <b>+${C.STAGE_BONUS}</b></li>`:''}${summary.spare?`<li>Jogos que sobraram <b>+${summary.spare}</b></li>`:''}
           <li>Confrontos <b>${m.eventsWon} / ${m.eventsResolved}</b></li></ul>
-        <button class="btn primary big" data-action="after-match">${cta}</button></section>
+        ${postFeats(summary)}<button class="btn primary big" data-action="after-match">${cta}</button></section>
     </div>
   </div>`;
 }
@@ -527,6 +556,19 @@ export function album(ctx) {
         return `<button class="album-card ${status}" data-action="detail" data-id="${p.id}" aria-label="${esc(p.name)}, overall ${p.ovr}: ${status==='missing'?'falta':status==='champion'?'campeã':'no álbum'}"><img src="${p.image}" alt="" width="450" height="720" loading="lazy" decoding="async" draggable="false"></button>`;}).join('')}</div>
     </section>`).join('')||'<p class="album-empty">Nenhuma carta aqui ainda</p>'}</div>`;
 }
+
+// ---------- Conquistas ----------
+// Every conquest there is, group by group, each with its symbol, its name and what it asks for. Nothing is secret: the
+// ones still to come are there, dimmed, and the ones already won carry the day they came out.
+export function feats(ctx) {
+  const got=ctx.feats?.got||{},{have,total}=A.count(ctx.feats);
+  return `${band('Conquistas',`${have} de ${total}`,'','compact')}
+  <div class="feats">${A.GROUPS.map(group=>{const list=A.ACHIEVEMENTS.filter(a=>a.group===group);
+    return `<section class="feat-group"><h2>${group}<span>${list.filter(a=>got[a.id]).length} / ${list.length}</span></h2>
+      <ul class="feat-list">${list.map(a=>`<li class="feat${got[a.id]?' got':''}">${achievementIcon(a.id)}<div><b>${a.name}</b><span>${a.text}</span>${
+        got[a.id]?`<em class="sr-only">Conquistada em</em><small>${C.dayLabel(got[a.id])}</small>`:'<em class="sr-only">Ainda não conquistada</em>'}</div></li>`).join('')}</ul></section>`;}).join('')}</div>`;
+}
+export const featBanner = id=>`${achievementIcon(id)}<span><small>Conquista</small><b>${A.BY_ID[id].name}</b></span>`;
 
 // ---------- Diálogos ----------
 // The button marked autofocus is where the keyboard starts when the dialog opens (see openDialog): the one that confirms
