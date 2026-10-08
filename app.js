@@ -1,16 +1,16 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=d803d29969';
-import * as C from './campaign.js?v=d803d29969';
-import * as S from './screens.js?v=d803d29969';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=d803d29969';
-import {startTour,closeTour,tourOpen} from './tour.js?v=d803d29969';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=d803d29969';
-import {stamp,cleanAlbum} from './album.js?v=d803d29969';
-import {initTips,refreshTips} from './tip.js?v=d803d29969';
-import {shareModel,copyShareImage} from './share.js?v=d803d29969';
-import {staleSave,stampSave} from './save.js?v=d803d29969';
-import * as A from './achievements.js?v=d803d29969';
-import {playChime} from './sound.js?v=d803d29969';
+import * as E from './engine.js?v=1201c14e2c';
+import * as C from './campaign.js?v=1201c14e2c';
+import * as S from './screens.js?v=1201c14e2c';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=1201c14e2c';
+import {startTour,closeTour,tourOpen} from './tour.js?v=1201c14e2c';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=1201c14e2c';
+import {stamp,cleanAlbum} from './album.js?v=1201c14e2c';
+import {initTips,refreshTips} from './tip.js?v=1201c14e2c';
+import {shareModel,copyShareImage} from './share.js?v=1201c14e2c';
+import {staleSave,stampSave} from './save.js?v=1201c14e2c';
+import * as A from './achievements.js?v=1201c14e2c';
+import {playChime} from './sound.js?v=1201c14e2c';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice';
@@ -121,6 +121,10 @@ function render(){
       row.animate([{transform:`translateY(${moved}px)`},{transform:'none'}],{duration:560,easing:'cubic-bezier(.2,.8,.2,1)'});
     }
   }
+  // A confrontation grows as its rows come in. On a screen where it has little room, its end can slip under the
+  // controls held to the bottom: the page then follows it, by just what is missing.
+  const open=!changed&&ctx.screen==='match'&&$('.play-layer'),bar=open&&$('.controls');
+  if(bar&&getComputedStyle(bar).position==='sticky'&&open.getBoundingClientRect().bottom>bar.getBoundingClientRect().top)open.scrollIntoView({block:'nearest',behavior:'auto'});
   if(selector)app.querySelector(selector)?.focus({preventScroll:true});
   runClock();
   refreshTips();
@@ -492,8 +496,9 @@ function readSlot(mode){
   const saved=load(KEYS[mode]);
   written[mode]='';
   if(!validSave(saved)||(mode==='daily')!==(typeof saved.daily==='string'))return null;
-  // A match saved before the Jogadas de Efeito existed can't be continued under the new rules: it starts over.
-  if(saved.live&&!Array.isArray(saved.live.calls))saved.live=null;
+  // A match saved under other rules of the round (before the Jogadas de Efeito, before the abilities) can't be
+  // continued under the ones of today: it starts over.
+  if(saved.live&&(!Array.isArray(saved.live.calls)||!C.sameRules(saved.live)))saved.live=null;
   written[mode]=content(saved);
   return saved;
 }
@@ -517,7 +522,7 @@ addEventListener('storage',event=>{
 });
 async function init(){
   try{
-    const response=await fetch('players.json?v=d803d29969');
+    const response=await fetch('players.json?v=1201c14e2c');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -528,7 +533,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=d803d29969');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=1201c14e2c');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};

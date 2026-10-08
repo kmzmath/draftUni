@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=d803d29969';
+import * as E from './engine.js?v=1201c14e2c';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -47,7 +47,7 @@ const RARE_WEIGHT = .35;
 // in reserve below) most of all: that is why the ladder is made of light rules and ends on a single heavy one.
 // The number behind each rule that has one. They are tuned with the simulator, which can also try other numbers
 // without touching this file; the texts of the rules are written from them.
-export const LADDER_VALUES = {market:3,coins:150,streak:40,rivals:.15,contracts:6,stage:150,pay:70,prices:1.05,roster:7,plays:2,groups:2};
+export const LADDER_VALUES = {market:3,coins:150,streak:50,rivals:.1,contracts:6,stage:170,pay:70,prices:1.05,roster:7,plays:2,groups:2};
 const V = LADDER_VALUES;
 export const LADDER = [
   {key:'market',text:`O mercado mostra ${V.market} cartas em vez de 4`},
@@ -312,6 +312,11 @@ export function swapPlayers(run,db,a,b) {
 }
 
 // ---------- Partidas e fases ----------
+// The rules a round is played under have a number, and a match in progress carries the one it was started with:
+// replaying it under other rules (abilities and ultimates came with 2) would give another match with the same
+// choices, so such a match is not continued. It starts over.
+export const MATCH_RULES = 2;
+export const sameRules = live=>live?.rules===MATCH_RULES;
 export function beginMatch(run,db) {
   const error=run.status!=='hub'?'Nenhuma partida preparada':lineupError(run,db);
   if(error)throw new Error(error);
@@ -319,7 +324,7 @@ export function beginMatch(run,db) {
   // players you sent to each confrontation and how many rounds were already resolved. The match is fully determined by
   // its seed and those decisions, so replaying them rebuilds it exactly. That is what makes a reload pointless: the same
   // match comes back, with the same plays already spent and the same choices already made.
-  run.live??={calls:[],picks:[],rounds:0};
+  run.live??={calls:[],picks:[],rounds:0,rules:MATCH_RULES};
   const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:on(run,'plays')?V.plays:undefined});
   let used=0;
   while(!match.over){

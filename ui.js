@@ -1,5 +1,6 @@
 // Componentes de interface compartilhados pelas telas. Tudo aqui devolve HTML em texto.
-import * as E from './engine.js?v=d803d29969';
+import * as E from './engine.js?v=1201c14e2c';
+import {abilityKey} from './abilities.js?v=1201c14e2c';
 
 export const $ = selector=>document.querySelector(selector);
 export const esc = value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -37,7 +38,7 @@ export function stats(player,keys=Object.keys(E.STAT_NAMES)) {
 // ---------- Arte oficial (assets.json) ----------
 // Ícones de agentes, símbolos de função, ícones de round, mapas, equipes (logo, estado, cores), fotos e marca.
 // Tudo é opcional: o que faltar cai nos desenhos próprios abaixo, e o jogo continua funcionando.
-let art={agents:{},roles:{},rounds:{},weapons:{},maps:[],teams:{},photos:{},brand:{}};
+let art={agents:{},abilities:{},roles:{},rounds:{},weapons:{},maps:[],teams:{},photos:{},brand:{}};
 export function useArt(index) { art={...art,...index}; }
 export const brandArt = key=>art.brand[key]||'';
 export const teamInfo = name=>art.teams[name]||{};
@@ -57,6 +58,11 @@ export const roleKey = role=>ROLE_KEY[role]||'flex';
 export const roleIcon = role=>art.roles[role]?shape(art.roles[role],'role-icon')
   :`<svg class="role-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="${ROLE_PATH[role]||ROLE_PATH.Flex}"/></svg>`;
 export const roundIcon = outcome=>art.rounds[outcome]?shape(art.rounds[outcome],'round-icon'):'';
+// The icon of an ability, cut out of the colour of the text around it. Without the art it is an empty box of the same size.
+export function abilityIcon(agent,name) {
+  const file=art.abilities[abilityKey(agent,name)];
+  return file?`<i class="shape" style="--shape:url('${esc(file)}')"></i>`:'<i class="shape blank"></i>';
+}
 export function agentIcon(agent) {
   const file=art.agents[agent.toLowerCase().replace(/[^a-z0-9]/g,'')];
   return file?picture(file,'agent-icon'):roleIcon(E.AGENTS[agent]);

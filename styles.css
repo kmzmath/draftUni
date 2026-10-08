@@ -536,7 +536,8 @@ img.card{height:auto;container-type:normal}
 .squad thead th:nth-child(2){width:2.8rem}
 .squad thead th:nth-child(n+4):nth-child(-n+6){width:3.1rem}
 .squad thead th:nth-child(7){width:6.2rem}
-.squad thead th:nth-child(8){width:8.1rem}
+.squad thead th:nth-child(8){width:8.2rem}
+.squad thead th:nth-child(9){width:8.1rem}
 .squad caption{text-align:left;padding:0 0 .4rem}
 .squad caption .logo,.squad caption .crest{display:inline-block;width:auto;height:1.7rem;margin-right:.55rem;vertical-align:middle}
 .squad caption b{font:400 2rem/1 var(--display);text-transform:uppercase;margin-right:.7rem;vertical-align:middle}
@@ -557,12 +558,13 @@ img.card{height:auto;container-type:normal}
 .squad td.c-agent{padding:.2rem .25rem}
 .squad td.c-agent .agent-icon,.squad td.c-agent .role-icon{display:block;width:2.3rem;height:2.3rem;color:var(--role);border-bottom:2px solid var(--role)}
 .squad td.cr{color:var(--gold);font-weight:600;font-size:1.02rem}
+.squad td.cr i{font-style:normal}
 .squad td.wp .weapon{justify-content:flex-end;vertical-align:middle}
 .squad td.wp small{font:600 .98rem/1 var(--data);color:var(--grey)}
 .mug{display:block;width:2.4rem;height:2.4rem;overflow:hidden;border-radius:6px;background:#2b2b2b}
 .mug-photo{display:block;width:210%;max-width:none;height:auto;margin:-4% 0 0 -55%}
 .mug.blank .mug-photo{width:118%;margin:10% 0 0 -9%;opacity:.6}
-.squad tr.dead .c-mug,.squad tr.dead .c-agent,.squad tr.dead th,.squad tr.dead td.wp{opacity:.35;filter:grayscale(1)}
+.squad tr.dead .c-mug,.squad tr.dead .c-agent,.squad tr.dead th,.squad tr.dead td.ab,.squad tr.dead td.wp{opacity:.35;filter:grayscale(1)}
 .squad td.wp .weapon-icon{height:1.2rem;max-width:5.6rem}
 .squad tr.rose{z-index:2}
 .squad tr.rose td.k{animation:hit .9s var(--ease)}
@@ -576,6 +578,21 @@ img.card{height:auto;container-type:normal}
 .squad td.k{pointer-events:none}
 .squad td.hit{animation:hit .9s var(--ease)}
 .squad tr.fell td.d{color:var(--coral)}
+/* Habilidades no placar: the four icons of the agent, each over a line that says how much of it the player holds for
+   the round (charges out of the most there are). An ability with no charge is dimmed. The last is the ultimate: its
+   line fills in lime with the points, and the whole icon lights up in the round it is used in. */
+.abis{display:inline-flex;align-items:flex-start;gap:.32rem;vertical-align:middle}
+.abi{display:grid;gap:3px;width:1.45rem;color:var(--white)}
+.abi .shape{display:block;width:100%;aspect-ratio:1}
+.abi .shape.blank{background:none;border:1px dashed rgba(255,255,255,.3);border-radius:3px}
+.abi::after{content:"";height:2px;border-radius:1px;background:linear-gradient(90deg,rgba(255,255,255,.85) var(--got),rgba(255,255,255,.16) var(--got))}
+.abi.off .shape{opacity:.22}
+.abi.ult .shape{opacity:.5}
+.abi.ult::after{background:linear-gradient(90deg,var(--lime) var(--got),rgba(255,255,255,.16) var(--got))}
+.abi.ult.on{color:var(--lime)}
+.abi.ult.on .shape{opacity:1;filter:drop-shadow(0 0 5px rgba(209,243,80,.75))}
+.abis.narrow{display:none}
+.squad td.ab{line-height:0}
 @keyframes hit{0%{color:var(--lime);transform:scale(1.5)}100%{transform:none}}
 .match-side{display:grid;gap:1rem;position:sticky;top:84px}
 .feed{padding:1.1rem;min-height:276px;border-top:4px solid rgba(255,255,255,.25)}
@@ -1482,13 +1499,26 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   /* The smallest labels of the game, one step up: a phone is read at arm's length, not at a desk. */
   .map-shot span,.arena-map span,.formation-now,.stats-table .groups>*{font-size:.68rem}
 }
+@media (max-width:700px){
+  /* Where the column of the abilities doesn't fit, they go under the weapon, as a second line of its cell. */
+  .squad td.ab,.squad thead th.c-ab{display:none}
+  .squad td.wp{line-height:1}
+  .abis.narrow{display:flex;justify-content:flex-end;gap:.22rem;margin-top:.28rem}
+  .abis.narrow .abi{width:1.12rem;gap:2px}
+  .squad thead th:nth-child(9){width:6.4rem}
+}
 @media (max-width:520px){
   /* On a phone the scoreboard keeps what the round is played with (credits, weapon, shield) and drops the pictures. */
   .squad td.c-mug,.squad thead th.c-mug,.squad td.c-agent,.squad thead th.c-agent{display:none}
   .squad tbody th{border-left:3px solid var(--side)}
-  .squad thead th:nth-child(n+4):nth-child(-n+6){width:1.9rem}
+  .squad thead th:nth-child(n+4):nth-child(-n+6){width:1.55rem}
+  .squad td:nth-child(n+4):nth-child(-n+6),.squad thead th:nth-child(n+4):nth-child(-n+6){padding-inline:.12rem}
   .squad thead th:nth-child(7){width:3.9rem}
-  .squad thead th:nth-child(8){width:4.3rem}
+  /* The weapon's cell is as wide as the four abilities under the weapon; the name gets all the rest of the row. */
+  .squad thead th:nth-child(9){width:4.85rem}
+  .squad td.wp{padding-left:0}
+  .abis.narrow{gap:.19rem}
+  .abis.narrow .abi{width:1rem}
   .squad td,.squad tbody th{padding-inline:.3rem}
   .squad td{font-size:1.05rem}
   .squad td.cr{font-size:.95rem}
@@ -1499,6 +1529,76 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .ready{width:8px;height:8px;margin-left:.35rem}
 }
 /* A phone lying down has almost no height: the top bar goes up with the page. */
+/* ---------- A partida no celular ---------- */
+/* On a phone the match is one screen: nothing the round is decided with should need the page to be scrolled. The
+   header gives up its second row, the two teams stand side by side (yours on the left, the rival on the right, as in
+   the header and in the buy bar above them), and each player takes two short lines: who he is and his kills, deaths
+   and assists; then what he carries (weapon, shield, the four abilities) and his credits. The kills of the round
+   come right under the teams. The table keeps its markup; only its boxes are laid out another way. */
+@media (max-width:520px){
+  .ribbon:has(+ .screen-match) .ticker{display:none}
+  .screen-match{padding-top:.5rem}
+  .arena{padding:.45rem .7rem .4rem}
+  .arena-map{display:none}
+  .bug{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:0 .5rem}
+  .bug-team.us{grid-area:1/1}
+  .bug-score{grid-area:1/2;gap:.45rem}
+  .bug-team.them{grid-area:1/3}
+  .bug-team b{font-size:1.15rem;line-height:1.02}
+  .bug-score>b{font-size:3.1rem}
+  .bug-score .bug-mid{min-width:4.9rem;min-height:3.1rem;gap:.2rem}
+  .bug-score small{font-size:.7rem;letter-spacing:.08em}
+  .freeze-clock{font-size:1.9rem}
+  .bug-meta{margin-top:.28rem}
+  .bug-side{margin-top:.25rem}
+  .timeline{margin:.4rem 0 .45rem}
+  .match-body{gap:.5rem}
+  .board{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.45rem .4rem;padding:.5rem .4rem}
+  .board .buys{grid-column:1/-1}
+  .board .buys p i{font-size:1.45rem}
+  .board .squad{display:block;min-width:0}
+  .board .squad caption,.board .squad thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .board .squad tbody{display:grid;gap:3px}
+  /* Each player is two lines that share nothing but the row: the first is the agent, the name and K / D / A; a break
+     (the row's ::before, put between them by its order) sends the weapon's cell and the credits to the second, where
+     the cell takes all the credits leave. */
+  .board .squad tbody tr{display:flex;flex-wrap:wrap;align-items:center;column-gap:.14rem;padding:.16rem .3rem .2rem;border-top:0;border-left:3px solid var(--side)}
+  .board .squad tbody tr::before{content:"";order:6;flex:0 0 100%;height:0}
+  .board .squad.them tbody tr{border-left:0;border-right:3px solid var(--side);background:linear-gradient(270deg,color-mix(in srgb,var(--side) 20%,#191919),color-mix(in srgb,var(--side) 5%,#191919) 60%)}
+  .board .squad td,.board .squad tbody th{display:block;padding:0;border:0;min-width:0}
+  .board .squad td.c-mug,.board .squad td.ab{display:none}
+  .board .squad td.c-agent{order:1;flex:none;margin-right:.12rem}
+  .board .squad td.c-agent .agent-icon,.board .squad td.c-agent .role-icon{width:.95rem;height:.95rem;border-bottom:0}
+  .board .squad tbody th{order:2;flex:1 1 0;display:flex;align-items:center}
+  .board .who{max-width:calc(100% - .8rem)}
+  .board .who small{display:none}
+  .board .who b{font-size:.76rem}
+  .board .ready{flex:none;width:7px;height:7px;margin-left:.3rem}
+  .board .squad td.k{order:3}
+  .board .squad td.d{order:4}
+  .board .squad td.a{order:5}
+  .board .squad :is(td.k,td.d,td.a){font-size:.92rem;line-height:1;text-align:center}
+  .board .squad :is(td.d,td.a)::before{content:"/";margin-right:.14rem;font-weight:500;color:var(--dim)}
+  .board .squad td.wp{order:7;flex:1 1 0;display:flex;align-items:center;gap:.3rem;margin-top:3px;line-height:1}
+  .board .squad td.wp .weapon{gap:.16rem}
+  .board .squad td.wp .weapon-icon{height:.78rem;max-width:2.3rem}
+  .board .shield{width:.6rem;height:.72rem}
+  .board .abis.narrow{margin:0;gap:.15rem}
+  .board .abis.narrow .abi{width:.84rem;gap:2px}
+  .board .squad td.cr{order:8;flex:none;margin-top:3px;font-size:.74rem;line-height:1;text-align:right}
+  .feed{--kill:1.24rem;grid-template-rows:1.25rem calc(var(--kill)*5 + 12px);gap:.25rem .7rem;padding:.45rem .6rem .5rem}
+  .feed h3{font-size:1.3rem}
+  .controls{gap:.35rem;margin-top:.5rem;padding-top:.4rem}
+  .controls .play-call,.controls .flow{min-height:46px}
+}
+/* The narrowest phones: the same screen with the last pixels found for the names and the credits. */
+@media (max-width:380px){
+  .board .who b{font-size:.72rem}
+  .board .squad td.wp .weapon-icon{max-width:1.9rem}
+  .board .squad td.cr i{display:none}
+  .board .abis.narrow{gap:.12rem}
+  .board .abis.narrow .abi{width:.8rem}
+}
 @media (max-height:500px){
   .ribbon{position:static}
 }

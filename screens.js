@@ -1,12 +1,13 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=d803d29969';
-import * as C from './campaign.js?v=d803d29969';
-import {previewChange} from './impact.js?v=d803d29969';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=d803d29969';
-import {albumSummary,cardStatus} from './album.js?v=d803d29969';
-import * as A from './achievements.js?v=d803d29969';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=d803d29969';
+import * as E from './engine.js?v=1201c14e2c';
+import * as C from './campaign.js?v=1201c14e2c';
+import {previewChange} from './impact.js?v=1201c14e2c';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=1201c14e2c';
+import {albumSummary,cardStatus} from './album.js?v=1201c14e2c';
+import * as A from './achievements.js?v=1201c14e2c';
+import * as B from './abilities.js?v=1201c14e2c';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=1201c14e2c';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -323,6 +324,7 @@ function matchView(ctx) {
   record.kills.slice(0,shown).forEach((kill,i)=>{
     const killer=row(kill.team,kill.killer),victim=row(1-kill.team,kill.victim);
     killer.k++;killer.credits=Math.min(9000,killer.credits+200);victim.d++;victim.dead=true;
+    for(const each of [killer,victim])each.ult=Math.min(B.ABILITIES[each.agent].x.points,each.ult+1);
     kill.assistIds.forEach(id=>row(kill.team,id).a++);
     if(i===shown-1){killer.hit=true;victim.fell=true;}
   });
@@ -356,15 +358,36 @@ function timeline(view) {
     return `<li class="${r?(r.won?'won':'lost'):i===view.round-1&&!view.over?'now':''} ${r?.event?`decisive ${r.event.by?'them':'us'}`:''} ${i===12?'half':''}" aria-label="${what}" data-tip="${what}">${r?roundIcon(r.outcome):`<span>${i+1}</span>`}</li>`;}).join('')}</ol>`;
 }
 // The buys of the round, one against the other: a single bar split by how much of the equipment on the server each
-// team carries (weapons and shields at their price), with the name of each team's buy at its end.
+// team carries (weapons, shields and abilities at their price, and the ultimates in use at what they are worth),
+// with the name of each team's buy at its end.
 function buyBar(ctx,view) {
   if(!view.gear)return '';
-  const worth=view.teams.map(players=>players.reduce((sum,p)=>sum+E.loadoutValue(p),0)),ours=E.loadoutShare(view.teams);
-  const [mine,rival]=view.gear,them=esc(ctx.match.teams[1].name);
+  const ours=E.loadoutShare(view.teams),[mine,rival]=view.gear,them=esc(ctx.match.teams[1].name);
+  const carried=view.teams.map(players=>{
+    const worth=players.reduce((sum,p)=>sum+E.armsValue(p)+(p.util||0),0),ults=players.filter(p=>p.ultOn).length;
+    return `¤ ${num(worth)} em armas, coletes e habilidades${ults?` · ${ults} ${ults===1?'ultimate':'ultimates'} em uso`:''}`;
+  });
   return `<div class="buys" role="img" aria-label="Compras do round. ${ourName(ctx)}: ${mine}, ${ours}% do equipamento. ${them}: ${rival}, ${100-ours}%.">
     <p><b class="us">${mine}<i>${ours}%</i></b><b class="them"><i>${100-ours}%</i>${rival}</b></p>
-    <div class="buys-bar"><i class="us" style="width:${ours}%" data-tip="${ourName(ctx)}: ¤ ${num(worth[0])} em armas e coletes"></i><i class="them" data-tip="${them}: ¤ ${num(worth[1])} em armas e coletes"></i></div>
+    <div class="buys-bar"><i class="us" style="width:${ours}%" data-tip="${ourName(ctx)}: ${carried[0]}"></i><i class="them" data-tip="${them}: ${carried[1]}"></i></div>
   </div>`;
+}
+// The four abilities of a player's agent as he holds them for the round. Under each icon runs a line, filled by the
+// charges he has out of the most there are; an ability without a charge is dimmed. The last one is the ultimate: its
+// line fills with the points, and it lights up in the round it is used in. The scoreboard carries the strip twice:
+// in a column of its own, and inside the weapon's cell for the narrow screens, where that column doesn't fit (one of
+// the two is always hidden, and only the first is read out).
+function abilities(p,narrow=false) {
+  const kit=B.ABILITIES[p.agent],said=[];
+  const icons=B.SLOTS.map((slot,i)=>{
+    const own=kit[slot].shared?kit[kit[slot].shared]:kit[slot],held=p.abi?.[i]||0,name=kit[slot].name;
+    said.push(`${name} ${held} de ${own.max}`);
+    return `<span class="abi${held?'':' off'}" style="--got:${Math.round(100*held/own.max)}%" data-tip="${esc(name)} · ${held} de ${own.max} ${own.max===1?'carga':'cargas'}">${abilityIcon(p.agent,name)}</span>`;
+  });
+  const x=kit.x,points=p.ult||0;
+  said.push(p.ultOn?`${x.name} em uso`:`${x.name} ${points} de ${x.points} pontos`);
+  icons.push(`<span class="abi ult${p.ultOn?' on':''}" style="--got:${p.ultOn?100:Math.round(100*points/x.points)}%" data-tip="${esc(x.name)} · ${p.ultOn?'em uso neste round':`${points} de ${x.points} pontos`}">${abilityIcon(p.agent,x.name)}</span>`);
+  return `<span class="abis${narrow?' narrow" aria-hidden="true"':`" role="img" aria-label="Habilidades: ${esc(said.join(', '))}"`}>${icons.join('')}</span>`;
 }
 // The scoreboard of one team, ordered by kills. Rows carry data-flip so the app can animate them changing places.
 function teamTable(ctx,view,t) {
@@ -372,10 +395,10 @@ function teamTable(ctx,view,t) {
   const rows=[...view.teams[t]].sort((a,b)=>b.k-a.k||a.d-b.d||b.a-a.a||a.order-b.order);
   return `<table class="squad ${t?'them':'us'}">
     <caption>${t?teamLogo(name):crest()}<b>${t?esc(name):ourName(ctx)}</b></caption>
-    <thead><tr><th scope="col" class="c-mug"><span class="sr-only">Foto</span></th><th scope="col" class="c-agent"><span class="sr-only">Agente</span></th><th scope="col">Jogador</th><th scope="col" aria-label="Abates" data-tip="Abates">K</th><th scope="col" aria-label="Mortes" data-tip="Mortes">D</th><th scope="col" aria-label="Assistências" data-tip="Assistências">A</th><th scope="col">Créditos</th><th scope="col">Arma</th></tr></thead>
+    <thead><tr><th scope="col" class="c-mug"><span class="sr-only">Foto</span></th><th scope="col" class="c-agent"><span class="sr-only">Agente</span></th><th scope="col">Jogador</th><th scope="col" aria-label="Abates" data-tip="Abates">K</th><th scope="col" aria-label="Mortes" data-tip="Mortes">D</th><th scope="col" aria-label="Assistências" data-tip="Assistências">A</th><th scope="col">Créditos</th><th scope="col" class="c-ab">Habilidades</th><th scope="col">Arma</th></tr></thead>
     <tbody>${rows.map(p=>`<tr data-flip="${p.id}" class="${p.dead?'dead':''} ${p.fell?'fell':''}"><td class="c-mug">${mug(p.id)}</td><td class="c-agent role-${roleKey(E.AGENTS[p.agent])}">${agentIcon(p.agent)}</td>
         <th scope="row"><span class="who"><b>${esc(p.name)}</b><small>${p.agent}</small></span>${t?'':`<i class="ready ${used.has(p.id)?'spent':''}" role="img" aria-label="${used.has(p.id)?'Já foi a um confronto':'Pode ir a um confronto'}" data-tip="${used.has(p.id)?'Já foi a um confronto':'Pode ir a um confronto'}"></i>`}</th>
-        <td class="k ${p.hit?'hit':''}">${p.k}</td><td class="d">${p.d}</td><td>${p.a}</td><td class="cr">¤ ${num(p.credits)}</td><td class="wp">${weapon(p.weapon,{label:false,shield:p.shield})}</td></tr>`).join('')}</tbody></table>`;
+        <td class="k ${p.hit?'hit':''}">${p.k}</td><td class="d">${p.d}</td><td class="a">${p.a}</td><td class="cr"><i>¤</i> ${num(p.credits)}</td><td class="ab">${abilities(p)}</td><td class="wp">${weapon(p.weapon,{label:false,shield:p.shield})}${abilities(p,true)}</td></tr>`).join('')}</tbody></table>`;
 }
 function feed(view) {
   const r=view.record;

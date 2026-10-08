@@ -2,9 +2,9 @@
 // Cada uma tem um nome e o que pede. Nenhuma dá moedas nem bônus: são só para mostrar.
 // O que já saiu fica guardado entre as runs como {got:{id:dia}, formations:[...]}: o dia em que cada conquista saiu
 // e, para a Estrategista, as formações com que o time já venceu.
-import * as E from './engine.js?v=d803d29969';
-import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=d803d29969';
-import {albumSummary} from './album.js?v=d803d29969';
+import * as E from './engine.js?v=1201c14e2c';
+import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=1201c14e2c';
+import {albumSummary} from './album.js?v=1201c14e2c';
 
 export const GROUPS = ['Campanha','Partida','Jogada de Efeito','Elenco','Álbum'];
 export const ACHIEVEMENTS = [

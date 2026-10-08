@@ -1,4 +1,5 @@
 // Regras puras do jogo: draft, sinergia, formação e simulação da partida. Sem DOM.
+import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=1201c14e2c';
 export const ROLES = ['Duelista','Iniciador','Controlador','Sentinela'];
 export const AGENTS = Object.fromEntries(Object.entries({
   Duelista:['Jett','Phoenix','Raze','Neon','Reyna','Yoru','Iso','Waylay'],
@@ -273,9 +274,11 @@ function rivalCalls(match){
 export function availableActors(match){return match.teams[0].lineup.map(s=>s.player.id).filter(id=>!match.used.includes(id));}
 function spend(list,id,cycle){list.push(id);if(list.length>=cycle)list.length=0;}
 
-// ---------- Economia, armas e coletes ----------
+// ---------- Economia, armas, coletes e habilidades ----------
 // Preços do jogo. power: a qualidade da arma em relação a um rifle (e do colete em relação ao pesado). Decide o que
 // cada jogador compra com o que tem e quem leva mais abates; a chance do round vem do valor do equipamento (prepareRound).
+// As habilidades (abilities.js) são compradas depois da arma e do colete, com o que sobra do orçamento do round, e
+// gastas nele: no round seguinte todo mundo compra de novo. Elas e a ultimate em uso contam no valor do equipamento.
 // fan: arma de gosto, só entra na compra de quem a prefere (AWP, metralhadora, escopeta e o rifle de cada um).
 export const WEAPONS={
   Classic:{cost:0,power:-20},Frenzy:{cost:450,power:-16,fan:true},Ghost:{cost:500,power:-16},Bandit:{cost:600,power:-15},
@@ -288,9 +291,12 @@ export const SHIELDS={'':{cost:0,power:-6},Leve:{cost:400,power:-3},Pesado:{cost
 // Rifle and heavy shield: what a player needs to be fully armed.
 export const FULL_BUY=WEAPONS.Vandal.cost+SHIELDS.Pesado.cost;
 export const loadoutPoints=p=>WEAPONS[p.weapon].power+SHIELDS[p.shield].power;
-export const loadoutValue=p=>WEAPONS[p.weapon].cost+SHIELDS[p.shield].cost;
+// What a player carries into the round, at its price: weapon and shield (armsValue), the abilities he paid for and,
+// when he is using his ultimate in this round, what an ultimate is worth.
+export const armsValue=p=>WEAPONS[p.weapon].cost+SHIELDS[p.shield].cost;
+export const loadoutValue=p=>armsValue(p)+(p.util||0)+(p.ultOn?ultValue(p.agent):0);
 // How the money on the server splits between the two teams in a round: the first team's share, from 0 to 100, of the
-// value of everything both carry. Two teams with nothing but Classics split it evenly.
+// value of everything both carry. Two teams with nothing at all split it evenly.
 export function loadoutShare(teams){
   const [ours,theirs]=teams.map(players=>players.reduce((sum,p)=>sum+loadoutValue(p),0));
   return ours+theirs?Math.round(100*ours/(ours+theirs)):50;
@@ -314,6 +320,13 @@ export function loadout(p,budget){
 }
 const PISTOL_BUYS=[['Classic','Leve'],['Ghost',''],['Ghost',''],['Frenzy',''],['Bandit',''],['Sheriff','']];
 const lossPay=streak=>1900+500*Math.min(streak-1,2);
+// How often the spike was planted in a round that ended by elimination, by the side that won it.
+const PLANT_ODDS={Ataque:.6,Defesa:.2};
+// The abilities for the round, out of what the player still has of his budget once weapon and shield are paid.
+function equip(p,budget){
+  const {charges,spent}=buyAbilities(p.agent,Math.max(0,Math.min(budget,p.credits)));
+  p.abi=charges;p.util=spent;p.credits-=spent;
+}
 const rifle=p=>WEAPONS[p.weapon].power>=0;
 // Armed: can pay for a rifle and the shield asked for, or kept a rifle and only needs the shield.
 const armed=(p,shield)=>p.credits>=WEAPONS.Vandal.cost+SHIELDS[shield].cost||(p.kept&&rifle(p)&&p.credits>=SHIELDS[shield].cost);
@@ -333,6 +346,7 @@ function buyPhase(match,t){
     for(const p of team.players){
       const [weapon,bought]=sample(PISTOL_BUYS,random),shield=bought||(armed?'Leve':'');
       Object.assign(p,{weapon,shield,credits:start-WEAPONS[weapon].cost-SHIELDS[shield].cost,kept:false});
+      equip(p,p.credits);
     }
     return 'Pistola';
   }
@@ -340,13 +354,16 @@ function buyPhase(match,t){
   const able=team.players.filter(p=>armed(p,team.wonLast?'Pesado':'Leve')).length>=4;
   const urgent=match.round===12||match.round===24||match.round>=25||match.score[1-t]>=12;
   const gamble=!able&&!urgent&&!team.wonLast&&avg(team.players.map(p=>p.credits))>=2000&&random()<.35;
-  const allIn=able||urgent||gamble,reserve=FULL_BUY-(team.wonLast?3000:lossPay(team.lossStreak+1));
+  // What the team counts on being paid for the next round. A player who saves keeps what a full buy with all his
+  // abilities will cost him then.
+  const allIn=able||urgent||gamble,income=team.wonLast?3000:lossPay(team.lossStreak+1);
   for(const p of team.players){
-    const pick=loadout(p,allIn?p.credits:Math.max(0,p.credits-reserve));
+    const budget=allIn?p.credits:Math.max(0,p.credits-(FULL_BUY+utilityCost(p.agent)-income)),pick=loadout(p,budget);
     p.weapon=pick.weapon;p.shield=pick.shield;p.credits-=pick.cost;
+    equip(p,budget-pick.cost);
   }
   if(allIn)return team.players.filter(rifle).length>=4?'Completa':'Forçado';
-  return avg(team.players.map(loadoutValue))>=1500?'Parcial':'Eco';
+  return avg(team.players.map(armsValue))>=1500?'Parcial':'Eco';
 }
 
 // ---------- Partida ----------
@@ -358,7 +375,9 @@ export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS}){
     const likes=[random()<.6?'Vandal':'Phantom'];
     if(['Jett','Chamber'].includes(s.agent)&&random()<.5)likes.unshift('Operator','Outlaw','Marshal');
     else if(random()<.2)likes.unshift(sample(['Odin','Judge','Ares','Bucky','Frenzy'],random));
-    return {id:s.player.id,name:s.player.name,agent:s.agent,k:0,d:0,a:0,credits:800,weapon:'Classic',shield:'',kept:false,alive:true,likes};
+    // abi: the charges of each ability held for the round (see SLOTS); util: what was paid for them; ult: the points
+    // towards the ultimate; ultOn: the ultimate is being used in the round on screen.
+    return {id:s.player.id,name:s.player.name,agent:s.agent,k:0,d:0,a:0,credits:800,weapon:'Classic',shield:'',kept:false,alive:true,likes,abi:[0,0,0],util:0,ult:0,ultOn:false};
   };
   const team=(name,slots)=>({name,lineup:slots.map(s=>({...s})),players:slots.map(row),lossStreak:0,wonLast:false});
   // plays: what each team still has, [yours, the rival's]; playsMax: what each started the match with.
@@ -374,6 +393,9 @@ export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS}){
 function prepareRound(match){
   const side=sideForRound(match.round,match.startSide),pistol=match.round===1||match.round===13;
   const gear=[0,1].map(t=>buyPhase(match,t));
+  // Ultimates: whoever has the points when the round is about to start uses the ultimate in it, and starts counting
+  // again from zero.
+  for(const p of match.teams.flatMap(team=>team.players)){p.ultOn=p.ult>=ABILITIES[p.agent].x.points;if(p.ultOn)p.ult=0;}
   // Armament: your share of the value of everything both teams carry into the round (the bar on the scoreboard) is, by
   // itself, your chance in it. 65% of the equipment is 15 points above an even round; the cards move it from there.
   const share=loadoutShare(match.teams.map(team=>team.players)),edge=(share-50)/2;
@@ -408,16 +430,21 @@ function simulateKills(match,won,event){
   const random=match.random,prep=match.prepared,winner=won?0:1,winnerSide=won?prep.side:opposite(prep.side);
   const cards=new Map(match.teams.flatMap(t=>t.lineup.map(s=>[s.player.id,s.player])));
   const alive=match.teams.map(t=>[...t.players]),need=[0,0],kills=[],guarded=new Set();
-  let outcome='Eliminação';need[1-winner]=5;
+  let outcome='Eliminação',planted=false;need[1-winner]=5;
   const roll=random();
-  if(winnerSide==='Ataque'&&roll<.25){outcome='Spike detonada';need[1-winner]=3+Math.floor(random()*2);}
-  else if(winnerSide==='Defesa'&&roll<.18){outcome='Spike desarmada';need[1-winner]=4+Math.floor(random()*2);}
+  if(winnerSide==='Ataque'&&roll<.25){outcome='Spike detonada';planted=true;need[1-winner]=3+Math.floor(random()*2);}
+  else if(winnerSide==='Defesa'&&roll<.18){outcome='Spike desarmada';planted=true;need[1-winner]=4+Math.floor(random()*2);}
   else if(winnerSide==='Defesa'&&roll<.3){outcome='Tempo esgotado';need[1-winner]=2+Math.floor(random()*3);}
+  // A round that ends with one side wiped out may have had the spike planted on the way: usually when the attack won
+  // it, now and then when the defence did (the plant that came just before the last attackers fell).
+  else planted=random()<PLANT_ODDS[winnerSide];
   const favoured=won?prep.chance:1-prep.chance;
   need[winner]=weightedSample([0,1,2,3,4],random,n=>[1,2.2,3,2.6,1.6][n]*Math.exp((.5-favoured)*n*1.2));
   const strike=(team,killer,victim)=>{
     const assists=alive[team].filter(mate=>mate!==killer&&random()<cards.get(mate.id).stats.apr*.45).slice(0,2);
     killer.k++;killer.credits=Math.min(9000,killer.credits+200);victim.d++;victim.alive=false;assists.forEach(mate=>mate.a++);
+    // A point towards the ultimate for the kill and one for the death, up to what the ultimate asks for.
+    for(const each of [killer,victim])each.ult=Math.min(ABILITIES[each.agent].x.points,each.ult+1);
     alive[1-team].splice(alive[1-team].indexOf(victim),1);need[1-team]--;
     kills.push({team,killer:killer.id,killerName:killer.name,victim:victim.id,victimName:victim.name,weapon:killer.weapon,assists:assists.map(mate=>mate.name),assistIds:assists.map(mate=>mate.id)});
   };
@@ -440,18 +467,19 @@ function simulateKills(match,won,event){
     strike(1-t,killer,victim);
   }
   if(clutch){if(event.contest.won)strike(0,actor,rival);else strike(1,rival,actor);}
-  return {outcome,kills};
+  return {outcome,kills,planted};
 }
 function finishRound(match,won,event=null){
-  const prep=match.prepared,{outcome,kills}=simulateKills(match,won,event);
+  const prep=match.prepared,{outcome,kills,planted}=simulateKills(match,won,event);
   match.score[won?0:1]++;
   const over=isMatchOver(...match.score);
-  const attackers=prep.side==='Ataque'?0:1,planted=outcome==='Spike detonada'||outcome==='Spike desarmada';
+  const attackers=prep.side==='Ataque'?0:1;
   match.teams.forEach((team,t)=>{
     const victory=t===(won?0:1);
     team.lossStreak=victory?0:team.lossStreak+1;team.wonLast=victory;
     // Round income: 3000 for the win, 1900 to 2900 for the loss as defeats pile up, and 300 for the attackers when the
-    // spike was planted. Losing while saving the weapon (time ran out, or the spike went off) pays only 1000.
+    // spike was planted, however the round ended. Losing while saving the weapon (time ran out, or the spike went
+    // off) pays only 1000.
     const saving=!victory&&(outcome==='Tempo esgotado'||outcome==='Spike detonada');
     // Caixa de emergência (yours only): 400 more on every round lost.
     const relief=t===0&&match.perks.includes('caixa')?400:0;
@@ -464,7 +492,7 @@ function finishRound(match,won,event=null){
     }
   });
   const record={round:match.round,won,score:[...match.score],side:prep.side,gear:prep.gear,share:prep.share,ours:prep.ours,theirs:prep.theirs,
-    chance:prep.chance,outcome,kills,event};
+    chance:prep.chance,outcome,planted,kills,event};
   match.log.push(record);match.round++;match.pending=null;match.prepared=null;match.over=over;
   if(!match.over)prepareRound(match);
   return record;
