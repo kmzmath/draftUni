@@ -1,14 +1,14 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=b20908dbbf';
-import * as C from './campaign.js?v=b20908dbbf';
-import {previewChange} from './impact.js?v=b20908dbbf';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=b20908dbbf';
-import {albumSummary,cardStatus} from './album.js?v=b20908dbbf';
-import * as A from './achievements.js?v=b20908dbbf';
-import * as ST from './stats.js?v=b20908dbbf';
-import * as B from './abilities.js?v=b20908dbbf';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=b20908dbbf';
+import * as E from './engine.js?v=7b9b1b6e5a';
+import * as C from './campaign.js?v=7b9b1b6e5a';
+import {previewChange} from './impact.js?v=7b9b1b6e5a';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=7b9b1b6e5a';
+import {albumSummary,cardStatus} from './album.js?v=7b9b1b6e5a';
+import * as A from './achievements.js?v=7b9b1b6e5a';
+import * as ST from './stats.js?v=7b9b1b6e5a';
+import * as B from './abilities.js?v=7b9b1b6e5a';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=7b9b1b6e5a';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -136,21 +136,8 @@ export function perk(ctx) {
 }
 
 // ---------- Elenco, loja e próximo jogo ----------
-// The laços between starters of the same team: one from each to the next of his team, under the cards, with the bonus
-// all of them get. Each laço is a cell of the same grid as the cards, from the first card's column to the second's,
-// so it starts and ends exactly under the two logos.
-function bonds(lineup,perks) {
-  const groups={};lineup.forEach((s,i)=>(groups[s.player.team]??=[]).push(i));
-  const items=Object.entries(groups).filter(([,list])=>list.length>1).flatMap(([team,list])=>{
-    const first=lineup[list[0]],gain=E.effective(first.player,first.agent,lineup,perks).chemistry;
-    return list.slice(1).map((to,k)=>{
-      // The farther apart the two are, the deeper the curve, so two laços never run one over the other.
-      const from=list[k],dip=Math.min(72,30+(to-from)*14);
-      return `<span class="bond" style="grid-column:${from+1} / ${to+2};--span:${to-from+1};--team:${teamColor(team)};--mid:${dip/80*100}%" aria-hidden="true"><svg viewBox="0 0 100 40" preserveAspectRatio="none"><path pathLength="1" d="M0 0Q50 ${dip} 100 0"/></svg><b>+${gain}</b></span>`;
-    });
-  });
-  return `<div class="bonds">${items.join('')}</div>`;
-}
+// A starter with teammates among the five: the logo of the team is lit in the team's colour, with the bonus each of
+// them gets under it.
 function starter(slot,i,lineup,ctx) {
   const p=slot.player,eff=E.effective(p,slot.agent,lineup,ctx.run.perks),selected=ctx.ui.selected===p.id;
   const mods=[eff.comfort&&`<span class="good">Conforto +${eff.comfort}</span>`,eff.chemistry&&`<span class="good">Equipe +${eff.chemistry}</span>`,eff.staff&&`<span class="good">Comissão +${eff.staff}</span>`,eff.penalty&&`<span class="bad">${eff.label} ${signed(eff.penalty)}</span>`].filter(Boolean);
@@ -158,7 +145,7 @@ function starter(slot,i,lineup,ctx) {
     <button class="slot-card" data-action="select" data-id="${p.id}" aria-pressed="${selected}" aria-label="${esc(p.name)}, titular, overall efetivo ${eff.value}">${cardArt(p,{effective:eff.value})}</button>
     <button class="agent-btn role-${roleKey(E.AGENTS[slot.agent])}" data-action="agent" data-id="${p.id}" aria-label="Agente de ${esc(p.name)}: ${slot.agent}. Trocar">${agentIcon(slot.agent)}<b>${slot.agent}</b><i aria-hidden="true">▾</i></button>
     <p class="mods">${mods.join('')}</p>
-    <span class="slot-team" role="img" aria-label="${esc(p.team)}" data-tip="${esc(p.team)}">${teamLogo(p.team)}</span>
+    <span class="slot-team${eff.chemistry?' linked':''}" role="img" aria-label="${esc(p.team)}${eff.chemistry?`: sinergia +${eff.chemistry}`:''}" data-tip="${esc(p.team)}">${teamLogo(p.team)}${eff.chemistry?`<b>+${eff.chemistry}</b>`:''}</span>
   </div>`;
 }
 function lineupTab(ctx) {
@@ -166,7 +153,6 @@ function lineupTab(ctx) {
   const picked=ui.selected&&db.byId.get(ui.selected);
   return `<div class="stage tray">
       <div class="stage-row">${lineup.map((slot,i)=>starter(slot,i,lineup,ctx)).join('')}${Array.from({length:5-lineup.length},()=>'<div class="slot empty"><span>Vaga</span></div>').join('')}</div>
-      ${bonds(lineup,run.perks)}
     </div>
     ${picked?`<div class="selection" aria-live="polite"><p><b>${esc(picked.name)}</b> selecionado</p>
         <div><button class="btn small" data-action="detail" data-id="${picked.id}">Ver carta</button>
@@ -192,6 +178,11 @@ function marketCard(offer,ctx) {
     <button class="btn ${blocked?'':'primary'}" data-action="buy-player" data-id="${p.id}" ${blocked?'disabled':''}>${buyLabel('Comprar',price,blocked)}</button>
   </article>`;
 }
+// The order the role pack goes through, under the pack: the four roles as icons with arrows between them, and the
+// one of this shop lit.
+const roleName = role=>C.packName({role}).replace('Pacote de ','');
+const roleOrder = now=>`<span class="role-order" role="img" aria-label="Ordem dos pacotes de função: ${C.ROLE_ORDER.map(roleName).join(', ')}. Agora: ${roleName(now)}">${
+  C.ROLE_ORDER.map(role=>`<b class="role-step role-${roleKey(role)}${role===now?' on':''}">${roleIcon(role)}</b>`).join('<em aria-hidden="true">→</em>')}</span>`;
 function shopTab(ctx) {
   const {db,run}=ctx,roster=C.rosterIds(run).map(id=>db.byId.get(id)),full=roster.length>=C.rosterMax(run);
   // The three packs by overall, and the role pack of this shop: one role, in the colour and with the symbol of that role.
@@ -200,7 +191,7 @@ function shopTab(ctx) {
     <section class="shop-block"><h2>Pacotes</h2>
       <div class="packs">${packs.map((pack,i)=>{const blocked=full?'Elenco cheio':run.coins<pack.cost?'Faltam moedas':'';
         return `<button class="pack pack-${pack.key} ${pack.role?'role-'+roleKey(pack.role):''}" style="--i:${i}" data-action="open-pack" data-id="${pack.key}" ${blocked?'disabled':''}>
-          <span class="pack-art" aria-hidden="true">${pack.role?roleIcon(pack.role):crest()}</span><b>${pack.role?pack.name.replace('Pacote de ',''):pack.name}</b><small>${pack.role?'Pacote de função · ':'Overall '}${pack.range[0]} a ${pack.range[1]}</small><span class="price">${buyLabel('',pack.cost,blocked)}</span></button>`;}).join('')}</div></section>
+          <span class="pack-art" aria-hidden="true">${pack.role?roleIcon(pack.role):crest()}</span><b>${pack.role?pack.name.replace('Pacote de ',''):pack.name}</b><small>${pack.role?'Pacote de função · ':'Overall '}${pack.range[0]} a ${pack.range[1]}</small><span class="price">${buyLabel('',pack.cost,blocked)}</span>${pack.role?roleOrder(pack.role):''}</button>`;}).join('')}</div></section>
     ${perkCost===null?'':`<section class="shop-block"><h2>Vantagens</h2>
       <button class="perk-pack" data-action="open-perk-pack" ${run.coins<perkCost?'disabled':''}>
         <span class="pack-art" aria-hidden="true">${crest()}</span>
@@ -818,9 +809,9 @@ export function periodDialog(ctx,picked) {
   const row=(step,text)=>`<li><button class="period${step<=chosen?' on':''}${step>open?' locked':''}" data-action="pick-period" data-id="${step}" aria-pressed="${step===chosen}"${step>open?' disabled':''}>${
     step?`<b>${step}º</b>`:'<i class="period-base" aria-hidden="true"></i>'}<span>${text}</span>${step>open?'<span class="sr-only">, bloqueado</span><i class="period-lock" aria-hidden="true"></i>':''}</button></li>`;
   return `${dialogHead('Modo tradicional','Períodos')}
-    <ol class="periods" aria-label="Período da run">${row(0,'Sem período')}${C.LADDER.map((step,i)=>row(i+1,step.text)).join('')}</ol>
+    <ol class="periods" aria-label="Período da run">${row(0,C.periodName(0))}${C.LADDER.map((step,i)=>row(i+1,step.text)).join('')}</ol>
     ${going?'<p class="period-note">A run atual será abandonada</p>':''}
-    <div class="dialog-actions"><button class="btn primary" data-action="start-period" data-id="${chosen}"${going?'':' autofocus'}>${chosen?`Começar no ${C.periodName(chosen)}`:'Começar sem período'}</button><button class="btn" data-action="close"${going?' autofocus':''}>${going?'Continuar a atual':'Cancelar'}</button></div>`;
+    <div class="dialog-actions"><button class="btn primary" data-action="start-period" data-id="${chosen}"${going?'':' autofocus'}>${chosen?`Começar no ${C.periodName(chosen)}`:`Começar como ${C.periodName(0)}`}</button><button class="btn" data-action="close"${going?' autofocus':''}>${going?'Continuar a atual':'Cancelar'}</button></div>`;
 }
 // The rules in force on the run on screen: the ones of its período and of every one before it.
 export function periodRules(run) {

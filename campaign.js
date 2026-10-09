@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=b20908dbbf';
+import * as E from './engine.js?v=7b9b1b6e5a';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -34,6 +34,12 @@ export const PACKS = [
 // with the stage, always above what its best card sells for.
 export const ROLE_PACK_COST = [220,300,400];
 const ROLE_PLURAL = {Duelista:'Duelistas',Iniciador:'Iniciadores',Controlador:'Controladores',Sentinela:'Sentinelas'};
+// The role pack goes through the roles in this order, always the same: one role for each shop, and the next one as
+// soon as a role pack is bought. After the last comes the first again.
+export const ROLE_ORDER = ['Duelista','Sentinela','Iniciador','Controlador'];
+// The role after the one on the shelf (the first of the order when there is no shelf yet). A run saved when the role
+// was drawn goes on from the role it had.
+const nextRole = run=>ROLE_ORDER[(ROLE_ORDER.indexOf(run.shop?.role)+1)%ROLE_ORDER.length];
 // How rarely a rare staff bonus is offered, against 1 for the others.
 const RARE_WEIGHT = .35;
 
@@ -95,7 +101,8 @@ export function rivalTarget(run) {
 // What the player sees of the ladder: its steps are the períodos of the traditional mode. A title in that mode opens
 // the 1st período, and a title on a período opens the one after it. The Desafio do dia opens nothing.
 export const PERIODS = LADDER.length;
-export const periodName = step=>`${step}º período`;
+// A run without any of them has a name too: the one of who has not got into the university yet.
+export const periodName = step=>step?`${step}º período`:'Vestibulando';
 // The períodos a career holds: `period`, the highest one open, and `cleared`, the highest one won. Whatever is saved
 // is only trusted when it makes sense, and a career with a title from before the períodos existed has the 1st open.
 export function periodsOf(career) {
@@ -220,8 +227,10 @@ function prepareHub(run,db) {
   run.opponent={team:rival.name,rating:rival.rating,level:rival.level,strength:rival.strength,mains:rival.mains,
     ids:rival.lineup.map(s=>s.player.id),agents:rival.lineup.map(s=>s.agent)};
   run.matchSeed=Math.floor(roll(run)()*4294967296);
-  // Every match brings its own shop: the offers, and a role pack of a role drawn for it.
-  run.shop={...makeShop(run,db),role:E.sample(E.ROLES,roll(run))};run.perkOffer=null;run.status='hub';
+  // Every match brings its own shop: the offers, and the role pack of the next role of the order. (The draw that
+  // used to pick the role is still made and thrown away, so that every other draw of a run stays where it was.)
+  const role=nextRole(run);
+  run.shop={...makeShop(run,db),role};roll(run);run.perkOffer=null;run.status='hub';
 }
 function makeShop(run,db) {
   const random=roll(run),[lo,hi]=STAGES[run.stage].market;
@@ -287,8 +296,8 @@ export function openPack(run,db,key) {
   const fits=p=>!taken.has(p.id)&&p.ovr>=lo&&p.ovr<=hi&&(!pack.role||E.draftRole(p)===pack.role);
   const cards=distinct(db.players.filter(fits),3+(run.perks.includes('olheiro')?PV.olheiro:0),roll(run));
   run.pack={key,cards:cards.map(p=>p.id),...(pack.role?{role:pack.role}:{})};
-  // The role pack doesn't leave the shelf: it comes back as another role.
-  if(pack.role)run.shop.role=E.sample(E.ROLES.filter(role=>role!==pack.role),roll(run));
+  // The role pack doesn't leave the shelf: it comes back as the next role of the order.
+  if(pack.role){run.shop.role=nextRole(run);roll(run);}
   return cards;
 }
 export function takePackCard(run,db,id) {

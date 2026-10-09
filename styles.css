@@ -312,21 +312,13 @@ img.card{height:auto;container-type:normal}
 .agent-btn:hover{background:color-mix(in srgb,var(--role) 32%,#111)}
 /* Two lines are always reserved, so the team logos under them stay on one row and meet the chemistry arcs. */
 .mods{display:flex;flex-wrap:wrap;align-content:start;gap:.2rem .55rem;min-height:2.6em;font:600 .86rem/1.2 var(--data);letter-spacing:.03em;color:var(--dim)}
-.slot-team{display:grid;place-items:center}
 .slot-team .logo{width:2rem;height:2rem}
-/* The laços between teammates: a curve of light in the team's colour, from under one logo to under the other, with the
-   bonus they all get riding on it. Each laço is a cell of the same five columns as the cards; the margin brings its
-   two ends to the middle of the first and of the last column it covers. */
-.bonds{display:grid;grid-template-columns:repeat(5,minmax(112px,1fr));column-gap:var(--gap);min-width:600px;height:52px;margin-top:.15rem}
-.bond{position:relative;grid-row:1;height:40px;margin-inline:calc((100% - (var(--span) - 1)*var(--gap))/var(--span)/2);pointer-events:none}
-.bond svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 5px var(--team))}
-.bond path{fill:none;stroke:var(--team);stroke-width:3;stroke-linecap:round;vector-effect:non-scaling-stroke}
-.bond::before,.bond::after{content:"";position:absolute;top:-4px;width:9px;height:9px;border-radius:50%;background:var(--team);box-shadow:0 0 8px 1px var(--team)}
-.bond::before{left:-4.5px}.bond::after{right:-4.5px}
-.bond b{position:absolute;left:50%;top:var(--mid);transform:translate(-50%,-50%);padding:.2rem .5rem;font:700 .84rem/1 var(--data);letter-spacing:.04em;
-  color:var(--black);background:var(--team);border-radius:999px;box-shadow:0 0 0 3px #1a1326,0 0 10px var(--team)}
-.enter .bond{animation:bond-in .5s var(--ease) .45s both}
-@keyframes bond-in{from{opacity:0;transform:scaleX(.3)}}
+/* The synergy between teammates: the logo of a starter with a teammate among the five is lit in the team's colour,
+   and the bonus each of them gets is written under it in that colour. The line under the logo is always kept, so
+   that a starter gaining or losing a teammate doesn't move the row. */
+.slot-team{display:grid;justify-items:center;align-content:start;gap:.2rem;min-height:calc(2rem + 1.15rem)}
+.slot-team.linked .logo,.slot-team.linked .logo-dot{filter:drop-shadow(0 0 1.5px var(--team)) drop-shadow(0 0 5px var(--team)) drop-shadow(0 0 10px var(--team))}
+.slot-team b{font:700 .95rem/1 var(--data);letter-spacing:.04em;color:color-mix(in srgb,var(--team) 62%,#fff);text-shadow:0 0 9px var(--team)}
 .selection{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem 1rem;margin-top:.8rem;padding:.55rem .9rem;font-size:.95rem;background:var(--tray);border-radius:6px;border-left:4px solid var(--lime)}
 .selection div{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
 /* Under the starters: the bench on the left and, in the room beside it, the staff bonuses. */
@@ -359,6 +351,12 @@ img.card{height:auto;container-type:normal}
 .pack b{font-size:2rem}
 .pack b{font:400 2.2rem/1 var(--display);text-transform:uppercase}
 .pack small{color:var(--grey);font-size:.9rem}
+/* Under the role pack, the order it goes through: the four roles and the arrows between them, the one on sale lit. */
+.role-order{display:flex;align-items:center;justify-content:center;gap:.2rem;margin-top:.45rem}
+.role-step{display:grid;place-items:center;width:1.55rem;height:1.55rem;border-radius:4px;color:var(--grey);opacity:.5}
+.role-step .role-icon{width:1rem;height:1rem}
+.role-step.on{opacity:1;color:var(--black);background:var(--role)}
+.role-order em{font:700 .8rem/1 var(--data);font-style:normal;color:var(--dim)}
 .price{margin-top:.4rem;font:700 1.1rem/1 var(--data);letter-spacing:.05em;color:var(--lime);text-transform:uppercase}
 /* The advantage pack: one wide tile, gold like the rare bonuses, with the price at its end. */
 .perk-pack{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:1.1rem;width:100%;padding:.9rem 1.2rem;text-align:left;
@@ -719,7 +717,6 @@ img.card{height:auto;container-type:normal}
 @keyframes toss-spin{from{transform:rotateX(0)}to{transform:rotateX(var(--end))}}
 @keyframes toss-arc{0%,100%{transform:none}45%{transform:translateY(-1.5rem) scale(1.18)}}
 @keyframes toss-land{from{transform:scale(1.22)}}
-@keyframes toss-swap{0%{opacity:0}50%{opacity:1}}
 .duel-score{display:flex;justify-content:center;align-items:baseline;gap:.9rem;margin-top:.4rem;font:400 5rem/.9 var(--display)}
 .duel-score i{font-size:2rem;color:var(--dim);font-style:normal}
 .aftermath{display:grid;justify-items:center;min-height:3.4rem;text-align:center}
@@ -756,15 +753,9 @@ img.card{height:auto;container-type:normal}
   30%,54%{background:var(--coral);border-color:var(--coral);box-shadow:none;transform:none}
   66%{background:var(--white);border-color:var(--white);box-shadow:0 0 0 12px rgba(209,243,80,.55);transform:scale(1.6)}
 }
-@keyframes life-save-still{
-  0%,10%{background:transparent;border-color:rgba(255,255,255,.35);box-shadow:none}
-  20%,54%{background:var(--coral);border-color:var(--coral);box-shadow:none}
-  66%{background:var(--white);border-color:var(--white);box-shadow:0 0 0 12px rgba(209,243,80,.55)}
-}
 @keyframes life-spend{0%,24%{opacity:0}34%,54%{opacity:1;color:var(--black);background:var(--gold)}66%{color:var(--black);background:var(--white)}}
 @keyframes life-strike{from{transform:scaleX(0)}}
 @keyframes life-stamp{from{opacity:0;transform:rotate(-3deg) scale(1.9)}}
-@keyframes life-stamp-still{from{opacity:0}}
 @keyframes life-dim{from{opacity:1}}
 .post-rival{display:flex;align-items:center;gap:.5rem;font:700 .86rem/1 var(--ui);margin-bottom:.4rem}
 .post-rival .logo{width:2rem;height:2rem}
@@ -1265,7 +1256,7 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
      agent, what each one gains or loses and who is tied to whom, without moving the page. A card is read by its name
      and its overall; the rest of it is one touch away, in "Ver carta". */
   .stage{--gap:.4rem;padding:.9rem .5rem .3rem;overflow:visible}
-  .stage-row,.bonds{grid-template-columns:repeat(5,minmax(0,1fr));min-width:0}
+  .stage-row{grid-template-columns:repeat(5,minmax(0,1fr));min-width:0}
   .slot{gap:.3rem}
   .slot.selected .slot-card,.bench-card.selected{transform:translateY(-5px)}
   .slot.empty>span,.bench-card.empty span{font-size:.68rem;letter-spacing:.04em}
@@ -1275,9 +1266,8 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .agent-btn .agent-icon,.agent-btn .role-icon{width:1.6rem;height:1.6rem}
   .mods{flex-direction:column;flex-wrap:nowrap;gap:.05rem;min-height:2.3em;font-size:.7rem;line-height:1.15;letter-spacing:0}
   .slot-team .logo{width:1.5rem;height:1.5rem}
-  .bonds{height:42px}
-  .bond{height:32px}
-  .bond b{padding:.15rem .4rem;font-size:.74rem}
+  .slot-team{gap:.12rem;min-height:calc(1.5rem + .95rem)}
+  .slot-team b{font-size:.8rem}
   .under-stage{gap:.9rem;margin-top:.8rem}
   .bench{padding-inline:.5rem}
   .bench-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.4rem}
@@ -1657,26 +1647,9 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .ribbon-bar{background:rgba(20,20,20,.96);backdrop-filter:none}
   dialog::backdrop{background:rgba(35,11,77,.93);backdrop-filter:none}
 }
-/* Where the system asks for less motion (in Windows, with the animation effects turned off), everything stands still,
-   except the reveal of a pack: it is what opening a pack is, not an ornament. It keeps its timing and loses what moves:
-   each part only appears and goes, without growing, turning or sliding. */
-@media (prefers-reduced-motion:reduce){
-  *:not(.walkout,.walk-step,.walk-card,.pack-pick,.face,.life,.life-perk,.life-stamp),*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
-  /* The second life is told in the same order, only with what lights up and goes out: nothing grows or drops. */
-  .enter .life.saved{animation-name:life-save-still}
-  .enter .life-stamp{animation-name:life-stamp-still}
-  /* The coin of a draw doesn't turn or fly there: its two sides take turns in the same place until the draw is shown. */
-  .toss.tossing,.toss.landed,.coin-toss.tossing{animation:none}
-  .coin-toss.tossing{transform:none}
-  .coin-toss.tossing .face{transform:none}
-  .coin-toss.tossing .face.them{animation:toss-swap .36s steps(1) infinite}
-  .walk-step{animation-name:walk-still}
-  .walk-card{animation-name:walk-card-still}
-  .pack-pick{animation-name:appear}
-}
-@keyframes walk-still{0%,100%{opacity:0}18%,80%{opacity:1}}
-@keyframes walk-card-still{0%{opacity:0}30%,100%{opacity:1}}
-@keyframes appear{from{opacity:0}}
+/* The animations always run: the game does not look at the system's request for less motion (in Windows, the
+   animation effects turned off). They are part of how it tells what happens, and the user decided to keep them on
+   for everybody. */
 
 /* ---------- A escolha do bônus no celular ----------
    Três bônus, o título e, nos grupos, a faixa da fase: tudo numa tela só, sem rolar, mesmo com os três textos mais

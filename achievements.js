@@ -3,9 +3,9 @@
 // O que já saiu fica guardado entre as runs como {got:{id:dia}, formations:[...], tosses:n}: o dia em que cada
 // conquista saiu; para a Estrategista, as formações com que o time já venceu; e, para a Moeda viciada, quantos
 // sorteios seguidos o time venceu (ou perdeu, abaixo de zero).
-import * as E from './engine.js?v=b20908dbbf';
-import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=b20908dbbf';
-import {albumSummary} from './album.js?v=b20908dbbf';
+import * as E from './engine.js?v=7b9b1b6e5a';
+import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=7b9b1b6e5a';
+import {albumSummary} from './album.js?v=7b9b1b6e5a';
 
 export const GROUPS = ['Campanha','Partida','Jogada de Efeito','Elenco','Álbum'];
 export const ACHIEVEMENTS = [
@@ -80,9 +80,46 @@ function reached(stage,playoffWins,champion) {
 }
 const strength = (team,perks=[])=>E.avg(team.lineup.map(s=>E.effective(s.player,s.agent,team.lineup,perks).value));
 
+// What the rounds of a match prove, read from its log: it can be asked in the middle of the match, as soon as a round
+// has been shown, so that a conquest comes out when it happens. `from` is how many rounds were already looked at:
+// those only count for what runs from round to round (the plays left, the confrontations lost in a row), and prove
+// nothing again. The draws of the coin are counted in `feats`, from match to match.
+export function fromRounds(match,feats,from=0) {
+  const got=[],log=match.log||[];
+  // The chance each round started with, whether a play decided it, whose play it was and how the confrontation went.
+  // `left` is how many plays you still had when the round was about to start.
+  const shown=round=>Math.round(100*round.odds);
+  let left=match.playsMax?.[0]??E.PLAYS,lostInRow=0;
+  log.forEach((round,i)=>{
+    const fresh=i>=from,contest=round.event?.contest,mine=(round.kills||[]).filter(kill=>kill.team===0);
+    if(fresh&&mine.length>=5&&mine.every(kill=>kill.killer===mine[0].killer))got.push('ace');
+    if(fresh&&round.won&&round.gear?.[0]==='Eco'&&round.gear[1]==='Completa')got.push('eco');
+    if(fresh&&contest?.tiebreak&&contest.won)got.push('detail');
+    if(!round.event){
+      // a round you could have turned into a confrontation and didn't
+      if(fresh&&left>0&&shown(round)<=TRUST)got.push('trust');
+      if(fresh&&!round.won&&shown(round)>=HOUSE)got.push('house');
+    }else if(round.event.by===0){
+      left--;
+      if(fresh&&shown(round)===PREVENT)got.push('prevent');
+      if(fresh&&shown(round)>=SURE)got.push('sure');
+    }
+    if(!contest)return;
+    lostInRow=contest.won?0:lostInRow+1;
+    if(fresh&&lostInRow>=COWARD)got.push('coward');
+    // the draws of the coin are counted from match to match: so many won in a row, or so many lost (below zero)
+    if(fresh&&contest.tiebreak==='coin'){
+      const run=feats.tosses||0;
+      feats.tosses=contest.won?Math.min(9,Math.max(run,0)+1):Math.max(-9,Math.min(run,0)-1);
+      if(Math.abs(feats.tosses)>=COIN)got.push('coin');
+    }
+  });
+  return [...new Set(got)];
+}
 // A match that was played to the end, right after the campaign recorded it (so `run` is already where the result took
-// it). `feats` is what the player has so far: the formation of a win is added to it.
-export function fromMatch({match,summary,run},feats) {
+// it). `feats` is what the player has so far: the formation of a win is added to it. `from` is how many of its rounds
+// were already looked at while it was being played (see fromRounds): the rest of them is looked at here.
+export function fromMatch({match,summary,run},feats,from=0) {
   const got=[],[ours,theirs]=match.score,won=ours>theirs,log=match.log||[];
   if(won&&theirs===0)got.push('sweep');
   if(!won&&ours===0)got.push('swept');
@@ -94,36 +131,9 @@ export function fromMatch({match,summary,run},feats) {
   if(summary.streak>=5)got.push('streak');
   if(won&&strength(match.teams[1])-strength(match.teams[0],match.perks)>=3)got.push('upset');
   if(match.teams[0].players.some(p=>p.k>=30))got.push('carry');
-  if(log.some(round=>{const mine=(round.kills||[]).filter(kill=>kill.team===0);return mine.length>=5&&mine.every(kill=>kill.killer===mine[0].killer);}))got.push('ace');
-  if(log.some(round=>round.won&&round.gear?.[0]==='Eco'&&round.gear[1]==='Completa'))got.push('eco');
   if(match.eventsResolved>=3&&match.eventsWon===match.eventsResolved)got.push('hot');
-  if(log.some(round=>round.event?.contest?.tiebreak&&round.event.contest.won))got.push('detail');
-  // The rounds one by one: the chance each started with, whether a play decided it, whose play it was and how the
-  // confrontation went. `left` is how many plays you still had when the round was about to start.
-  const shown=round=>Math.round(100*round.odds);
-  let left=match.playsMax?.[0]??E.PLAYS,called=0,lostInRow=0;
-  for(const round of log){
-    const contest=round.event?.contest;
-    if(!round.event){
-      // a round you could have turned into a confrontation and didn't
-      if(left>0&&shown(round)<=TRUST)got.push('trust');
-      if(!round.won&&shown(round)>=HOUSE)got.push('house');
-    }else if(round.event.by===0){
-      called++;left--;
-      if(shown(round)===PREVENT)got.push('prevent');
-      if(shown(round)>=SURE)got.push('sure');
-    }
-    if(!contest)continue;
-    lostInRow=contest.won?0:lostInRow+1;
-    if(lostInRow>=COWARD)got.push('coward');
-    // the draws of the coin are counted from match to match: so many won in a row, or so many lost (below zero)
-    if(contest.tiebreak==='coin'){
-      const run=feats.tosses||0;
-      feats.tosses=contest.won?Math.min(9,Math.max(run,0)+1):Math.max(-9,Math.min(run,0)-1);
-      if(Math.abs(feats.tosses)>=COIN)got.push('coin');
-    }
-  }
-  if(won&&!called)got.push('collective');
+  got.push(...fromRounds(match,feats,from));
+  if(won&&!log.some(round=>round.event?.by===0))got.push('collective');
   if(won){
     const key=E.composition(match.teams[0].lineup).key;
     if(FORMATION_KEYS.includes(key)&&!feats.formations.includes(key))feats.formations.push(key);

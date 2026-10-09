@@ -1,17 +1,17 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=b20908dbbf';
-import * as C from './campaign.js?v=b20908dbbf';
-import * as S from './screens.js?v=b20908dbbf';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=b20908dbbf';
-import {startTour,closeTour,tourOpen} from './tour.js?v=b20908dbbf';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=b20908dbbf';
-import {stamp,cleanAlbum} from './album.js?v=b20908dbbf';
-import {initTips,refreshTips} from './tip.js?v=b20908dbbf';
-import {shareModel,copyShareImage} from './share.js?v=b20908dbbf';
-import {staleSave,stampSave} from './save.js?v=b20908dbbf';
-import * as A from './achievements.js?v=b20908dbbf';
-import * as ST from './stats.js?v=b20908dbbf';
-import {playChime} from './sound.js?v=b20908dbbf';
+import * as E from './engine.js?v=7b9b1b6e5a';
+import * as C from './campaign.js?v=7b9b1b6e5a';
+import * as S from './screens.js?v=7b9b1b6e5a';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=7b9b1b6e5a';
+import {startTour,closeTour,tourOpen} from './tour.js?v=7b9b1b6e5a';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=7b9b1b6e5a';
+import {stamp,cleanAlbum} from './album.js?v=7b9b1b6e5a';
+import {initTips,refreshTips} from './tip.js?v=7b9b1b6e5a';
+import {shareModel,copyShareImage} from './share.js?v=7b9b1b6e5a';
+import {staleSave,stampSave} from './save.js?v=7b9b1b6e5a';
+import * as A from './achievements.js?v=7b9b1b6e5a';
+import * as ST from './stats.js?v=7b9b1b6e5a';
+import {playChime} from './sound.js?v=7b9b1b6e5a';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice';
@@ -114,8 +114,8 @@ function render(){
     // The confrontation opens over the scoreboard. If part of it is off the screen, the page glides to it instead of
     // jumping: just enough to show it all, or to its top when it is taller than the screen.
     const layer=ctx.screen==='match'&&key!=='match:board'&&$('.play-layer');
-    if(layer)layer.scrollIntoView({block:layer.offsetHeight>innerHeight-110?'start':'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
-  }else if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    if(layer)layer.scrollIntoView({block:layer.offsetHeight>innerHeight-110?'start':'nearest',behavior:'smooth'});
+  }else{
     for(const row of app.querySelectorAll('[data-flip]')){
       const from=before.get(row.dataset.flip),moved=from===undefined?0:from-row.getBoundingClientRect().top;
       if(!moved)continue;
@@ -275,7 +275,7 @@ function step(){
   if(tourOpen()||ui.paused)return;
   if(play&&play.shown<play.record.kills.length)play.shown++;
   else if(play){
-    ui.play=null;
+    ui.play=null;roundFeats();
     if(m.over)announce(`Fim de jogo: ${m.score[0]} a ${m.score[1]}.`);
     else if(play.record.round%4===0)announce(`Round ${play.record.round}: ${m.score[0]} a ${m.score[1]}.`);
   }
@@ -300,13 +300,28 @@ function duelClock(){
     if(duel.step<S.duelSteps(contest)-1){duel.step++;render();duelClock();return;}
     // The confrontation already said who took the round, so the round isn't played back kill by kill: the scoreboard
     // comes back with everything that happened in it, and the match moves on to the next round.
-    ctx.ui.duel=null;
+    ctx.ui.duel=null;roundFeats();
     if(ctx.match.over)announce(`Fim de jogo: ${ctx.match.score[0]} a ${ctx.match.score[1]}.`);
     schedule();render();
   },wait);
 }
+// The conquests a round proves come out as soon as the round has been shown, in the middle of the match, and not
+// only at its end. The match in progress remembers how many of its rounds were already looked at (`feated`: a reload
+// must not count a draw of the coin twice) and what came out of them (`feats`), for the summary of the match.
+function roundFeats(){
+  const live=ctx.run?.live,m=ctx.match;
+  if(!live||!m)return;
+  const got=A.fromRounds(m,ctx.feats,live.feated||0);
+  live.feated=m.log.length;
+  const fresh=A.award(ctx.feats,got,C.dayKey());
+  store(FEATS_KEY,ctx.feats);
+  if(fresh.length){(live.feats??=[]).push(...fresh);celebrate(fresh);}
+  saveRun();
+}
 function finishMatch(){
   clearTimeout(timer);clearTimeout(duelTimer);ctx.ui.play=null;ctx.ui.duel=null;
+  // What the match in progress already knows about its conquests is read before the campaign closes it.
+  const live=ctx.run.live,seen=live?.feated||0,during=(live?.feats||[]).filter(id=>A.BY_ID[id]);
   ctx.summary=C.recordMatch(ctx.run,ctx.db,ctx.match);
   // The five who played the match go into the album.
   stamp(ctx.album,ctx.match.teams[0].lineup.map(s=>s.player.id),{won:ctx.summary.won,title:ctx.summary.outcome==='champion'});
@@ -314,9 +329,10 @@ function finishMatch(){
   ST.recordMatch(ctx.stats,{run:ctx.run,match:ctx.match,summary:ctx.summary});store(STATS_KEY,ctx.stats);
   if(ctx.run.status==='over')recordCareer(ctx.run);
   // What the match brought. The formation of a win is kept even when it completes nothing yet.
-  const won=A.fromMatch({match:ctx.match,summary:ctx.summary,run:ctx.run},ctx.feats);
+  const won=A.fromMatch({match:ctx.match,summary:ctx.summary,run:ctx.run},ctx.feats,seen);
   store(FEATS_KEY,ctx.feats);
-  ctx.summary.feats=earn(won);
+  // The summary of the match lists everything it brought: what came out during it and what its result proves.
+  ctx.summary.feats=[...new Set([...during,...earn(won)])];
   ctx.screen='postmatch';
 }
 
@@ -409,7 +425,7 @@ const actions={
   reroll(){C.rerollShop(ctx.run,ctx.db);},
   play(){enterMatch();announce('Partida iniciada. Você pode pausar quando quiser.');earn(A.fromKickoff(ctx.match.teams[0].lineup));},
   // From the bar at the bottom of a narrow screen to the rival's panel, further down the page.
-  'see-rival'(){$('.panel.next')?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return false;},
+  'see-rival'(){$('.panel.next')?.scrollIntoView({block:'start',behavior:'smooth'});return false;},
   forfeit(){openDialog(S.forfeitDialog(ctx));return false;},
   'confirm-forfeit'(){
     closeDialog();ctx.match=null;ctx.summary=C.forfeitMatch(ctx.run,ctx.db);
@@ -542,7 +558,7 @@ addEventListener('storage',event=>{
 });
 async function init(){
   try{
-    const response=await fetch('players.json?v=b20908dbbf');
+    const response=await fetch('players.json?v=7b9b1b6e5a');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -553,7 +569,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=b20908dbbf');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=7b9b1b6e5a');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
