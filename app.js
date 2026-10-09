@@ -1,20 +1,21 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=7b9b1b6e5a';
-import * as C from './campaign.js?v=7b9b1b6e5a';
-import * as S from './screens.js?v=7b9b1b6e5a';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=7b9b1b6e5a';
-import {startTour,closeTour,tourOpen} from './tour.js?v=7b9b1b6e5a';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=7b9b1b6e5a';
-import {stamp,cleanAlbum} from './album.js?v=7b9b1b6e5a';
-import {initTips,refreshTips} from './tip.js?v=7b9b1b6e5a';
-import {shareModel,copyShareImage} from './share.js?v=7b9b1b6e5a';
-import {staleSave,stampSave} from './save.js?v=7b9b1b6e5a';
-import * as A from './achievements.js?v=7b9b1b6e5a';
-import * as ST from './stats.js?v=7b9b1b6e5a';
-import {playChime} from './sound.js?v=7b9b1b6e5a';
+import * as E from './engine.js?v=9417779706';
+import * as C from './campaign.js?v=9417779706';
+import * as S from './screens.js?v=9417779706';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=9417779706';
+import {startTour,closeTour,tourOpen} from './tour.js?v=9417779706';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=9417779706';
+import {stamp,cleanAlbum} from './album.js?v=9417779706';
+import {initTips,refreshTips} from './tip.js?v=9417779706';
+import {shareModel,copyShareImage} from './share.js?v=9417779706';
+import {staleSave,stampSave} from './save.js?v=9417779706';
+import * as A from './achievements.js?v=9417779706';
+import * as ST from './stats.js?v=9417779706';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=9417779706';
+import {playChime} from './sound.js?v=9417779706';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats';
-const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice';
+const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
 // Two runs can be under way at once, each in its own slot: the traditional one, started whenever the player wants, and
 // the Desafio do dia. ctx.run is the one on screen (ctx.slots[ctx.mode]). ctx.today is the day of today's challenge.
 // career.daily remembers the result of each challenge already played; career.period and career.cleared, the períodos
@@ -41,6 +42,52 @@ function resync(){
   try{sessionStorage.setItem(NOTICE_KEY,'1');}catch{/* reloads without the notice */}
   location.reload();
 }
+
+// ---------- Sempre na versão publicada ----------
+// The published site says which build is published (version.json); this code knows the build it belongs to (BUILD,
+// null on the local server, where nothing is asked). The game asks when it opens, when the player comes back to the
+// tab, when the screen changes and every few minutes, and moves to a newer build by loading its address. It doesn't
+// move in the middle of a match or of its result, with a dialog open or during a tutorial: it waits for that to be
+// over (see render). Before moving it writes down where the player is, and the new page opens there (see init).
+const BUILD=runningBuild(import.meta.url);
+let askedAt=0,nextBuild=null;
+const settled = ()=>!['match','postmatch'].includes(ctx.screen)&&!$('#dialog')?.open&&!tourOpen();
+async function checkBuild(){
+  if(!BUILD||nextBuild||Date.now()-askedAt<ASK_EVERY)return;
+  askedAt=Date.now();
+  let published=null,tried=null;
+  try{const response=await fetch(`${VERSION_FILE}?t=${askedAt}`,{cache:'no-store'});if(response.ok)published=readBuild(await response.json());}catch{/* no connection: the game stays as it is */}
+  try{tried=JSON.parse(sessionStorage.getItem(SWITCH_KEY)||'null');}catch{/* no memory of an earlier move */}
+  if(!shouldSwitch({running:BUILD,published,tried,now:Date.now()}))return;
+  nextBuild=published;
+  if(settled())switchBuild();
+}
+function switchBuild(){
+  const build=nextBuild;
+  try{
+    sessionStorage.setItem(SWITCH_KEY,JSON.stringify({build,at:Date.now()}));
+    sessionStorage.setItem(PLACE_KEY,JSON.stringify({screen:ctx.screen,mode:ctx.mode,tab:ctx.ui.tab,careerTab:ctx.ui.careerTab,albumFilter:ctx.ui.albumFilter}));
+  }catch{/* it moves all the same, and opens on the first screen */}
+  location.replace(buildAddress(location.href,build));
+}
+// Where the player was before the move to a newer build: the same screen of the same run, or the album, the
+// conquests or the statistics.
+function backToPlace({screen,mode,tab,careerTab,albumFilter}={}){
+  if(['album','feats','career'].includes(screen)){
+    ctx.screen=screen;
+    if(typeof careerTab==='string')ctx.ui.careerTab=careerTab;
+    if(typeof albumFilter==='string')ctx.ui.albumFilter=albumFilter;
+    return;
+  }
+  if(!screen||screen==='home'||!['free','daily'].includes(mode)||!ctx.slots[mode])return;
+  resume(mode);
+  if(ctx.screen==='hub'&&['lineup','shop','stats'].includes(tab))ctx.ui.tab=tab;
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkBuild();});
+addEventListener('pageshow',event=>{if(event.persisted)checkBuild();});
+addEventListener('focus',checkBuild);
+setInterval(checkBuild,5*ASK_EVERY);
+
 // What the run of each mode looked like the last time it was read or written. A run is only saved when it has
 // changed: a click that changes nothing (a tab, a card selected) writes nothing, and so doesn't send the other
 // tabs back to the start for no reason.
@@ -108,6 +155,9 @@ function render(){
   app.innerHTML=S.chrome(ctx,S[ctx.screen](ctx));
   // Entrance animations only play when the view actually changes, not on every re-render of the same view.
   app.classList.toggle('enter',changed);
+  // A newer build that was waiting for a good moment takes it; and a change of screen is a moment to ask for one.
+  if(nextBuild&&settled()){switchBuild();return;}
+  if(changed)checkBuild();
   if(changed){
     if(key.split(':')[0]!==shownKey.split(':')[0])window.scrollTo(0,0);
     shownKey=key;
@@ -297,7 +347,10 @@ function duelClock(){
   Object.assign(duel,{stepAt:Date.now(),stepMs:Math.round(wait)});
   duelTimer=setTimeout(()=>{
     if(ctx.ui.duel!==duel)return;
-    if(duel.step<S.duelSteps(contest)-1){duel.step++;render();duelClock();return;}
+    // The clock of the new step is set before the step is drawn: what moves during it (the coin of the draw) is
+    // drawn from how far into the step the screen is, and with the clock of the step before the coin was born at
+    // the end of its spin.
+    if(duel.step<S.duelSteps(contest)-1){duel.step++;duelClock();render();return;}
     // The confrontation already said who took the round, so the round isn't played back kill by kill: the scoreboard
     // comes back with everything that happened in it, and the match moves on to the next round.
     ctx.ui.duel=null;roundFeats();
@@ -557,8 +610,11 @@ addEventListener('storage',event=>{
   if(!playing&&!$('#dialog').open)render();
 });
 async function init(){
+  // On the published site: is this the published build? (Asked while the cards load.) And the build leaves the address.
+  checkBuild();
+  if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=7b9b1b6e5a');
+    const response=await fetch('players.json?v=9417779706');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -569,7 +625,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=7b9b1b6e5a');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=9417779706');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
@@ -589,7 +645,12 @@ async function init(){
   // the cards of the album): those are marked here without ceremony, because they were not won just now.
   ctx.feats=A.cleanFeats(load(FEATS_KEY));
   if(['free','daily'].map(mode=>A.award(ctx.feats,A.fromState({...ctx,run:ctx.slots[mode]}),ctx.today)).flat().length)store(FEATS_KEY,ctx.feats);
+  // Back from a move to a newer build (see switchBuild): the player is put where they were, and told why the page blinked.
+  let place=null;
+  try{place=JSON.parse(sessionStorage.getItem(PLACE_KEY)||'null');sessionStorage.removeItem(PLACE_KEY);}catch{/* opens on the first screen */}
+  if(place)backToPlace(place);
   render();
+  if(place)toast('Jogo atualizado');
   // Back from a reload forced by another tab (see resync).
   let notice=null;
   try{notice=sessionStorage.getItem(NOTICE_KEY);sessionStorage.removeItem(NOTICE_KEY);}catch{/* no notice */}

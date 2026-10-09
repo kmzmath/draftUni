@@ -3,8 +3,8 @@
 // de runs e de títulos na carreira. Aqui fica o resto, contado a partir do dia em que a contagem começou (`since`):
 // vitórias por fase, rounds por lado, rivais, formações, agentes, confrontos e onde cada run acabou.
 // É JSON puro. Um par é {n, w}: quantas vezes, e quantas delas vencidas.
-import * as E from './engine.js?v=7b9b1b6e5a';
-import {STAGES} from './campaign.js?v=7b9b1b6e5a';
+import * as E from './engine.js?v=9417779706';
+import {STAGES} from './campaign.js?v=9417779706';
 
 // Where a run ended, from the best ending to the worst. `quit` is a run given up or replaced before its end.
 export const OUTCOMES = ['champion','final','semis','quarters','groups','qualifier','quit'];

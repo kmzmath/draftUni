@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=7b9b1b6e5a';
+import * as E from './engine.js?v=9417779706';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
