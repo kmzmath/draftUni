@@ -54,9 +54,10 @@ export function buyAbilities(agent,budget) {
   SLOTS.forEach((slot,i)=>{const shared=ABILITIES[agent][slot].shared;if(shared)charges[i]=charges[SLOTS.indexOf(shared)];});
   return {charges,spent};
 }
-// An ultimate in use counts as equipment in the round, at so many credits for each point it asks for: about three
-// points of round chance between two fully armed teams, and much more for a team on an eco.
-export const ULT_POINT_VALUE = 750;
+// An ultimate in use counts as equipment in the round, at so many credits for each point it asks for. One of eight
+// points is worth about a rifle: a point and a half of round chance between two fully armed teams, and more for a
+// team on an eco. (It was worth twice this at first, and two or three of them in one round weighed too much.)
+export const ULT_POINT_VALUE = 375;
 export const ultValue = agent=>ABILITIES[agent].x.points*ULT_POINT_VALUE;
 // The name an ability's icon is indexed under in assets.json: agent and ability, letters and digits only.
 const plain = text=>text.toLowerCase().replace(/[^a-z0-9]/g,'');

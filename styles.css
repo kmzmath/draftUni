@@ -778,7 +778,16 @@ img.card{height:auto;container-type:normal}
 .kda b{color:var(--lime);font-weight:400}
 .kda small{display:block;margin-top:.3rem;font:600 .76rem/1 var(--data);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .post-board{display:grid;gap:1rem}
-.post-board .ready{display:none}
+/* The scoreboard of a match that is over: ten narrow columns of numbers after the name, a zero dimmed. */
+.squad.final thead th:nth-child(n+4){width:2.2rem;padding-inline:.25rem}
+.squad.final thead th.c-ace{width:2.4rem}
+.squad.final thead th.c-je{width:2.8rem}
+.squad.final thead th.c-diff,.squad.final thead th.c-k2{padding-left:.7rem;width:2.7rem}
+.squad.final td{padding-inline:.25rem;font-size:1.12rem}
+.squad.final td.diff,.squad.final td.k2{padding-left:.7rem}
+.squad.final td.nil{font-weight:500;color:var(--dim)}
+.squad.final td.k{color:var(--white)}
+.squad.final td.je{font-size:1rem;letter-spacing:.02em}
 .reward-coins{display:flex;align-items:center;gap:.5rem;font:400 4.2rem/1 var(--display);color:var(--gold);margin-bottom:.8rem}
 .reward-coins .coin{font:inherit;gap:.4rem}
 .reward-coins .coin i{width:.5em;height:.5em}
@@ -1425,7 +1434,6 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .kda{grid-column:2;align-self:start;font-size:2.2rem}
   .rewards{order:1}
   .post-board{order:2}
-  .post-board .squad td.cr,.post-board .squad td.wp,.post-board .squad thead th:nth-child(n+7){display:none}
   .reward-coins{margin-bottom:.5rem;font-size:3.2rem}
   .team-photo{padding:0 4%;margin-bottom:1rem}
   .team-photo figcaption b{display:none}
@@ -1529,6 +1537,17 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .ready{width:8px;height:8px;margin-left:.35rem}
 }
 /* A phone lying down has almost no height: the top bar goes up with the page. */
+/* The final scoreboard on a phone: the name and eight columns; the balance and the first kills stay on wider screens. */
+@media (max-width:520px){
+  .squad.final thead th:nth-child(n+4){width:1.5rem;padding-inline:.1rem}
+  .squad.final thead th.c-k2{width:1.75rem;padding-left:.35rem}
+  .squad.final thead th.c-je{width:2rem}
+  .squad.final :is(th.c-diff,td.diff,th.c-fk,td.fk){display:none}
+  .squad.final td{padding-inline:.1rem;font-size:1rem}
+  .squad.final td.k2{padding-left:.35rem}
+  .squad.final td.je{font-size:.88rem}
+  .squad.final thead th{font-size:.64rem;letter-spacing:.06em}
+}
 /* ---------- A partida no celular ---------- */
 /* On a phone the match is one screen: nothing the round is decided with should need the page to be scrolled. The
    header gives up its second row, the two teams stand side by side (yours on the left, the rival on the right, as in
@@ -1544,7 +1563,8 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .bug-team.us{grid-area:1/1}
   .bug-score{grid-area:1/2;gap:.45rem}
   .bug-team.them{grid-area:1/3}
-  .bug-team b{font-size:1.15rem;line-height:1.02}
+  /* A long name takes two lines and no more, so the header is as tall with one rival as with another. */
+  .bug-team b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:1.15rem;line-height:1.02}
   .bug-score>b{font-size:3.1rem}
   .bug-score .bug-mid{min-width:4.9rem;min-height:3.1rem;gap:.2rem}
   .bug-score small{font-size:.7rem;letter-spacing:.08em}
@@ -1593,6 +1613,12 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 }
 /* The narrowest phones: the same screen with the last pixels found for the names and the credits. */
 @media (max-width:380px){
+  /* A little air taken from every gap, so the screen still holds it all when the names in the header take two lines. */
+  .arena{padding:.35rem .6rem .3rem}
+  .timeline{margin:.3rem 0 .35rem}
+  .board{gap:.35rem;padding:.4rem .35rem}
+  .feed{--kill:1.16rem;padding:.4rem .55rem .45rem}
+  .controls{margin-top:.35rem}
   .board .who b{font-size:.72rem}
   .board .squad td.wp .weapon-icon{max-width:1.9rem}
   .board .squad td.cr i{display:none}
@@ -1651,3 +1677,82 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 @keyframes walk-still{0%,100%{opacity:0}18%,80%{opacity:1}}
 @keyframes walk-card-still{0%{opacity:0}30%,100%{opacity:1}}
 @keyframes appear{from{opacity:0}}
+
+/* ---------- A escolha do bônus no celular ----------
+   Três bônus, o título e, nos grupos, a faixa da fase: tudo numa tela só, sem rolar, mesmo com os três textos mais
+   longos. Os cartões ficam mais baixos (texto um pouco menor, menos respiro) e a página perde a folga de baixo, que
+   nesta tela não tem nada para proteger. */
+@media (max-width:520px){
+  .screen-perk{padding-bottom:.8rem}
+  .perk-screen .stage-banner{margin-bottom:.6rem}
+  .perk-row{gap:.5rem;margin-bottom:0}
+  .perk-card{gap:.3rem;padding:.7rem .9rem .75rem}
+  .perk-card b{font-size:2rem}
+  .perk-card span{font-size:.95rem;line-height:1.32}
+  .perk-card.rare b{padding-right:3.4rem}
+  .rare-tag{right:.8rem;top:.8rem}
+}
+@media (max-width:380px){
+  .perk-card{padding:.6rem .85rem .65rem}
+  .perk-card b{font-size:1.85rem}
+}
+
+/* The home screen has three links now (álbum, conquistas, estatísticas): they go on a row of their own. */
+.hero-foot .career{flex:1 1 100%}
+@media (max-width:700px){
+  .hero-foot .stats-link{flex:1 1 100%}
+}
+
+/* ---------- Estatísticas ----------
+   A carreira em quatro abas. Cada lista é uma coluna de linhas iguais: nome, barra com a parte vencida, a parte e a
+   conta. No computador os painéis vão em duas colunas; no celular, um embaixo do outro, e a linha passa a ter dois
+   andares (nome e conta em cima, barra e porcentagem embaixo), para o nome de uma equipe caber inteiro. */
+.screen-career .stats-tabs{display:flex;width:max-content;max-width:100%}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.1rem;align-items:start}
+.stats .stat-kpis,.stat-panel.wide{grid-column:1/-1}
+.stats .stat-kpis{margin:0 0 .3rem;flex-wrap:wrap;gap:1rem 2.4rem}
+.stat-kpis dd{color:var(--white)}
+.stat-panel{background:var(--tray);border-radius:var(--radius)}
+.stat-panel .eyebrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .7rem;margin-bottom:.9rem}
+.stat-rows{display:grid;gap:.6rem;list-style:none;margin:0;padding:0}
+.stat-row{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr) 3.4rem 5.4rem;align-items:center;gap:.8rem}
+.stat-name{display:flex;align-items:center;gap:.5rem;min-width:0;font:600 .98rem/1.2 var(--body);color:var(--white)}
+.stat-name>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-name .logo,.stat-name .logo-dot,.stat-name .agent-icon,.stat-name .role-icon,.stat-name .formation-icon{width:1.6rem;height:1.6rem;flex:none}
+.stat-name .formation-icon{color:var(--lime)}
+.stat-bar{display:block;height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}
+.stat-bar i{display:block;width:var(--v);height:100%;background:var(--lime);border-radius:4px}
+.stat-row.count .stat-bar i{background:var(--white)}
+.stat-row b,.stat-comp b{font:400 1.55rem/1 var(--display);color:var(--white);text-align:right}
+.stat-row small,.stat-comp small{font:600 .8rem/1 var(--data);color:var(--grey);text-align:right;white-space:nowrap}
+.stat-none{color:var(--grey)}
+.stat-cards{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:.7rem}
+.stat-card{display:grid;gap:.15rem;justify-items:center;padding:0 0 .2rem;text-align:center;border-radius:8px;transition:transform .2s var(--ease)}
+.stat-card img{display:block;width:100%;height:auto;border-radius:6px}
+.stat-card b{font:400 1.7rem/1 var(--display);color:var(--lime);margin-top:.35rem}
+.stat-card small{font:600 .78rem/1 var(--data);color:var(--grey)}
+.stat-cards.one{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr);align-items:center;gap:1.1rem}
+.stat-best{font:400 2.2rem/.95 var(--display);text-transform:uppercase;color:var(--white)}
+.stat-comp{display:grid;grid-template-columns:minmax(0,1fr) 3.4rem 5.4rem;align-items:center;gap:.8rem}
+.stat-five{display:flex;gap:.3rem}
+.stat-five .agent-icon,.stat-five .role-icon{width:2rem;height:2rem}
+@media (hover:hover){.stat-card:hover{transform:translateY(-4px)}}
+@media (max-width:900px){
+  .stat-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:700px){
+  .stats{grid-template-columns:1fr;gap:.7rem}
+  .screen-career .stats-tabs{width:100%}
+  .screen-career .stats-tabs button{flex:1;padding:0 .3rem;font-size:.7rem;letter-spacing:.04em}
+  .stats .stat-kpis{gap:.7rem 1.4rem}
+  .stat-panel{padding:1rem .9rem}
+  .stat-rows{gap:.7rem}
+  .stat-row{grid-template-columns:minmax(0,1fr) auto auto;align-items:baseline;gap:.3rem .7rem}
+  .stat-row .stat-name{grid-area:1/1;align-self:center}
+  .stat-row b{grid-area:1/2;font-size:1.3rem}
+  .stat-row small{grid-area:1/3;min-width:3.9rem}
+  .stat-row small:empty{display:none}
+  .stat-row .stat-bar{grid-area:2/1/3/4;height:4px}
+  .stat-comp{grid-template-columns:minmax(0,1fr) auto auto;gap:.6rem}
+  .stat-five .agent-icon,.stat-five .role-icon{width:1.7rem;height:1.7rem}
+}

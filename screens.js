@@ -1,13 +1,14 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=1201c14e2c';
-import * as C from './campaign.js?v=1201c14e2c';
-import {previewChange} from './impact.js?v=1201c14e2c';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=1201c14e2c';
-import {albumSummary,cardStatus} from './album.js?v=1201c14e2c';
-import * as A from './achievements.js?v=1201c14e2c';
-import * as B from './abilities.js?v=1201c14e2c';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=1201c14e2c';
+import * as E from './engine.js?v=b20908dbbf';
+import * as C from './campaign.js?v=b20908dbbf';
+import {previewChange} from './impact.js?v=b20908dbbf';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=b20908dbbf';
+import {albumSummary,cardStatus} from './album.js?v=b20908dbbf';
+import * as A from './achievements.js?v=b20908dbbf';
+import * as ST from './stats.js?v=b20908dbbf';
+import * as B from './abilities.js?v=b20908dbbf';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=b20908dbbf';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -42,7 +43,7 @@ function path(run) {
   }).join('')}</ol>`;
 }
 export function chrome(ctx,content) {
-  const run=ctx.run,inRun=run&&!['home','album','feats'].includes(ctx.screen);
+  const run=ctx.run,inRun=run&&!['home','album','feats','career'].includes(ctx.screen);
   return `<header class="ribbon"><div class="ribbon-bar">
     <button class="brand" data-action="home" ${ctx.screen==='match'?'disabled':''} aria-label="Univavá Draft: tela inicial">${crest()}<b>UNIVAVÁ</b><em>DRAFT</em></button>
     ${inRun?path(run):'<span class="ribbon-fill"></span>'}
@@ -53,8 +54,8 @@ export function chrome(ctx,content) {
 }
 
 // ---------- Início ----------
-// The first screen offers the two ways to play, side by side: the Desafio do dia (one run a day, the same for everybody)
-// and the traditional mode. Each tile shows where that run stands and what can be done with it. Once a título has
+// The first screen offers the two ways to play, side by side: the traditional mode first, then the Desafio do dia (one
+// run a day, the same for everybody). Each tile shows where that run stands and what can be done with it. Once a título has
 // opened the períodos, the tile of the traditional mode also carries ten marks: the períodos already won.
 function modes(ctx) {
   const {slots,today,career}=ctx,free=slots.free,daily=slots.daily;
@@ -62,20 +63,20 @@ function modes(ctx) {
   const done=going?'':daily?.daily===today?C.resultLine(daily):career.daily[today]?.line||'';
   const freeOn=free&&free.status!=='over',periods=C.periodsOf(career);
   return `<div class="modes">
-    <article class="mode daily"><p class="eyebrow">Desafio do dia · #${C.dailyNumber(day)} · ${C.dayLabel(day)}</p>
-      <h2>${esc(capital(going?C.resultLine(daily):done||'ainda não jogado'))}</h2>
-      <div class="mode-actions">${going?'<button class="btn primary big" data-action="daily">Continuar desafio</button><button class="link" data-action="daily-quit">Desistir</button>'
-        :done?'<button class="btn" data-action="copy-result" data-id="daily">Copiar resultado</button>'
-        :'<button class="btn primary big" data-action="daily">Jogar desafio</button>'}</div></article>
     <article class="mode free"><p class="eyebrow">${free?C.modeLine(free):'Modo tradicional'}</p>
       <h2>${esc(capital(free?C.resultLine(free):'nenhuma run'))}</h2>${
         periods.period?`<span class="period-pips" role="img" aria-label="Períodos vencidos: ${periods.cleared} de ${C.PERIODS}">${Array.from({length:C.PERIODS},(_,i)=>`<i class="pip win${i<periods.cleared?' on':''}"></i>`).join('')}</span>`:''}
       <div class="mode-actions">${freeOn?'<button class="btn primary big" data-action="continue">Continuar run</button><button class="btn" data-action="new-run">Nova run</button>'
         :'<button class="btn primary big" data-action="new-run">Começar run</button>'}</div></article>
+    <article class="mode daily"><p class="eyebrow">Desafio do dia · #${C.dailyNumber(day)} · ${C.dayLabel(day)}</p>
+      <h2>${esc(capital(going?C.resultLine(daily):done||'ainda não jogado'))}</h2>
+      <div class="mode-actions">${going?'<button class="btn primary big" data-action="daily">Continuar desafio</button><button class="link" data-action="daily-quit">Desistir</button>'
+        :done?'<button class="btn" data-action="copy-result" data-id="daily">Copiar resultado</button>'
+        :'<button class="btn primary big" data-action="daily">Jogar desafio</button>'}</div></article>
   </div>`;
 }
 export function home(ctx) {
-  const {career}=ctx,summary=albumSummary(ctx.album,ctx.db.players),feats=A.count(ctx.feats);
+  const {career}=ctx,summary=albumSummary(ctx.album,ctx.db.players),feats=A.count(ctx.feats),matches=ST.played(ctx.album).n;
   return `<section class="hero">
     <div class="hero-copy">
       ${mark('lockup','lockup','Valorant Universitário')||'<p class="eyebrow">Valorant universitário</p>'}
@@ -86,6 +87,7 @@ export function home(ctx) {
         <dl class="career"><div><dt>Runs</dt><dd>${career.runs}</dd></div><div><dt>Títulos</dt><dd>${career.titles}</dd></div><div><dt>Melhor campanha</dt><dd>${esc(career.best||'-')}</dd></div></dl>
         <button class="album-link" data-action="album" aria-label="Álbum de cartinhas: ${summary.have} de ${summary.total}"><span>Álbum</span><b>${summary.have}<small> / ${summary.total}</small></b></button>
         <button class="album-link feats-link" data-action="feats" aria-label="Conquistas: ${feats.have} de ${feats.total}"><span>Conquistas</span><b>${feats.have}<small> / ${feats.total}</small></b></button>
+        <button class="album-link stats-link" data-action="career" aria-label="Estatísticas: ${matches} partidas"><span>Estatísticas</span><b>${num(matches)}<small> ${matches===1?'partida':'partidas'}</small></b></button>
       </div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -324,7 +326,7 @@ function matchView(ctx) {
   record.kills.slice(0,shown).forEach((kill,i)=>{
     const killer=row(kill.team,kill.killer),victim=row(1-kill.team,kill.victim);
     killer.k++;killer.credits=Math.min(9000,killer.credits+200);victim.d++;victim.dead=true;
-    for(const each of [killer,victim])each.ult=Math.min(B.ABILITIES[each.agent].x.points,each.ult+1);
+    if(!E.isOvertime(record.round))for(const each of [killer,victim])each.ult=Math.min(B.ABILITIES[each.agent].x.points,each.ult+1);
     kill.assistIds.forEach(id=>row(kill.team,id).a++);
     if(i===shown-1){killer.hit=true;victim.fell=true;}
   });
@@ -357,17 +359,19 @@ function timeline(view) {
     const what=`Round ${i+1}${r?': '+(r.won?'vencido':'perdido')+' · '+r.outcome+(r.event?` · Jogada de Efeito ${r.event.by?'do rival':'sua'}: ${r.event.label}`:''):''}`;
     return `<li class="${r?(r.won?'won':'lost'):i===view.round-1&&!view.over?'now':''} ${r?.event?`decisive ${r.event.by?'them':'us'}`:''} ${i===12?'half':''}" aria-label="${what}" data-tip="${what}">${r?roundIcon(r.outcome):`<span>${i+1}</span>`}</li>`;}).join('')}</ol>`;
 }
-// The buys of the round, one against the other: a single bar split by how much of the equipment on the server each
-// team carries (weapons, shields and abilities at their price, and the ultimates in use at what they are worth),
-// with the name of each team's buy at its end.
+// The round ahead, one team against the other: a single bar split by the chance each has in it, the very number the
+// round is drawn with (see roundChance in engine.js), with the name of each team's buy at its end. The chance starts
+// from the equipment (the tips say what each team carries) and the cards, the formation and the staff move it; it is
+// the chance the round started with, so a round decided by a confrontation still shows it.
 function buyBar(ctx,view) {
   if(!view.gear)return '';
-  const ours=E.loadoutShare(view.teams),[mine,rival]=view.gear,them=esc(ctx.match.teams[1].name);
+  const odds=(view.playing?view.record.odds:ctx.match.prepared?.odds)??E.loadoutShare(view.teams)/100;
+  const ours=Math.round(100*odds),[mine,rival]=view.gear,them=esc(ctx.match.teams[1].name);
   const carried=view.teams.map(players=>{
     const worth=players.reduce((sum,p)=>sum+E.armsValue(p)+(p.util||0),0),ults=players.filter(p=>p.ultOn).length;
     return `¤ ${num(worth)} em armas, coletes e habilidades${ults?` · ${ults} ${ults===1?'ultimate':'ultimates'} em uso`:''}`;
   });
-  return `<div class="buys" role="img" aria-label="Compras do round. ${ourName(ctx)}: ${mine}, ${ours}% do equipamento. ${them}: ${rival}, ${100-ours}%.">
+  return `<div class="buys" role="img" aria-label="Chance no round. ${ourName(ctx)}: ${ours}%, compra ${mine}. ${them}: ${100-ours}%, compra ${rival}.">
     <p><b class="us">${mine}<i>${ours}%</i></b><b class="them"><i>${100-ours}%</i>${rival}</b></p>
     <div class="buys-bar"><i class="us" style="width:${ours}%" data-tip="${ourName(ctx)}: ${carried[0]}"></i><i class="them" data-tip="${them}: ${carried[1]}"></i></div>
   </div>`;
@@ -433,14 +437,14 @@ function moment(ctx) {
       return `<button class="actor ${open?'':'spent'}" style="--i:${i}" data-action="actor" data-id="${s.player.id}" ${open?'':'disabled'} aria-label="${esc(s.player.name)}${open?'':', já agiu'}">
         ${cardArt(s.player,{effective:eff})}
         <span class="actor-info"><span class="actor-name"><b>${esc(s.player.name)}</b><small>${agentIcon(s.agent)}${s.agent}</small></span>
-        <span class="actor-stats">${event.stats.map(key=>`<span><small>${statLabel(key)}</small><b>${statText(key,s.player.stats[key])}</b>${meter(key,s.player.stats[key])}</span>`).join('')}</span>
+        <span class="actor-stats">${event.stats.map(key=>`<span><small>${statLabel(key)}</small><b>${statText(key,s.player.stats[key],true)}</b>${meter(key,s.player.stats[key])}</span>`).join('')}</span>
         <em>${open?'Mandar':'Já agiu'}</em></span></button>`;}).join('')}</div>
   </section>`;
 }
 // The confrontation is shown in steps, driven by the app's clock: the two cards, then each attribute first as "?"
 // and then revealed, and finally who took the round. duelStepMs says how long each step stays on screen.
 function duelRows(contest) {
-  const rows=contest.comparisons.map(v=>({kind:v.result,ours:statText(v.key,v.ours),label:statLabel(v.key),theirs:statText(v.key,v.theirs)}));
+  const rows=contest.comparisons.map(v=>({kind:v.result,ours:statText(v.key,v.ours,true),label:statLabel(v.key),theirs:statText(v.key,v.theirs,true)}));
   // One attribute each: the effective overall decides. When that is level too, the row says so and a draw follows.
   if(contest.tiebreak){
     const level=contest.tiebreak==='coin',label=contest.edgeBonus?`Overall + Sangue frio (+${contest.edgeBonus})`:'Overall efetivo';
@@ -520,6 +524,26 @@ function secondLife(run,entry) {
   return `<div class="second-life"><strong class="life-stamp">Segunda vida</strong><span class="life-marks" role="img" aria-label="${lost} de ${stage.losses} derrotas: esta não contou">${
     Array.from({length:stage.losses},(_,i)=>`<i class="life ${i<lost?'lost':i===lost?'saved':''}"></i>`).join('')}</span><span class="life-perk">${E.PERKS.repescagem.name}</span></div>`;
 }
+// The scoreboard of a match that is over: what each player did in it, and nothing of what he carried. Kills, deaths
+// and assists, the balance between kills and deaths, the rounds in which he made the first kill, the rounds of two,
+// three, four and five kills, and the confrontations of the Jogadas de Efeito he won out of the ones he went to.
+// Each abbreviation says what it is in its tip. A zero is dimmed, so the numbers that are not stand out.
+const FINAL_COLS = [['k','K','Abates'],['d','D','Mortes'],['a','A','Assistências'],['diff','+/-','Saldo de abates e mortes'],
+  ['fk','FK','Primeiros abates: rounds em que fez o primeiro abate'],['k2','2K','Rounds com 2 abates'],['k3','3K','Rounds com 3 abates'],['k4','4K','Rounds com 4 abates'],
+  ['ace','Ace','Rounds com 5 abates'],['je','JE','Jogadas de Efeito: confrontos vencidos / disputados']];
+function finalTable(ctx,t) {
+  const m=ctx.match,name=m.teams[t].name,stats=E.matchStats(m);
+  const rows=[...m.teams[t].players].sort((a,b)=>b.k-a.k||a.d-b.d||b.a-a.a);
+  return `<table class="squad final ${t?'them':'us'}">
+    <caption>${t?teamLogo(name):crest()}<b>${t?esc(name):ourName(ctx)}</b></caption>
+    <thead><tr><th scope="col" class="c-mug"><span class="sr-only">Foto</span></th><th scope="col" class="c-agent"><span class="sr-only">Agente</span></th><th scope="col">Jogador</th>${
+      FINAL_COLS.map(([key,label,tip])=>`<th scope="col" class="c-${key}" aria-label="${tip}" data-tip="${tip}">${label}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(p=>{
+      const s=stats[p.id]||E.NO_STATS,diff=p.k-p.d;
+      const value={k:p.k,d:p.d,a:p.a,diff:(diff>0?'+':'')+diff,fk:s.fk,k2:s.k2,k3:s.k3,k4:s.k4,ace:s.ace,je:s.plays?`${s.playsWon}/${s.plays}`:'-'};
+      return `<tr data-id="${p.id}"><td class="c-mug">${mug(p.id)}</td><td class="c-agent role-${roleKey(E.AGENTS[p.agent])}">${agentIcon(p.agent)}</td><th scope="row"><span class="who"><b>${esc(p.name)}</b><small>${p.agent}</small></span></th>${
+        FINAL_COLS.map(([key])=>`<td class="${key}${value[key]===0||value[key]==='0'||value[key]==='-'?' nil':''}">${value[key]}</td>`).join('')}</tr>`;}).join('')}</tbody></table>`;
+}
 // The conquests that came out with this match, under what it paid.
 const postFeats = summary=>summary.feats?.length?`<div class="post-feats"><p class="eyebrow">Conquistas</p><ul>${summary.feats.map(id=>`<li>${achievementIcon(id)}<b>${A.BY_ID[id].name}</b></li>`).join('')}</ul></div>`:'';
 export function postmatch(ctx) {
@@ -546,10 +570,10 @@ export function postmatch(ctx) {
     <div class="post-grid">
       <section class="panel mvp ${hasPhoto(mvp.id)?'with-photo':''}"><p class="eyebrow">Destaque</p>${cutout(mvp)||cardArt(mvp)}
         <h3>${esc(mvp.name)}</h3><p class="kda"><b>${mvpRow.k}</b> / <b>${mvpRow.d}</b> / <b>${mvpRow.a}</b><small>K / D / A · ${mvpRow.agent}</small></p></section>
-      <section class="panel post-board">${teamTable(ctx,matchView(ctx),0)}${teamTable(ctx,matchView(ctx),1)}</section>
+      <section class="panel post-board">${finalTable(ctx,0)}${finalTable(ctx,1)}</section>
       <section class="panel rewards"><p class="eyebrow">Moedas</p>
         <p class="reward-coins">+ ${coin(summary.coins)}</p>
-        <ul><li>Partida <b>+${C.MATCH_PAY}</b></li>${won?`<li>Vitória <b>+${C.winBonus(run)}</b></li>`:''}${summary.streakCoins?`<li>${summary.streak} vitórias seguidas <b>+${summary.streakCoins}</b></li>`:''}${run.perks.includes('patrocinio')?'<li>Patrocínio <b>+60</b></li>':''}${won&&run.perks.includes('bicho')?'<li>Bicho <b>+40</b></li>':''}${summary.outcome==='advanced'?`<li>Fase vencida <b>+${C.stageBonus(run)}</b></li>`:''}${summary.spare?`<li>Jogos que sobraram <b>+${summary.spare}</b></li>`:''}
+        <ul><li>Partida <b>+${C.MATCH_PAY}</b></li>${won?`<li>Vitória <b>+${C.winBonus(run)}</b></li>`:''}${summary.streakCoins?`<li>${summary.streak} vitórias seguidas <b>+${summary.streakCoins}</b></li>`:''}${run.perks.includes('patrocinio')?`<li>Patrocínio <b>+${E.PERK_VALUES.patrocinio}</b></li>`:''}${won&&run.perks.includes('bicho')?`<li>Bicho <b>+${E.PERK_VALUES.bicho}</b></li>`:''}${summary.outcome==='advanced'?`<li>Fase vencida <b>+${C.stageBonus(run)}</b></li>`:''}${summary.spare?`<li>Jogos que sobraram <b>+${summary.spare}</b></li>`:''}
           <li>Confrontos <b>${m.eventsWon} / ${m.eventsResolved}</b></li></ul>
         ${postFeats(summary)}<button class="btn primary big" data-action="after-match">${cta}</button></section>
     </div>
@@ -598,6 +622,47 @@ export function feats(ctx) {
         got[a.id]?`<em class="sr-only">Conquistada em</em><small>${C.dayLabel(got[a.id])}</small>`:'<em class="sr-only">Ainda não conquistada</em>'}</div></li>`).join('')}</ul></section>`;}).join('')}</div>`;
 }
 export const featBanner = id=>`${achievementIcon(id)}<span><small>Conquista</small><b>${A.BY_ID[id].name}</b></span>`;
+
+// ---------- Estatísticas ----------
+// What the team did over all its runs, in four tabs. A line of a list is a name, a bar with the share won, that
+// share and the count behind it. The cards and the teams come from the album, which has counted them since always;
+// the rest is counted from the day the statistics arrived on (the screen doesn't say which).
+const STATS_TABS = {run:'Campanha',squad:'Elenco',rivals:'Rivais',duels:'Confrontos'};
+const share = each=>{const value=ST.rate(each);return value===null?'-':value+'%';};
+const statRow = (label,each,lead='')=>`<li class="stat-row"><span class="stat-name">${lead}<span>${label}</span></span><span class="stat-bar" style="--v:${ST.rate(each)??0}%"><i></i></span><b>${share(each)}</b><small>${each.w} de ${each.n}</small></li>`;
+// A line that counts instead of comparing wins: the bar is its part of the largest count of the list.
+const countRow = (label,n,most,extra='',lead='')=>`<li class="stat-row count"><span class="stat-name">${lead}<span>${label}</span></span><span class="stat-bar" style="--v:${most?Math.round(100*n/most):0}%"><i></i></span><b>${num(n)}</b><small>${extra}</small></li>`;
+const statPanel = (title,body,kind='')=>`<section class="panel stat-panel${kind?' '+kind:''}"><h2 class="eyebrow">${title}</h2>${body}</section>`;
+const statList = rows=>rows.length?`<ul class="stat-rows">${rows.join('')}</ul>`:'<p class="stat-none">Nada por aqui ainda</p>';
+const kpis = list=>`<dl class="career stat-kpis">${list.map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`;
+const statCard = (each,line,detail)=>`<button class="stat-card" data-action="detail" data-id="${each.player.id}" aria-label="${esc(each.player.name)}: ${line}"><img src="${each.player.image}" alt="" width="450" height="720" loading="lazy" decoding="async" draggable="false">${detail}</button>`;
+export function career(ctx) {
+  const view=ST.overview(ctx.stats,{album:ctx.album,career:ctx.career,db:ctx.db}),tab=STATS_TABS[ctx.ui.careerTab]?ctx.ui.careerTab:'run';
+  const all={n:view.totals.matches,w:view.totals.wins},d=view.duels;
+  const most=list=>Math.max(0,...list.map(each=>each.n));
+  const body={
+    run:()=>kpis([['Runs',num(view.totals.runs)],['Títulos',num(view.totals.titles)],['Melhor campanha',esc(ctx.career.best||'-')],['Maior sequência',view.streak?`${view.streak} ${view.streak===1?'vitória':'vitórias'}`:'-']])
+      +statPanel('Onde as runs acabaram',statList(view.outcomes.filter(each=>each.n>0).map(each=>countRow(each.name,each.n,most(view.outcomes)))))
+      +statPanel('Vitórias por fase',statList(view.stages.filter(each=>each.n>0).map(each=>statRow(each.name,each))))
+      +statPanel('Rounds',statList([['Ataque',view.rounds.atk],['Defesa',view.rounds.def],['Pistola',view.rounds.pistol],['Partidas na prorrogação',view.overtime]].filter(([,each])=>each.n>0).map(([name,each])=>statRow(name,each))))
+      +statPanel('Comissão técnica',statList(view.perks.slice(0,5).map(each=>countRow(esc(each.name),each.n,most(view.perks),each.t?`${each.t} ${each.t===1?'título':'títulos'}`:'')))),
+    squad:()=>statPanel('Cartas mais usadas',view.cards.length?`<div class="stat-cards">${view.cards.map(each=>statCard(each,`${each.m} partidas, ${ST.rate({n:each.m,w:each.w})}% de vitórias`,
+          `<b>${each.m}</b><small>${ST.rate({n:each.m,w:each.w})}%</small>`)).join('')}</div>`:statList([]),'wide')
+      +statPanel('Equipes mais usadas',statList(view.teams.map(each=>statRow(esc(each.team),{n:each.m,w:each.w},teamLogo(each.team)))))
+      +statPanel('Formações',statList(view.formations.map(each=>statRow(each.name,each,formationIcon(each.key)))))
+      +statPanel('Agentes mais usados',statList(view.agents.map(each=>statRow(esc(each.agent),each,agentIcon(each.agent)))))
+      +statPanel('Composições',view.comps.length?`<ul class="stat-rows">${view.comps.map(each=>`<li class="stat-comp"><span class="stat-five" role="img" aria-label="${each.agents.map(esc).join(', ')}">${each.agents.map(agentIcon).join('')}</span><b>${share(each)}</b><small>${each.w} de ${each.n}</small></li>`).join('')}</ul>`:statList([])),
+    rivals:()=>statPanel('Rivais mais enfrentados',statList(view.rivals.map(each=>statRow(esc(each.team),each,teamLogo(each.team)))),'wide'),
+    duels:()=>kpis([['Confrontos',num(d.all.n)],['Vencidos',share(d.all)]])
+      +statPanel('De quem era a jogada',statList([['Suas jogadas',d.mine],['Jogadas do rival',d.theirs]].filter(([,each])=>each.n>0).map(([name,each])=>statRow(name,each))))
+      +statPanel('Como foram decididos',statList([['Nos atributos',d.attributes],['No overall',d.overall],['Na moeda',d.coin]].filter(([,each])=>each.n>0).map(([name,each])=>statRow(name,each))))
+      +statPanel('Por tipo de confronto',statList(d.types.filter(each=>each.n>0).map(each=>statRow(each.label,each))))
+      +statPanel('Melhor nos confrontos',d.best?`<div class="stat-cards one">${statCard(d.best,`${d.best.dw} confrontos vencidos de ${d.best.dn}`,`<b>${d.best.dw}</b><small>de ${d.best.dn}</small>`)}<p class="stat-best">${esc(d.best.player.name)}</p></div>`:statList([]))
+  }[tab]();
+  return `${band('Estatísticas',`${num(all.n)} ${all.n===1?'partida':'partidas'}`,all.n?`${share(all)} de vitórias`:'','compact')}
+  <div class="album-filters stats-tabs" role="group" aria-label="Estatísticas de">${Object.entries(STATS_TABS).map(([key,label])=>`<button data-action="career-tab" data-id="${key}" aria-pressed="${key===tab}">${label}</button>`).join('')}</div>
+  <div class="stats stats-${tab}">${body}</div>`;
+}
 
 // ---------- Diálogos ----------
 // The button marked autofocus is where the keyboard starts when the dialog opens (see openDialog): the one that confirms
@@ -663,7 +728,7 @@ export function formationGuide(ctx) {
   const affinity=key=>{const type=E.EVENT_TYPES[key];return `<span data-tip="${type.when?(type.when==='Ataque'?'Só quando você ataca':'Só quando você defende'):'No ataque e na defesa'}"><b>${eventName(key)}</b> ${type.stats.map(statLabel).join(' + ')}</span>`;};
   const cost=role=>['Ataque','Defesa'].filter(side=>E.MISSING_COST[role][side]).map(side=>`<b class="bad">-${E.MISSING_COST[role][side]}</b> ${side==='Ataque'?'no ataque':'na defesa'}`).join(' · ');
   return `${dialogHead('Guia','Formações')}
-    <p class="guide-lede">As funções dos cinco agentes escalados definem a formação. Ela soma ou tira pontos de chance em cada round, conforme o lado, e escolhe os confrontos de afinidade: os que saem com o dobro da frequência nas Jogadas de Efeito</p>
+    <p class="guide-lede">As funções dos cinco agentes escalados definem a formação. Ela soma ou tira pontos de chance em cada round, conforme o lado, e escolhe os confrontos de afinidade: são eles que as suas Jogadas de Efeito sorteiam</p>
     <ul class="formations">${E.FORMATIONS.map(f=>`<li class="formation ${f.key===current?'current':''} ${f.role?'role-'+roleKey(f.role):''}">
       <div class="formation-head">${formationIcon(f.key)}<h3>${f.name}</h3>${f.key===current?'<span class="formation-now">Sua formação</span>':''}</div>
       <p class="formation-need">${need(f)}</p>
@@ -677,7 +742,7 @@ export function formationGuide(ctx) {
       <li>Com três sentinelas ou mais, a formação é sempre Fortaleza</li>
       <li>Formação incompleta só acontece com menos de cinco titulares</li>
       <li>Trocar o agente de um titular por outro de função diferente muda a formação</li>
-      ${balanced?'<li class="good">Equilíbrio, da sua comissão técnica: +3 no ataque e na defesa enquanto as quatro funções estiverem entre os titulares</li>':''}
+      ${balanced?`<li class="good">Equilíbrio, da sua comissão técnica: +${E.PERK_VALUES.equilibrio} no ataque e na defesa enquanto as quatro funções estiverem entre os titulares</li>`:''}
     </ul>
     <div class="dialog-actions"><button class="btn" data-action="close">Fechar</button></div>`;
 }

@@ -1,6 +1,6 @@
 // Componentes de interface compartilhados pelas telas. Tudo aqui devolve HTML em texto.
-import * as E from './engine.js?v=1201c14e2c';
-import {abilityKey} from './abilities.js?v=1201c14e2c';
+import * as E from './engine.js?v=b20908dbbf';
+import {abilityKey} from './abilities.js?v=b20908dbbf';
 
 export const $ = selector=>document.querySelector(selector);
 export const esc = value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -9,7 +9,10 @@ export const esc = value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 export const outsideBox = (x,y,box)=>x<box.left||x>box.right||y<box.top||y>box.bottom;
 export const num = (n,digits=0)=>Number(n).toLocaleString('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits});
 export const signed = n=>(n>0?'+':n<0?'-':'')+num(Math.abs(n));
-export const statText = (key,value)=>key==='kast'?num(value*100)+'%':key==='swing'?(value>0?'+':'')+num(value,1):key==='acs'?num(value):num(value,2);
+// An attribute as it is written. KAST is kept on the cards with four places and shown as a whole percentage; with
+// `exact` it is written with two places, as it is compared in a confrontation, so that two players a hair apart
+// don't read as level. The other attributes are already written with every place they have.
+export const statText = (key,value,exact=false)=>key==='kast'?num(value*100,exact?2:0)+'%':key==='swing'?(value>0?'+':'')+num(value,1):key==='acs'?num(value):num(value,2);
 export const statLabel = key=>E.STAT_NAMES[key]+(key==='mpr'?' ↓':'');
 export const STAT_HELP = {acs:'Pontuação média de combate',kast:'Rounds com abate, assistência, sobrevivência ou troca',kpr:'Abates por round',mpr:'Mortes por round: menor é melhor',apr:'Assistências por round',swing:'Impacto médio nos rounds'};
 
@@ -118,7 +121,13 @@ const FEAT_SIGNS = {
   regular:{s:'M13 15H35V36H13ZM13 22.5H35M18.5 10.5V17M29.5 10.5V17'},                    // o calendário
   passed:{f:'M32 10 38 16 22 32 12.5 35.5 16 26Z',line:'M28 14 34 20M16 26 22 32'},     // o lápis
   graduate:{f:'M24 12 40 19.5 24 27 8 19.5ZM14.5 25.2 24 29.6 33.5 25.2V32C33.5 34.8 29.2 37 24 37C18.8 37 14.5 34.8 14.5 32Z',s:'M38 19.5V31'}, // o capelo
+  soclose:{f:'M15.5 9.5H21.5L25.5 17.5H19.5ZM32.5 9.5H26.5L22.5 17.5H28.5ZM13.5 28a10.5 10.5 0 1 0 21 0a10.5 10.5 0 1 0 -21 0Z',line:'M20.6 25.4C20.6 22.9 22.1 21.6 24 21.6C25.9 21.6 27.4 22.9 27.4 24.8C27.4 26.5 26.2 27.7 24.7 29.2L20.8 33.1H27.8'}, // a medalha de prata
+  popcorn:{f:'M14.5 21H33.5L31 38.5H17ZM13.9 17a4.6 4.6 0 1 0 9.2 0a4.6 4.6 0 1 0 -9.2 0ZM19 13.6a5 5 0 1 0 10 0a5 5 0 1 0 -10 0ZM24.9 17a4.6 4.6 0 1 0 9.2 0a4.6 4.6 0 1 0 -9.2 0Z',line:'M20.6 23.5 21.4 36.5M27.4 23.5 26.6 36.5'}, // o balde de pipoca
+  lion:{f:'M24 24C29.5 24 34 29 34 33.3C34 36.8 31 38.3 28.5 37.3C26.5 36.5 25.5 35.8 24 35.8C22.5 35.8 21.5 36.5 19.5 37.3C17 38.3 14 36.8 14 33.3C14 29 18.5 24 24 24ZM10.2 22.6a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0 -6.8 0ZM16.2 15.6a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0ZM24.8 15.6a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0ZM31 22.6a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0 -6.8 0Z'}, // a pata do leão
   // Partida
+  house:{s:'M16 14H32A2 2 0 0 1 34 16V32A2 2 0 0 1 32 34H16A2 2 0 0 1 14 32V16A2 2 0 0 1 16 14Z',f:'M17.5 19.4a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0ZM26.7 19.4a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0ZM22.1 24a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0ZM17.5 28.6a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0ZM26.7 28.6a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0Z'}, // o dado
+  collective:{f:'M10.9 17.5a3.6 3.6 0 1 0 7.2 0a3.6 3.6 0 1 0 -7.2 0ZM29.9 17.5a3.6 3.6 0 1 0 7.2 0a3.6 3.6 0 1 0 -7.2 0ZM8.5 33C8.5 27.5 11 24 14.5 24C18 24 20.5 27.5 20.5 33ZM27.5 33C27.5 27.5 30 24 33.5 24C37 24 39.5 27.5 39.5 33Z',
+    top:'M19.4 16.5a4.6 4.6 0 1 0 9.2 0a4.6 4.6 0 1 0 -9.2 0ZM15.5 37.5C15.5 29.5 19 25 24 25C29 25 32.5 29.5 32.5 37.5Z'}, // o grupo
   sweep:{f:'M28 6 11 27H22L19 42 37 20H26Z'},                                     // o raio
   swept:{s:'M9 14 19 24 26 18 38 33M38 23V33H28'},                                // a queda
   overtime:{s:'M24 11A13 13 0 1 0 24 37A13 13 0 1 0 24 11ZM24 17V24.5L29.5 29'},  // o relógio
@@ -133,7 +142,13 @@ const FEAT_SIGNS = {
   hot:{f:'M15 24V13.3A1.8 1.8 0 0 1 18.6 13.3V24ZM19.8 24V11.3A1.8 1.8 0 0 1 23.4 11.3V24ZM24.6 24V12.8A1.8 1.8 0 0 1 28.2 12.8V24ZM29.4 24V16.3A1.8 1.8 0 0 1 33 16.3V24ZM15 23H33V34A5 5 0 0 1 28 39H20A5 5 0 0 1 15 34ZM15.4 34 9.3 27.6A2.3 2.3 0 0 1 12.6 24.4L15.4 27.3Z',
     keep:'M24.3 24.2C25.3 27.2 28.6 28.7 28.6 32.3C28.6 35 26.6 37 24 37C21.4 37 19.4 35 19.4 32.3C19.4 30.5 20.6 29.3 21.3 27.6C21.8 29.4 22.9 29.9 23.3 28.5C23.7 27 24 25.6 24.3 24.2Z'}, // a mão com fogo
   detail:{s:'M21 11A9.5 9.5 0 1 0 21 30A9.5 9.5 0 1 0 21 11ZM28 27.5 38 37.5'},   // a lupa
+  trust:{f:'M12.4 14.1a6.2 6.2 0 1 0 12.4 0a6.2 6.2 0 1 0 -12.4 0ZM23.2 14.1a6.2 6.2 0 1 0 12.4 0a6.2 6.2 0 1 0 -12.4 0ZM12.4 24.9a6.2 6.2 0 1 0 12.4 0a6.2 6.2 0 1 0 -12.4 0ZM23.2 24.9a6.2 6.2 0 1 0 12.4 0a6.2 6.2 0 1 0 -12.4 0ZM21 19.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z',s:'M24 25Q24 34 29.5 39.5'}, // o trevo de quatro folhas
+  prevent:{f:'M9.5 25A14.5 14.5 0 0 1 38.5 25Q36.1 22.4 33.7 25Q31.2 22.4 28.8 25Q26.4 22.4 24 25Q21.6 22.4 19.2 25Q16.8 22.4 14.3 25Q11.9 22.4 9.5 25Z',s:'M24 24.5V35A3.4 3.4 0 0 1 17.2 35'}, // o guarda-chuva
+  sure:{f:'M14 21H34V35.5A2 2 0 0 1 32 37.5H16A2 2 0 0 1 14 35.5Z',s:'M17.8 21.5V17.2A6.2 6.2 0 0 1 30.2 17.2V21.5',keep:'M21.7 27.6a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0 -4.6 0ZM22.9 28H25.1V33H22.9Z'}, // o cadeado
+  coward:{s:'M15 11.5V37.5',f:'M17.2 12.5C21.5 10.3 25.5 14.6 30 13.2C32 12.6 34 11.9 35.5 11.5V25C34 25.5 32 26.2 30 26.8C25.5 28.2 21.5 23.8 17.2 26Z'}, // a bandeira branca
+  coin:{f:'M16.8 14.3a7.2 7.2 0 1 0 14.4 0a7.2 7.2 0 1 0 -14.4 0ZM7.8 30.2a7.2 7.2 0 1 0 14.4 0a7.2 7.2 0 1 0 -14.4 0ZM25.8 30.2a7.2 7.2 0 1 0 14.4 0a7.2 7.2 0 1 0 -14.4 0Z',keep:'M24 11 27.3 14.3 24 17.6 20.7 14.3ZM15 26.9 18.3 30.2 15 33.5 11.7 30.2ZM33 26.9 36.3 30.2 33 33.5 29.7 30.2Z'}, // três moedas iguais
   // Elenco
+  refund:{f:'M15 9.5H33V38L30 35.5 27 38 24 35.5 21 38 18 35.5 15 38Z',line:'M19 16H29M19 21.5H29M19 27H25'}, // o recibo
   home:{s:'M9 25 24 11 39 25M14.5 21.5V37H33.5V21.5'},                            // a casa
   mains:{s:'M24 40 15.3 26.6A11 11 0 1 1 32.7 26.6Z',f:'M24 16.4A3.6 3.6 0 1 0 24 23.6A3.6 3.6 0 1 0 24 16.4Z'}, // cada um no seu lugar
   selecao:{f:'M24 7 29 18.6 41.6 19.7 32 28 34.9 40.3 24 33.8 13.1 40.3 16 28 6.4 19.7 19 18.6Z'}, // a estrela

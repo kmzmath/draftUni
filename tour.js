@@ -7,12 +7,13 @@ export const TOURS = {
   home:[
     {el:'.hero-title',title:'Univavá Draft',text:'Você é um bom técnico? Tente montar seu time dos sonhos com as cartinhas de todo mundo que jogou o Univavá, e leve seu time à glória! Passando pelo caminho completo: classificatória, fase de grupos e Playoffs!'},
     {el:'.team-name',title:'Seu time',text:'Dê um nome ao seu time. Ele aparece no placar das partidas e pode ser trocado aqui quando quiser'},
-    {el:'.mode.daily',title:'Desafio do dia',text:'Uma run por dia, igual para todo mundo: os mesmos contratos, o mesmo draft, os mesmos bônus oferecidos e os mesmos rivais. Só dá para jogar uma vez. No fim, copie o resultado para comparar com os amigos. O desafio vira à meia-noite de Brasília'},
-    {el:'.mode.free',title:'Modo tradicional',text:'Uma run sorteada só para você, quantas vezes quiser. Cada run começa com um draft novo e termina no título ou na eliminação. As duas runs ficam salvas, cada uma no seu lugar: dá para fechar o jogo e continuar depois'},
+    {el:'.mode.free',title:'Modo tradicional',text:'Uma run sorteada só para você, quantas vezes quiser. Cada run começa com um draft novo e termina no título ou na eliminação'},
     {el:'.period-pips',title:'Períodos',text:'Cada título no modo tradicional abre um período: uma run com uma regra a mais, que se soma às dos períodos anteriores. São 10, do 1º ao 10º. Ao começar uma run você escolhe em qual jogar, entre os que já abriu. Os losangos acesos são os períodos que você já venceu. O Desafio do dia não tem períodos'},
+    {el:'.mode.daily',title:'Desafio do dia',text:'Uma run por dia, igual para todo mundo: os mesmos contratos, o mesmo draft, os mesmos bônus oferecidos e os mesmos rivais. Só dá para jogar uma vez. No fim, copie o resultado para comparar com os amigos. O desafio vira à meia-noite de Brasília. As duas runs ficam salvas, cada uma no seu lugar: dá para fechar o jogo e continuar depois'},
     {el:'.career',title:'Seu histórico',text:'Runs jogadas, títulos e a melhor campanha até agora, somando os dois modos'},
     {el:'.album-link',title:'Álbum de cartinhas',text:'Toda carta que joga uma partida pelo seu time entra no álbum. Acha que consegue colecionar todo mundo?'},
     {el:'.feats-link',title:'Conquistas',text:'Os feitos do seu time ficam marcados aqui, do 13 a 0 ao título. Consegue completar todas?'},
+    {el:'.stats-link',title:'Estatísticas',text:'Tudo o que o seu time já fez, somando todas as runs: as cartas e as equipes que você mais usou, as vitórias por fase, os rivais que mais enfrentou e o desempenho nos confrontos'},
     {el:'.help',title:'Ajuda',text:'Este botão explica a tela em que você estiver, passo a passo. Sempre que precisar de uma ajudinha é só clicar!'}
   ],
   draft:[
@@ -24,7 +25,7 @@ export const TOURS = {
     {el:'.draft-roster',title:'Seu elenco',text:'As escolhas aparecem aqui com overall, função, agente de conforto e equipe. Clique numa carta para ver os detalhes'}
   ],
   perk:[
-    {el:'.perk-row',title:'Comissão técnica',text:'Escolha 1 de 3 bônus. Ele vale até o fim da run. Você ganha um depois do draft e outro a cada fase vencida, e pode comprar mais na loja, no pacote de vantagens: não há limite. Os bônus marcados como Raro mudam uma regra do jogo e aparecem bem menos'}
+    {el:'.perk-row',title:'Comissão técnica',text:'Escolha 1 de 3 bônus. Ele vale até o fim da run. Você ganha um depois do draft e outro a cada fase vencida, e pode comprar mais na loja, no pacote de vantagens: não há limite. Os bônus marcados como Raro aparecem bem menos nas ofertas'}
   ],
   'hub:lineup':[
     {el:'.band',title:'A fase',text:'O jogo da vez e seu saldo de vitórias e derrotas nesta fase. Os losangos no topo mostram quantas vitórias faltam para avançar; os círculos, quantas derrotas ainda cabem'},
@@ -56,13 +57,13 @@ export const TOURS = {
   'match:board':[
     {el:'.arena',title:'Placar',text:'Vence quem fizer 13 rounds com 2 de vantagem, e os lados trocam depois do round 12. Antes de cada round, o centro do placar mostra o freezetime: a partida espera, e é a hora de decidir se você usa uma Jogada de Efeito'},
     {el:'.play-call',title:'Jogada de Efeito',text:'Cada time tem 3 por partida; os losangos mostram quantas restam. Use durante o freezetime: o round vira um confronto entre um jogador seu e um do rival, e quem vencer o confronto leva o round. Guarde para um round que parece perdido, como um eco, ou para um que não pode escapar. O rival faz a mesma conta: usa as dele principalmente quando entra pior armado'},
-    {el:'.buys',title:'Compras do round',text:'A barra divide 100% entre os dois times pelo valor das armas, dos coletes e das habilidades que cada um leva neste round; uma ultimate em uso também entra na conta, e pesa bastante. A sua parte da barra é, em boa medida, a sua chance no round: com 65% do equipamento, cerca de 65%. As cartas, a formação e a comissão técnica puxam esse número um pouco para cima ou para baixo'},
+    {el:'.buys',title:'Chance do round',text:'A barra mostra a chance de cada time no round que vai começar, e em cada ponta o nome da compra do time. A chance parte do equipamento: a parte de cada time no valor das armas, dos coletes e das habilidades que os dois levam, com as ultimates em uso contando mais ou menos como um rifle. As cartas, a formação e a comissão técnica somam ou tiram pontos a partir daí. Ela fica sempre entre 8% e 92%'},
     {el:'.squad.us',title:'Seu time',text:'Abates, mortes, assistências, créditos, habilidades, arma e colete de cada jogador, na ordem dos abates. O losango ao lado do nome mostra quem ainda pode ir a um confronto'},
     {el:'.controls',title:'Ritmo',text:'O round começa quando você clica em Começar round. Com ele em andamento, o mesmo botão pausa a partida. Ao lado fica a velocidade. Em Ajustes dá para ligar o automático, em que o round começa sozinho depois de uma contagem'},
     {el:'.timeline',more:true,title:'Rounds',text:'Cada quadrado é um round: verde é round vencido, vermelho é round perdido. O ícone mostra como o round acabou. O losango marca um round com Jogada de Efeito: verde quando foi sua, vermelho quando foi do rival'},
     {el:'.squad.us .cr',more:true,title:'Créditos',text:'Cada jogador tem os próprios créditos e paga a arma, o colete e as habilidades pelos preços do jogo. O round rende 3.000 na vitória e de 1.900 a 2.900 na derrota, mais 200 por abate e 300 para quem ataca quando a spike é plantada. Quem sobrevive mantém a arma, e todo mundo compra colete e habilidades de novo a cada round; quem perde guardando a arma recebe só 1.000'},
-    {el:'.squad.us td.ab .abis',more:true,title:'Habilidades',text:'Os quatro ícones são as habilidades do agente. A linha embaixo de cada um mostra quantas cargas o jogador leva para o round, e o ícone fica apagado quando não há nenhuma. A de assinatura tem sempre uma carga de graça; as outras são compradas depois da arma e do colete. O último ícone é a ultimate: a linha enche com um ponto por abate e um por morte, e com todos os pontos ela é usada no round seguinte, quando o ícone acende'},
-    {el:'.squad.us .abis.narrow',more:true,title:'Habilidades',text:'Os quatro ícones são as habilidades do agente. A linha embaixo de cada um mostra quantas cargas o jogador leva para o round, e o ícone fica apagado quando não há nenhuma. A de assinatura tem sempre uma carga de graça; as outras são compradas depois da arma e do colete. O último ícone é a ultimate: a linha enche com um ponto por abate e um por morte, e com todos os pontos ela é usada no round seguinte, quando o ícone acende'},
+    {el:'.squad.us td.ab .abis',more:true,title:'Habilidades',text:'Os quatro ícones são as habilidades do agente. A linha embaixo de cada um mostra quantas cargas o jogador leva para o round, e o ícone fica apagado quando não há nenhuma. A de assinatura tem sempre uma carga de graça; as outras são compradas depois da arma e do colete. O último ícone é a ultimate: a linha enche com um ponto por abate e um por morte, e com todos os pontos ela é usada no round seguinte, quando o ícone acende. Na troca de lado os pontos voltam a zero, como os créditos, e na prorrogação ninguém tem ultimate'},
+    {el:'.squad.us .abis.narrow',more:true,title:'Habilidades',text:'Os quatro ícones são as habilidades do agente. A linha embaixo de cada um mostra quantas cargas o jogador leva para o round, e o ícone fica apagado quando não há nenhuma. A de assinatura tem sempre uma carga de graça; as outras são compradas depois da arma e do colete. O último ícone é a ultimate: a linha enche com um ponto por abate e um por morte, e com todos os pontos ela é usada no round seguinte, quando o ícone acende. Na troca de lado os pontos voltam a zero, como os créditos, e na prorrogação ninguém tem ultimate'},
     {el:'.buys p',more:true,title:'Os tipos de compra',text:'O time decide junto. Completa: pelo menos quatro com rifle. Eco e Parcial: cada um gasta só o que ainda deixa um rifle e um colete pesado para o round seguinte. Forçado: gasta tudo sem conseguir se armar, porque o round não pode esperar ou porque resolveu arriscar'},
     {el:'.feed',more:true,title:'O round',text:'Os abates acontecem um a um: quem eliminou quem, e com qual arma. No fim aparece quem levou o round'},
     {el:'.settings',more:true,title:'Freezetime',text:'Por padrão o round só começa quando você clica em Começar round. Com o automático ligado, ele começa sozinho quando a contagem chega ao fim; 3 segundos é o padrão, e a velocidade da partida não muda esse tempo. Sem jogadas na mão, ou quando a jogada do round é do rival, não há espera'}
@@ -75,7 +76,7 @@ export const TOURS = {
   postmatch:[
     {el:'.post-head',title:'Resultado',text:'O placar final e o adversário'},
     {el:'.mvp',title:'Destaque',text:'Seu jogador com a melhor partida, com abates, mortes e assistências'},
-    {el:'.post-board',title:'Placar final',text:'Os números de todos os jogadores, em ordem de abates'},
+    {el:'.post-board',title:'Placar final',text:'O que cada jogador fez na partida, em ordem de abates. K, D e A são abates, mortes e assistências, e +/- é o saldo entre abates e mortes. FK conta os rounds em que ele fez o primeiro abate. 2K, 3K, 4K e Ace contam os rounds em que ele fez 2, 3, 4 ou 5 abates. JE mostra os confrontos das Jogadas de Efeito que ele venceu, do total a que foi'},
     {el:'.rewards',title:'Moedas',text:'O que a partida rendeu e quantos confrontos você venceu nas Jogadas de Efeito, suas e do rival'}
   ],
   end:[
@@ -87,6 +88,11 @@ export const TOURS = {
   ],
   // Opens by itself, once, on the end of the run that opens the first período (see openTour in app.js).
   periods:[PERIOD_OPENED],
+  career:[
+    {el:'.band',title:'Estatísticas',text:'As partidas que o seu time já disputou e a parte delas que venceu, somando todas as runs dos dois modos'},
+    {el:'.stats-tabs',title:'Quatro abas',text:'Campanha mostra onde as runs acabaram e as vitórias por fase. Elenco, as cartas, as equipes, as formações e os agentes que você mais usou. Rivais, os times que mais enfrentou. Confrontos, como o time se sai nas Jogadas de Efeito'},
+    {el:'.stat-panel',title:'Como ler',text:'Em cada linha, a barra e a porcentagem são a parte vencida, e ao lado vem a conta: quantas vitórias em quantas partidas, rounds ou confrontos. As cartas e as equipes vêm do álbum, e tocar numa carta abre a carta'}
+  ],
   feats:[
     {el:'.band',title:'Conquistas',text:'Quantos feitos você já marcou, somando o Desafio do dia e o modo tradicional'},
     {el:'.feat',title:'Um feito',text:'Cada conquista diz o que pede. Quando você consegue, o símbolo acende e o dia fica anotado. Conquistas não dão moedas nem bônus: são só para mostrar'}

@@ -1,5 +1,5 @@
 // Regras puras do jogo: draft, sinergia, formação e simulação da partida. Sem DOM.
-import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=1201c14e2c';
+import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=b20908dbbf';
 export const ROLES = ['Duelista','Iniciador','Controlador','Sentinela'];
 export const AGENTS = Object.fromEntries(Object.entries({
   Duelista:['Jett','Phoenix','Raze','Neon','Reyna','Yoru','Iso','Waylay'],
@@ -13,29 +13,48 @@ export const POOL_SIZE = 8;
 export const PHOTO_WEIGHT = 1.6;
 export const POINTS_PER_OVR = 2;
 
+export const PLAYS = 3;
+// The number behind each staff bonus that has one. They are tuned with the simulator, which can also try other numbers
+// without touching this file (scripts/simulate.mjs, --bonus=pistoleiros:10), and the texts of the bonuses are written
+// from them. olheiro, vitrine and quarta_jogada are what the bonus adds (cards, plays); armeiro, the credits on top of
+// the 800 a half starts with; negociador, the discount in percent; viradaGap, how far behind the bonus starts to act;
+// baseCount, how many starters get the bonus (its key is still `base`, from when it was called Aposta na base, so that
+// a saved run keeps it); contatos, the free changes of offers of each shop; guerreirosRate, the points of chance for
+// each point of effective overall the rival has over yours, and guerreiros, the most they add up to.
+// These are the numbers of the rebalance: each bonus was played alone through thousands of runs and compared with a
+// run without any (the third argument of the simulator), and the ones that weighed too much or too little were moved.
+export const PERK_VALUES = {polivalencia:3,entrosamento:1,pistoleiros:12,sangue_frio:2,segundo_folego:3,virada:8,viradaGap:2,patrocinio:30,olheiro:1,
+  negociador:35,armeiro:400,caixa:400,capitao:3,base:1,baseCount:3,especialistas:2,equilibrio:2,vitrine:4,contatos:2,bicho:40,quarta_jogada:1,psicologo:2,guerreiros:2,guerreirosRate:1};
+const PV = PERK_VALUES;
+const dots = n=>String(n).replace(/\B(?=(\d{3})+$)/g,'.');
+// The names and the texts are the user's; a number that comes from the table is written from it.
+const WORDS = ['','A primeira troca','As duas primeiras trocas','As três primeiras trocas'];
 export const PERKS = {
-  polivalencia:{name:'Elenco polivalente',text:'Penalidades de função caem 1 ponto: secundária deixa de custar, fora de função custa -2'},
-  entrosamento:{name:'Entrosamento',text:'A sinergia de equipe rende +1 a mais: dois titulares da mesma equipe já valem +2 cada, três valem +3'},
-  pistoleiros:{name:'Pistoleiros',text:'+12 pontos de chance nos rounds de pistola (1 e 13)'},
-  sangue_frio:{name:'Sangue frio',text:'Nos confrontos empatados, +2 de overall só para o desempate'},
-  segundo_folego:{name:'Segundo fôlego',text:'Os titulares voltam a ficar disponíveis depois de 4 usos, não 5'},
-  virada:{name:'Mentalidade de virada',text:'+6 pontos de chance enquanto estiver 3 ou mais rounds atrás'},
-  patrocinio:{name:'Patrocínio da atlética',text:'+60 moedas em cada partida disputada'},
-  olheiro:{name:'Olheiro',text:'Cada pacote revela 4 cartas em vez de 3'},
-  negociador:{name:'Negociador',text:'Jogadores do mercado e contratos de agente custam 20% menos'},
-  jogada_ensaiada:{name:'Jogada ensaiada',text:'Suas Jogadas de Efeito sempre sorteiam um confronto de afinidade da sua formação'},
-  armeiro:{name:'Armeiro',text:'Seus jogadores começam cada metade com 1.200 créditos e entram de colete nos rounds de pistola'},
-  caixa:{name:'Caixa de emergência',text:'+400 créditos para cada jogador seu depois de um round perdido'},
-  capitao:{name:'Capitão',text:'O titular de maior overall rende +1'},
-  base:{name:'Aposta na base',text:'Titulares com overall até 80 rendem +2'},
-  especialistas:{name:'Especialistas',text:'No agente de conforto, o jogador rende +2 em vez de +1'},
-  equilibrio:{name:'Equilíbrio',text:'Com as quatro funções entre os titulares, +3 pontos de chance no ataque e na defesa'},
-  vitrine:{name:'Vitrine',text:'O mercado mostra 6 cartas em vez de 4'},
-  contatos:{name:'Contatos',text:'A primeira troca de ofertas de cada loja é grátis'},
-  bicho:{name:'Bicho',text:'+40 moedas por vitória'},
-  // rare: bônus que mudam uma regra do jogo. Aparecem bem menos nas ofertas.
-  quarta_jogada:{name:'Quarta jogada',text:'4 Jogadas de Efeito por partida, em vez de 3',rare:true},
-  repescagem:{name:'Repescagem',text:'A primeira derrota que eliminaria o time não conta. Vale uma vez na run',rare:true}
+  polivalencia:{name:'Elenco polivalente',text:PV.polivalencia>=3?'Seus jogadores não perdem mais overall por jogar em outra função ou com outros agentes'
+    :`Penalidades de função caem ${PV.polivalencia} ${PV.polivalencia>1?'pontos':'ponto'}: secundária deixa de custar, fora de função custa -${3-PV.polivalencia}`},
+  entrosamento:{name:'Entrosamento',text:`A sinergia de equipe rende +${PV.entrosamento} a mais para cada jogador da equipe`},
+  pistoleiros:{name:'Pistoleiros',text:`+${PV.pistoleiros} pontos de chance nos rounds de pistola (1 e 13)`},
+  sangue_frio:{name:'Sangue frio',text:`Nos confrontos empatados, +${PV.sangue_frio} de overall só para o desempate`},
+  segundo_folego:{name:'Segundo fôlego',text:`Os titulares voltam a ficar disponíveis depois de ${PV.segundo_folego} usos, não 5`},
+  virada:{name:'Mentalidade de virada',text:`+${PV.virada} pontos de chance enquanto estiver ${PV.viradaGap} ou mais rounds atrás`},
+  patrocinio:{name:'Patrocínio da atlética',text:`+${PV.patrocinio} moedas em cada partida disputada`},
+  olheiro:{name:'Olheiro',text:`Cada pacote revela ${3+PV.olheiro} cartas em vez de 3`},
+  negociador:{name:'Negociador',text:`Jogadores do mercado e contratos de agente custam ${PV.negociador}% menos`},
+  jogada_ensaiada:{name:'Jogada ensaiada',text:'As Jogadas de Efeito do rival também sorteiam um confronto de afinidade da sua formação'},
+  armeiro:{name:'Armeiro',text:`Seus jogadores começam cada metade com ${dots(800+PV.armeiro)} créditos e entram de colete nos rounds de pistola`},
+  caixa:{name:'Caixa de emergência',text:`Quando seu time perde um round, seus jogadores ganham +${PV.caixa} créditos bônus no próximo round`},
+  capitao:{name:'Capitão',text:`O titular de maior overall rende +${PV.capitao}`},
+  base:{name:'Reforço',text:`Seus ${PV.baseCount} titulares de menor overall rendem +${PV.base}`},
+  especialistas:{name:'Especialistas',text:`No agente de conforto, o jogador rende +${PV.especialistas} em vez de +1`},
+  vitrine:{name:'Vitrine',text:`O mercado mostra ${4+PV.vitrine} cartas em vez de 4`},
+  contatos:{name:'Contatos',text:`${WORDS[PV.contatos]||`As ${PV.contatos} primeiras trocas`} de ofertas de cada loja ${PV.contatos>1?'são':'é'} grátis`},
+  bicho:{name:'Bicho',text:`+${PV.bicho} moedas por vitória`},
+  psicologo:{name:'Psicólogo',text:`+${PV.psicologo} pontos de chance nos jogos eliminatórios`},
+  guerreiros:{name:'Time de guerreiros',text:`+${PV.guerreirosRate} ${PV.guerreirosRate>1?'pontos':'ponto'} de chance para cada ponto de overall efetivo que o rival tiver a mais que o seu time, até +${PV.guerreiros}`},
+  // rare: bônus que aparecem bem menos nas ofertas (veja RARE_WEIGHT em campaign.js).
+  equilibrio:{name:'Equilíbrio',text:`Com as quatro funções entre os titulares, +${PV.equilibrio} pontos de chance no ataque e na defesa`,rare:true},
+  quarta_jogada:{name:'Quarta jogada',text:`${PLAYS+PV.quarta_jogada} Jogadas de Efeito por partida, em vez de ${PLAYS}`,rare:true},
+  repescagem:{name:'Repescagem',text:'A primeira derrota que eliminaria o time não conta. Vale uma vez na run. Não vale na final',rare:true}
 };
 
 export const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
@@ -100,25 +119,28 @@ export function familiarity(player,agent,perks=[]) {
   if(!role) throw new Error('Agente desconhecido');
   if(agent===player.comfort) return {penalty:0,label:'Agente de conforto',comfort:1};
   if(role===player.role || (player.role==='Flex' && (player.roleMaps[role]||0)===Math.max(...Object.values(player.roleMaps)))) return {penalty:0,label:'Função principal',comfort:0};
-  const ease=perks.includes('polivalencia')?1:0;
-  if((player.agentMaps[agent]||0)>0 || (player.roleMaps[role]||0)>=Math.max(3,player.maps*.15)) return {penalty:-1+ease,label:'Função secundária',comfort:0};
-  return {penalty:-3+ease,label:'Fora da função',comfort:0};
+  const ease=perks.includes('polivalencia')?PV.polivalencia:0;
+  if((player.agentMaps[agent]||0)>0 || (player.roleMaps[role]||0)>=Math.max(3,player.maps*.15)) return {penalty:Math.min(0,-1+ease),label:'Função secundária',comfort:0};
+  return {penalty:Math.min(0,-3+ease),label:'Fora da função',comfort:0};
 }
 export function effective(player,agent,lineup,perks=[]) {
   const f=familiarity(player,agent,perks);
   // Team synergy: +1 for every other starter from the same team, so a pair gives +1 each and a full five gives +4.
   const mates=lineup.filter(s=>s.player.team===player.team).length-1;
-  const chemistry=mates>0?mates+(perks.includes('entrosamento')?1:0):0;
-  const comfort=f.comfort*(perks.includes('especialistas')?2:1);
-  // Staff bonuses that single out a starter: the captain (the highest overall; the first of them on a tie) and the low overalls.
+  const chemistry=mates>0?mates+(perks.includes('entrosamento')?PV.entrosamento:0):0;
+  const comfort=f.comfort*(perks.includes('especialistas')?PV.especialistas:1);
+  // Staff bonuses that single out starters: the captain (the highest overall; the first of them on a tie) and the
+  // ones of lowest overall (the first of them on a tie too).
   const captain=perks.includes('capitao')&&lineup.reduce((best,s)=>s.player.ovr>best.player.ovr?s:best,lineup[0])?.player.id===player.id;
-  const staff=(captain?1:0)+(perks.includes('base')&&player.ovr<=80?2:0);
+  const young=perks.includes('base')&&[...lineup].sort((a,b)=>a.player.ovr-b.player.ovr).slice(0,PV.baseCount).some(s=>s.player.id===player.id);
+  const staff=(captain?PV.capitao:0)+(young?PV.base:0);
   return {value:player.ovr+chemistry+comfort+staff+f.penalty,base:player.ovr,chemistry,comfort,staff,penalty:f.penalty,label:f.label};
 }
 
 // ---------- Formação ----------
-// attack/defense são pontos de chance por round. strong são os confrontos de afinidade nas Jogadas de Efeito:
-// aparecem com o dobro da frequência, então vale ter cartas boas nos atributos que eles pedem.
+// attack/defense são pontos de chance por round. strong são os confrontos de afinidade nas Jogadas de Efeito: são
+// eles que as suas jogadas sorteiam, e nas do rival saem com o dobro da frequência, então vale ter cartas boas nos
+// atributos que eles pedem.
 const IDENTITIES = {
   ponta:{name:'Ponta de lança',attack:4,defense:-1,strong:['entry','duel']},
   informacao:{name:'Informação primeiro',attack:2,defense:1,strong:['execute','retake']},
@@ -145,7 +167,7 @@ export function composition(lineup) {
 export function compositionBonus(lineup,side,perks=[]) {
   const c=composition(lineup);
   return (side==='Ataque'?c.attack:c.defense)-c.missing.reduce((sum,role)=>sum+MISSING_COST[role][side],0)
-    +(perks.includes('equilibrio')&&lineup.length===5&&!c.missing.length?3:0);
+    +(perks.includes('equilibrio')&&lineup.length===5&&!c.missing.length?PV.equilibrio:0);
 }
 export function validLineup(lineup,pool=null) {
   if(lineup.length!==5) return 'Escale exatamente cinco titulares';
@@ -229,12 +251,13 @@ export function sideForRound(round,start='Ataque'){
   if(round<=12)return start;if(round<=24)return opposite(start);return round%2===1?start:opposite(start);
 }
 export function isMatchOver(a,b){return Math.max(a,b)>=13&&Math.abs(a-b)>=2;}
+// Overtime starts after the 24 rounds of the two halves. Every round of it is the same: see buyPhase.
+export const isOvertime=round=>round>24;
 
 // ---------- Jogadas de Efeito ----------
 // Cada time tem PLAYS jogadas por partida. Uma jogada transforma o round em um confronto: um jogador de cada lado,
 // dois atributos, e quem vence o confronto leva o round. Você chama as suas quando quiser (callPlay); o rival usa as
 // dele em rounds sorteados. EVENT_TYPES são os confrontos possíveis; when: lado em que cada um pode acontecer.
-export const PLAYS=3;
 export const EVENT_TYPES={
   entry:{label:'ENTRADA',title:'Abra o bombsite',stats:['kpr','kast'],when:'Ataque'},
   execute:{label:'EXECUÇÃO',title:'Faça a execução encaixar',stats:['apr','kast'],when:'Ataque'},
@@ -253,7 +276,7 @@ export function compareContest(ours,theirs,keys,ownOvr,enemyOvr,random=Math.rand
     return {key,ours:a,theirs:b,result};
   });
   let tiebreak=null,won;
-  const edgeBonus=own===enemy&&edge?2:0,contestOvr=ownOvr+edgeBonus;
+  const edgeBonus=own===enemy&&edge?PV.sangue_frio:0,contestOvr=ownOvr+edgeBonus;
   if(own!==enemy)won=own>enemy;
   else if(contestOvr!==enemyOvr){won=contestOvr>enemyOvr;tiebreak=edgeBonus?'perk':'overall';}
   else{won=random()<.5;tiebreak='coin';}
@@ -295,11 +318,12 @@ export const loadoutPoints=p=>WEAPONS[p.weapon].power+SHIELDS[p.shield].power;
 // when he is using his ultimate in this round, what an ultimate is worth.
 export const armsValue=p=>WEAPONS[p.weapon].cost+SHIELDS[p.shield].cost;
 export const loadoutValue=p=>armsValue(p)+(p.util||0)+(p.ultOn?ultValue(p.agent):0);
-// How the money on the server splits between the two teams in a round: the first team's share, from 0 to 100, of the
-// value of everything both carry. Two teams with nothing at all split it evenly.
+// How the money on the server splits between the two teams in a round: the first team's share of the value of
+// everything both carry. Two teams with nothing at all split it evenly. No team is ever left without a part of it:
+// the share goes from 1 to 99, because no round is impossible, however poorly armed a team walks into it.
 export function loadoutShare(teams){
   const [ours,theirs]=teams.map(players=>players.reduce((sum,p)=>sum+loadoutValue(p),0));
-  return ours+theirs?Math.round(100*ours/(ours+theirs)):50;
+  return ours+theirs?clamp(Math.round(100*ours/(ours+theirs)),1,99):50;
 }
 // The best a player can carry for a budget: the weapon and the shield that add the most points. A weapon kept from the
 // round before is free. Ties go to the weapon he likes most, then to the cheaper pair.
@@ -341,16 +365,19 @@ function buyPhase(match,t){
   const team=match.teams[t],random=match.random;
   if(match.round===1||match.round===13){
     team.lossStreak=0;team.wonLast=false;
-    // Armeiro (yours only): 400 credits more to start the half, which pay for a light shield on top of the pistol.
-    const armed=t===0&&match.perks.includes('armeiro'),start=armed?1200:800;
+    // Armeiro (yours only): more credits to start the half, which pay for a light shield on top of the pistol.
+    const armed=t===0&&match.perks.includes('armeiro'),start=800+(armed?PV.armeiro:0);
     for(const p of team.players){
       const [weapon,bought]=sample(PISTOL_BUYS,random),shield=bought||(armed?'Leve':'');
-      Object.assign(p,{weapon,shield,credits:start-WEAPONS[weapon].cost-SHIELDS[shield].cost,kept:false});
+      // A half starts from scratch: the credits, the weapons and the points towards the ultimate.
+      Object.assign(p,{weapon,shield,credits:start-WEAPONS[weapon].cost-SHIELDS[shield].cost,kept:false,ult:0});
       equip(p,p.credits);
     }
     return 'Pistola';
   }
-  if(match.round>=25)for(const p of team.players){p.credits=5000;p.kept=false;}
+  // Overtime: every round starts from the same place, whatever happened in the one before. Everybody has 5000
+  // credits, no weapon is kept and nobody has an ultimate: the points are wiped, and none are earned (see strike).
+  if(isOvertime(match.round))for(const p of team.players){p.credits=5000;p.kept=false;p.ult=0;}
   const able=team.players.filter(p=>armed(p,team.wonLast?'Pesado':'Leve')).length>=4;
   const urgent=match.round===12||match.round===24||match.round>=25||match.score[1-t]>=12;
   const gamble=!able&&!urgent&&!team.wonLast&&avg(team.players.map(p=>p.credits))>=2000&&random()<.35;
@@ -367,7 +394,8 @@ function buyPhase(match,t){
 }
 
 // ---------- Partida ----------
-export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS}){
+// decisive: an elimination game (see mustWin in campaign.js), which is where the Psicólogo acts.
+export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS,decisive=false}){
   const error=validLineup(lineup)||validLineup(opponent.lineup);if(error)throw new Error(error);
   const random=rng(seed);
   // likes: the weapons this player prefers, most liked first. Everyone has a rifle; some are AWPers, a few have a quirk.
@@ -376,15 +404,20 @@ export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS}){
     if(['Jett','Chamber'].includes(s.agent)&&random()<.5)likes.unshift('Operator','Outlaw','Marshal');
     else if(random()<.2)likes.unshift(sample(['Odin','Judge','Ares','Bucky','Frenzy'],random));
     // abi: the charges of each ability held for the round (see SLOTS); util: what was paid for them; ult: the points
-    // towards the ultimate; ultOn: the ultimate is being used in the round on screen.
+    // towards the ultimate, which go back to zero at the side swap and stay there in overtime; ultOn: the ultimate is
+    // being used in the round on screen.
     return {id:s.player.id,name:s.player.name,agent:s.agent,k:0,d:0,a:0,credits:800,weapon:'Classic',shield:'',kept:false,alive:true,likes,abi:[0,0,0],util:0,ult:0,ultOn:false};
   };
   const team=(name,slots)=>({name,lineup:slots.map(s=>({...s})),players:slots.map(row),lossStreak:0,wonLast:false});
   // plays: what each team still has, [yours, the rival's]; playsMax: what each started the match with.
-  const mine=ownPlays+(perks.includes('quarta_jogada')?1:0);
-  const match={teams:[team('Seu elenco',lineup),team(opponent.name,opponent.lineup)],perks,random,seed,
+  const mine=ownPlays+(perks.includes('quarta_jogada')?PV.quarta_jogada:0);
+  const match={teams:[team('Seu elenco',lineup),team(opponent.name,opponent.lineup)],perks,decisive,random,seed,
     score:[0,0],round:1,startSide:sample(['Ataque','Defesa'],random),plays:[mine,PLAYS],playsMax:[mine,PLAYS],
     used:[],enemyUsed:[],log:[],pending:null,prepared:null,over:false,eventsResolved:0,eventsWon:0};
+  // gap: how far the rival's effective overall is above yours (0 when it isn't), which is what the Time de guerreiros
+  // plays with. The starters don't change during a match, so it is the same in every round.
+  const level=(slots,own=[])=>avg(slots.map(s=>effective(s.player,s.agent,slots,own).value));
+  match.gap=Math.max(0,Math.round((level(opponent.lineup)-level(lineup,perks))*10)/10);
   prepareRound(match);
   return match;
 }
@@ -399,10 +432,15 @@ function prepareRound(match){
   // Armament: your share of the value of everything both teams carry into the round (the bar on the scoreboard) is, by
   // itself, your chance in it. 65% of the equipment is 15 points above an even round; the cards move it from there.
   const share=loadoutShare(match.teams.map(team=>team.players)),edge=(share-50)/2;
-  const bonus=(pistol&&match.perks.includes('pistoleiros')?12:0)+(match.score[1]-match.score[0]>=3&&match.perks.includes('virada')?6:0);
+  const has=key=>match.perks.includes(key);
+  const bonus=(pistol&&has('pistoleiros')?PV.pistoleiros:0)+(match.score[1]-match.score[0]>=PV.viradaGap&&has('virada')?PV.virada:0)+(match.decisive&&has('psicologo')?PV.psicologo:0)
+    +(has('guerreiros')?Math.min(PV.guerreiros,PV.guerreirosRate*match.gap):0);
   const ours=teamStrength(match.teams[0].lineup,side,{gear:edge,perks:match.perks,bonus});
   const theirs=teamStrength(match.teams[1].lineup,opposite(side),{gear:-edge});
-  match.prepared={side,gear,share,ours,theirs,chance:roundChance(ours,theirs)};
+  // chance: what the round is drawn with; a confrontation turns it into 1 or 0. odds: the chance the round started
+  // with, which is what the bar on the scoreboard shows and stays as it was whatever decides the round.
+  const chance=roundChance(ours,theirs);
+  match.prepared={side,gear,share,ours,theirs,chance,odds:chance};
   if(rivalCalls(match))openPlay(match,1);
 }
 // Spends one play of team `by` (0 = yours, 1 = the rival's) on the round about to be played and draws the confrontation.
@@ -410,8 +448,9 @@ function prepareRound(match){
 function openPlay(match,by){
   const side=match.prepared.side,strong=composition(match.teams[0].lineup).strong;
   const fits=Object.keys(EVENT_TYPES).filter(key=>!EVENT_TYPES[key].when||EVENT_TYPES[key].when===side);
-  // Jogada ensaiada: your own plays only draw among the confrontations of your formation, when the side has one.
-  const rehearsed=by===0&&match.perks.includes('jogada_ensaiada')?fits.filter(key=>strong.includes(key)):[];
+  // Your own plays only draw among the confrontations of your formation, when the side has one. With the Jogada
+  // ensaiada the rival's plays do too; without it they draw among all, the ones of your formation at twice the weight.
+  const rehearsed=by===0||match.perks.includes('jogada_ensaiada')?fits.filter(key=>strong.includes(key)):[];
   const options=rehearsed.length?rehearsed:fits;
   const type=weightedSample(options,match.random,key=>(key==='clutch'?.7:1)*(strong.includes(key)?2:1));
   match.plays[by]--;
@@ -443,8 +482,9 @@ function simulateKills(match,won,event){
   const strike=(team,killer,victim)=>{
     const assists=alive[team].filter(mate=>mate!==killer&&random()<cards.get(mate.id).stats.apr*.45).slice(0,2);
     killer.k++;killer.credits=Math.min(9000,killer.credits+200);victim.d++;victim.alive=false;assists.forEach(mate=>mate.a++);
-    // A point towards the ultimate for the kill and one for the death, up to what the ultimate asks for.
-    for(const each of [killer,victim])each.ult=Math.min(ABILITIES[each.agent].x.points,each.ult+1);
+    // A point towards the ultimate for the kill and one for the death, up to what the ultimate asks for. Not in
+    // overtime, where there are no ultimates.
+    if(!isOvertime(match.round))for(const each of [killer,victim])each.ult=Math.min(ABILITIES[each.agent].x.points,each.ult+1);
     alive[1-team].splice(alive[1-team].indexOf(victim),1);need[1-team]--;
     kills.push({team,killer:killer.id,killerName:killer.name,victim:victim.id,victimName:victim.name,weapon:killer.weapon,assists:assists.map(mate=>mate.name),assistIds:assists.map(mate=>mate.id)});
   };
@@ -481,8 +521,8 @@ function finishRound(match,won,event=null){
     // spike was planted, however the round ended. Losing while saving the weapon (time ran out, or the spike went
     // off) pays only 1000.
     const saving=!victory&&(outcome==='Tempo esgotado'||outcome==='Spike detonada');
-    // Caixa de emergência (yours only): 400 more on every round lost.
-    const relief=t===0&&match.perks.includes('caixa')?400:0;
+    // Caixa de emergência (yours only): more credits on every round lost.
+    const relief=t===0&&match.perks.includes('caixa')?PV.caixa:0;
     for(const p of team.players){
       const pay=(victory?3000:(saving&&p.alive?1000:lossPay(team.lossStreak))+relief)+(t===attackers&&planted?300:0);
       p.credits=Math.min(9000,p.credits+pay);p.kept=p.alive;
@@ -492,10 +532,30 @@ function finishRound(match,won,event=null){
     }
   });
   const record={round:match.round,won,score:[...match.score],side:prep.side,gear:prep.gear,share:prep.share,ours:prep.ours,theirs:prep.theirs,
-    chance:prep.chance,outcome,planted,kills,event};
+    chance:prep.chance,odds:prep.odds,outcome,planted,kills,event};
   match.log.push(record);match.round++;match.pending=null;match.prepared=null;match.over=over;
   if(!match.over)prepareRound(match);
   return record;
+}
+// What each player did over a match, read from its rounds: the rounds in which he made the first kill (fk), the
+// rounds in which he made two, three, four and five kills (k2, k3, k4, ace) and, of the confrontations of the Jogadas
+// de Efeito he went to (plays), the ones he won (playsWon). Only who did any of it is there; NO_STATS is the rest.
+export const NO_STATS={fk:0,k2:0,k3:0,k4:0,ace:0,plays:0,playsWon:0};
+export function matchStats(match){
+  const stats={},of=id=>stats[id]??={...NO_STATS};
+  for(const round of match.log){
+    const kills=round.kills||[],made={};
+    if(kills.length)of(kills[0].killer).fk++;
+    for(const kill of kills)made[kill.killer]=(made[kill.killer]||0)+1;
+    for(const [id,count] of Object.entries(made))if(count>=2)of(id)[count>=5?'ace':'k'+count]++;
+    const contest=round.event?.contest;
+    if(contest){
+      const ours=of(round.event.actor.id),theirs=of(round.event.enemy.id);
+      ours.plays++;theirs.plays++;
+      (contest.won?ours:theirs).playsWon++;
+    }
+  }
+  return stats;
 }
 export function advanceRound(match){
   if(match.over)return null;
@@ -511,7 +571,7 @@ export function resolveEvent(match,playerId){
   const fit=s=>avg(pending.stats.map(key=>normalizeStat(key,s.player.stats[key])));
   const rivals=them.lineup.filter(s=>!match.enemyUsed.includes(s.player.id)).sort((a,b)=>fit(b)-fit(a));
   const enemy=weightedSample(rivals,match.random,s=>[5,3,1,1,1][rivals.indexOf(s)]);
-  spend(match.used,playerId,perks.includes('segundo_folego')?4:5);spend(match.enemyUsed,enemy.player.id,5);
+  spend(match.used,playerId,perks.includes('segundo_folego')?PV.segundo_folego:5);spend(match.enemyUsed,enemy.player.id,5);
   const contest=compareContest(actor.player,enemy.player,pending.stats,effective(actor.player,actor.agent,us.lineup,perks).value,
     effective(enemy.player,enemy.agent,them.lineup).value,match.random,{edge:perks.includes('sangue_frio')});
   // The contest is the round: whoever wins it takes the round.

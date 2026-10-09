@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=1201c14e2c';
+import * as E from './engine.js?v=b20908dbbf';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -23,7 +23,7 @@ export const PERK_PACK_STEP = 100;
 export const STAGES = [
   {key:'qualifier',name:'Classificatória',wins:4,losses:2,targets:[81.5,82.2,82.8,83.4,84],market:[79,85]},
   {key:'groups',name:'Fase de Grupos',wins:3,losses:3,targets:[85,85.6,86.2,86.8,87.4],market:[81,87]},
-  {key:'playoffs',name:'Playoffs',wins:3,losses:1,targets:[88,89,90.4],market:[83,90],labels:['Quartas de final','Semifinal','Final']}
+  {key:'playoffs',name:'Playoffs',wins:3,losses:1,targets:[88.1,89.1,90.5],market:[83,90],labels:['Quartas de final','Semifinal','Final']}
 ];
 export const PACKS = [
   {key:'calouro',name:'Pacote Calouro',cost:160,range:[77,83]},
@@ -34,7 +34,7 @@ export const PACKS = [
 // with the stage, always above what its best card sells for.
 export const ROLE_PACK_COST = [220,300,400];
 const ROLE_PLURAL = {Duelista:'Duelistas',Iniciador:'Iniciadores',Controlador:'Controladores',Sentinela:'Sentinelas'};
-// How rarely a rule-changing staff bonus is offered, against 1 for the others.
+// How rarely a rare staff bonus is offered, against 1 for the others.
 const RARE_WEIGHT = .35;
 
 
@@ -82,6 +82,9 @@ export const rosterMax = run=>on(run,'roster')?V.roster:ROSTER_MAX;
 // What something costs in this run's shop, from its price in the game as it is.
 const priced = (run,cost)=>on(run,'prices')?Math.round(cost*V.prices/10)*10:cost;
 export const packsOf = run=>PACKS.map(pack=>on(run,'prices')?{...pack,cost:priced(run,pack.cost)}:pack);
+// An elimination game: every one of the Playoffs and, in the other stages, the one the team plays with one defeat
+// left, when losing it ends the run (a Repescagem in hand changes nothing here). It is where the Psicólogo acts.
+export const mustWin = run=>run.record[run.stage].l+1>=stagesOf(run)[run.stage].losses;
 // The strength asked of the rival of the next game.
 export function rivalTarget(run) {
   const stage=stagesOf(run)[run.stage],record=run.record[run.stage];
@@ -115,8 +118,10 @@ export function indexDb(db) { return {...db,byId:new Map(db.players.map(p=>[p.id
 // so a saved run continues exactly as it would have.
 function roll(run) { return E.rng((run.seed+Math.imul(++run.rolls,0x9E3779B1))>>>0); }
 const round10 = value=>Math.round(value/10)*10;
-const discount = run=>run.perks.includes('negociador')?.8:1;
-export const agentPrice = run=>priced(run,round10(AGENT_PRICE*discount(run)));
+const PV = E.PERK_VALUES;
+const discount = run=>run.perks.includes('negociador')?1-PV.negociador/100:1;
+// A contract is the one price that may end in 5: with the Negociador it costs exactly what the discount says.
+export const agentPrice = run=>priced(run,Math.round(AGENT_PRICE*discount(run)/5)*5);
 export const playerPrice = (run,player)=>priced(run,round10((30+(player.ovr-72)**2*2)*discount(run)));
 export const sellValue = player=>round10(playerPrice({perks:[]},player)/2);
 export const rosterIds = run=>[...run.lineup.map(s=>s.id),...run.bench];
@@ -222,15 +227,17 @@ function makeShop(run,db) {
   const random=roll(run),[lo,hi]=STAGES[run.stage].market;
   // The next opponent's cards stay off the shelf so you never face a player you are fielding.
   const taken=new Set([...rosterIds(run),...run.opponent.ids]);
-  const market=distinct(db.players.filter(p=>!taken.has(p.id)&&p.ovr>=lo&&p.ovr<=hi),(on(run,'market')?V.market:4)+(run.perks.includes('vitrine')?2:0),random);
+  const market=distinct(db.players.filter(p=>!taken.has(p.id)&&p.ovr>=lo&&p.ovr<=hi),(on(run,'market')?V.market:4)+(run.perks.includes('vitrine')?PV.vitrine:0),random);
   const comfort=new Set(rosterIds(run).map(id=>db.byId.get(id).comfort));
   const agents=distinct(Object.keys(E.AGENTS).filter(agent=>!run.pool.includes(agent)),3,random,agent=>comfort.has(agent)?4:1);
   return {market:market.map(p=>({id:p.id,sold:false})),agents:agents.map(agent=>({agent,sold:false}))};
 }
-// What changing the offers costs right now. With Contatos the first change of each shop is free.
-export const rerollCost = run=>run.perks.includes('contatos')&&!run.shop.rerolled?0:REROLL_COST;
+// What changing the offers costs right now. With Contatos the first changes of each shop are free. A shop counts its
+// changes in `rerolls`; one saved when a single change was free only says `rerolled`, and that is one change made.
+const rerolls = run=>run.shop.rerolls??(run.shop.rerolled?1:0);
+export const rerollCost = run=>run.perks.includes('contatos')&&rerolls(run)<PV.contatos?0:REROLL_COST;
 // New market and new contracts. The role pack on the shelf is not an offer: it stays.
-export function rerollShop(run,db) { idle(run);pay(run,rerollCost(run));run.shop={...makeShop(run,db),role:run.shop.role,rerolled:true}; }
+export function rerollShop(run,db) { idle(run);pay(run,rerollCost(run));run.shop={...makeShop(run,db),role:run.shop.role,rerolls:rerolls(run)+1}; }
 export function buyAgent(run,db,agent) {
   idle(run);
   const offer=run.shop.agents.find(o=>o.agent===agent&&!o.sold);
@@ -259,6 +266,7 @@ export function sellPlayer(run,db,id) {
   else if(run.bench.length)slot.id=run.bench.shift();
   else run.lineup.splice(run.lineup.indexOf(slot),1);
   run.coins+=sellValue(db.byId.get(id));
+  if(run.packed)run.packed=run.packed.filter(each=>each!==id);
 }
 // The role pack on this shop's shelf, or null when the shop has none (a run saved before role packs existed).
 export function rolePack(run) {
@@ -277,7 +285,7 @@ export function openPack(run,db,key) {
   needSeat(run);pay(run,pack.cost);
   const taken=new Set([...rosterIds(run),...run.opponent.ids]),[lo,hi]=pack.range;
   const fits=p=>!taken.has(p.id)&&p.ovr>=lo&&p.ovr<=hi&&(!pack.role||E.draftRole(p)===pack.role);
-  const cards=distinct(db.players.filter(fits),run.perks.includes('olheiro')?4:3,roll(run));
+  const cards=distinct(db.players.filter(fits),3+(run.perks.includes('olheiro')?PV.olheiro:0),roll(run));
   run.pack={key,cards:cards.map(p=>p.id),...(pack.role?{role:pack.role}:{})};
   // The role pack doesn't leave the shelf: it comes back as another role.
   if(pack.role)run.shop.role=E.sample(E.ROLES.filter(role=>role!==pack.role),roll(run));
@@ -286,6 +294,8 @@ export function openPack(run,db,key) {
 export function takePackCard(run,db,id) {
   if(!run.pack?.cards.includes(id))throw new Error('Esta carta não está no pacote aberto');
   seat(run,db,id);run.pack=null;
+  // The cards taken from packs since the last match: one of them sold before the next match is a conquest.
+  (run.packed??=[]).push(id);
 }
 
 // ---------- Escalação ----------
@@ -313,9 +323,10 @@ export function swapPlayers(run,db,a,b) {
 
 // ---------- Partidas e fases ----------
 // The rules a round is played under have a number, and a match in progress carries the one it was started with:
-// replaying it under other rules (abilities and ultimates came with 2) would give another match with the same
-// choices, so such a match is not continued. It starts over.
-export const MATCH_RULES = 2;
+// replaying it under other rules (abilities and ultimates came with 2; the points of the ultimate going back to zero
+// at the side swap, and no ultimates in overtime, with 3) would give another match with the same choices, so such a
+// match is not continued. It starts over. The numbers of the staff bonuses, when they were rebalanced, came with 4.
+export const MATCH_RULES = 4;
 export const sameRules = live=>live?.rules===MATCH_RULES;
 export function beginMatch(run,db) {
   const error=run.status!=='hub'?'Nenhuma partida preparada':lineupError(run,db);
@@ -325,7 +336,7 @@ export function beginMatch(run,db) {
   // its seed and those decisions, so replaying them rebuilds it exactly. That is what makes a reload pointless: the same
   // match comes back, with the same plays already spent and the same choices already made.
   run.live??={calls:[],picks:[],rounds:0,rules:MATCH_RULES};
-  const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:on(run,'plays')?V.plays:undefined});
+  const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:on(run,'plays')?V.plays:undefined,decisive:mustWin(run)});
   let used=0;
   while(!match.over){
     if(!match.pending&&run.live.calls.includes(match.round))E.callPlay(match);
@@ -361,17 +372,18 @@ export function recordMatch(run,db,match) {
   if(run.status!=='hub')throw new Error('Nenhuma partida preparada');
   const won=match.score[0]>match.score[1],stage=stagesOf(run)[run.stage],record=run.record[run.stage],forfeit=!!match.forfeit;
   const label=matchLabel(run.stage,record.w+record.l,run);
+  run.packed=[];
   if(won)record.w++;else record.l++;
-  const played=forfeit?0:MATCH_PAY+(run.perks.includes('patrocinio')?60:0);
+  const played=forfeit?0:MATCH_PAY+(run.perks.includes('patrocinio')?PV.patrocinio:0);
   // Wins in a row, this one included. The sequence carries over from one stage to the next.
   let streak=0;
   if(won){streak=1;for(let i=run.history.length-1;i>=0&&run.history[i].won;i--)streak++;}
   const streakCoins=on(run,'streak')?Math.min(V.streak,streakBonus(streak)):streakBonus(streak);
-  let coins=played+(won?winBonus(run)+(run.perks.includes('bicho')?40:0):0)+streakCoins,outcome='continue',spare=0,forgiven=false;
+  let coins=played+(won?winBonus(run)+(run.perks.includes('bicho')?PV.bicho:0):0)+streakCoins,outcome='continue',spare=0,forgiven=false;
   if(record.l>=stage.losses){
     // Repescagem: the first defeat that would end the run is played, paid and remembered, but doesn't count. The
-    // bonus is spent with it and leaves the staff.
-    if(run.perks.includes('repescagem')&&!run.forgiven){
+    // bonus is spent with it and leaves the staff. It doesn't hold in the final (in either game of a final in two).
+    if(run.perks.includes('repescagem')&&!run.forgiven&&!label.startsWith('Final')){
       run.forgiven=forgiven=true;record.l--;
       run.perks=run.perks.filter(key=>key!=='repescagem');
     }
