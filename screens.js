@@ -1,14 +1,14 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=9417779706';
-import * as C from './campaign.js?v=9417779706';
-import {previewChange} from './impact.js?v=9417779706';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=9417779706';
-import {albumSummary,cardStatus} from './album.js?v=9417779706';
-import * as A from './achievements.js?v=9417779706';
-import * as ST from './stats.js?v=9417779706';
-import * as B from './abilities.js?v=9417779706';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=9417779706';
+import * as E from './engine.js?v=ddb9ffb608';
+import * as C from './campaign.js?v=ddb9ffb608';
+import {previewChange} from './impact.js?v=ddb9ffb608';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=ddb9ffb608';
+import {albumSummary,cardStatus} from './album.js?v=ddb9ffb608';
+import * as A from './achievements.js?v=ddb9ffb608';
+import * as ST from './stats.js?v=ddb9ffb608';
+import * as B from './abilities.js?v=ddb9ffb608';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=ddb9ffb608';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -136,6 +136,12 @@ export function perk(ctx) {
 }
 
 // ---------- Elenco, loja e próximo jogo ----------
+// The line under the agent of a rival's card, and what it says to whoever rests on it: green for the one on his main,
+// red for the one playing out of his role (a stronger team sometimes comes like this; nothing else announces it).
+function rivalFit(slot) {
+  const fit=E.familiarity(slot.player,slot.agent);
+  return slot.agent===slot.player.comfort?['main ',' data-tip="No main: +1"']:fit.penalty<0?['off ',` data-tip="${fit.label}: ${fit.penalty}"`]:['',''];
+}
 // A starter with teammates among the five: the logo of the team is lit in the team's colour, with the bonus each of
 // them gets under it.
 function starter(slot,i,lineup,ctx) {
@@ -156,7 +162,7 @@ function lineupTab(ctx) {
     </div>
     ${picked?`<div class="selection" aria-live="polite"><p><b>${esc(picked.name)}</b> selecionado</p>
         <div><button class="btn small" data-action="detail" data-id="${picked.id}">Ver carta</button>
-        <button class="btn small" data-action="sell" data-id="${picked.id}">Vender ${coin(C.sellValue(picked))}</button>
+        <button class="btn small" data-action="sell" data-id="${picked.id}">Vender ${coin(C.sellValue(picked,run))}</button>
         <button class="link" data-action="deselect">Cancelar</button></div></div>`:''}
     <div class="under-stage"><div class="bench">
       <p class="label">Reservas <span>${C.rosterIds(run).length} / ${C.rosterMax(run)}</span></p>
@@ -224,7 +230,7 @@ function nextMatch(ctx) {
     ${info.org?`<p class="team-org">${teamFlag(rivalTeam)}<span>${esc(info.org)}${info.state?' · '+esc(info.state):''}</span></p>`:''}
     <div class="versus"><div><b>${mine.length?num(effectiveAvg(mine,run.perks),1):'-'}</b><small>seu efetivo</small></div><i>x</i><div class="them"><b>${num(effectiveAvg(rival),1)}</b><small>efetivo deles</small></div></div>
     <p class="tags"><span class="formation-tag">${formationIcon(comp.key)}${comp.name}</span></p>
-    <div class="rival-cards">${rival.map(s=>`<button data-action="detail" data-id="${s.player.id}" aria-label="Ver carta de ${esc(s.player.name)}, ${s.agent}">${cardArt(s.player,{effective:effectiveOf(s,rival)})}<span class="${s.agent===s.player.comfort?'main ':''}role-${roleKey(E.AGENTS[s.agent])}" ${s.agent===s.player.comfort?'data-tip="No main: +1"':''}>${agentIcon(s.agent)}</span></button>`).join('')}</div>
+    <div class="rival-cards">${rival.map(s=>`<button data-action="detail" data-id="${s.player.id}" aria-label="Ver carta de ${esc(s.player.name)}, ${s.agent}">${cardArt(s.player,{effective:effectiveOf(s,rival)})}<span class="${rivalFit(s)[0]}role-${roleKey(E.AGENTS[s.agent])}"${rivalFit(s)[1]}>${agentIcon(s.agent)}</span></button>`).join('')}</div>
     ${error?`<p class="warn" role="alert">${esc(error)}</p>`:''}
     ${short?'<button class="btn danger big" data-action="forfeit">Perder por W.O.</button>':`<button class="btn primary big" data-action="play" ${error?'disabled':''}>Jogar partida</button>`}
   </section>`;
@@ -354,8 +360,22 @@ function timeline(view) {
 // round is drawn with (see roundChance in engine.js), with the name of each team's buy at its end. The chance starts
 // from the equipment (the tips say what each team carries) and the cards, the formation and the staff move it; it is
 // the chance the round started with, so a round decided by a confrontation still shows it.
+// How the chance of a round is worked out, for whoever rests the pointer (or a finger) on its bar: the account with
+// its variables first, then with the numbers of this round. `prep` is the round as it was prepared (or as it was
+// played): the strength of each side, part by part, and the chance it started with.
+function chanceTip(prep) {
+  const tidy=value=>Math.abs(value)<.05?0:value,one=value=>num(tidy(value),1);
+  const added=values=>values.map(tidy).map((value,i)=>i?`${value<0?'-':'+'} ${num(Math.abs(value),1)}`:num(value,1)).join(' ');
+  const side=(name,strength,staff)=>`${name}: ${added([strength.roster,strength.formation,strength.gear,...(staff?[strength.bonus]:[])])} = ${one(strength.total)}`;
+  const raw=50+prep.ours.total-prep.theirs.total,ours=tidy(prep.ours.total),theirs=tidy(prep.theirs.total);
+  return ['Chance = 50 + força do seu time - força do rival','Força = elenco + formação + equipamento + comissão','Equipamento = (parte do time nas compras - 50) / 2',
+    side('Seu time',prep.ours,true),side('Rival',prep.theirs,false),
+    `50 ${ours<0?'-':'+'} ${num(Math.abs(ours),1)} ${theirs<0?'+':'-'} ${num(Math.abs(theirs),1)} = ${one(raw)} → ${Math.round(100*prep.odds)}%${raw<8?' (o mínimo)':raw>92?' (o máximo)':''}`].join('\n');
+}
 function buyBar(ctx,view) {
   if(!view.gear)return '';
+  // (the explanation belongs to the whole bar: a finger does not have to find one of its two sides)
+  const prep=view.playing?view.record:ctx.match.prepared,why=prep?.ours&&prep.theirs&&Number.isFinite(prep.odds)?` data-tip="${esc(chanceTip(prep))}"`:'';
   const odds=(view.playing?view.record.odds:ctx.match.prepared?.odds)??E.loadoutShare(view.teams)/100;
   const ours=Math.round(100*odds),[mine,rival]=view.gear,them=esc(ctx.match.teams[1].name);
   const carried=view.teams.map(players=>{
@@ -363,8 +383,8 @@ function buyBar(ctx,view) {
     return `¤ ${num(worth)} em armas, coletes e habilidades${ults?` · ${ults} ${ults===1?'ultimate':'ultimates'} em uso`:''}`;
   });
   return `<div class="buys" role="img" aria-label="Chance no round. ${ourName(ctx)}: ${ours}%, compra ${mine}. ${them}: ${100-ours}%, compra ${rival}.">
-    <p><b class="us">${mine}<i>${ours}%</i></b><b class="them"><i>${100-ours}%</i>${rival}</b></p>
-    <div class="buys-bar"><i class="us" style="width:${ours}%" data-tip="${ourName(ctx)}: ${carried[0]}"></i><i class="them" data-tip="${them}: ${carried[1]}"></i></div>
+    <p><b class="us" data-tip="${ourName(ctx)}: ${carried[0]}">${mine}<i>${ours}%</i></b><b class="them" data-tip="${them}: ${carried[1]}"><i>${100-ours}%</i>${rival}</b></p>
+    <div class="buys-bar"${why}><i class="us" style="width:${ours}%"></i><i class="them"></i></div>
   </div>`;
 }
 // The four abilities of a player's agent as he holds them for the round. Under each icon runs a line, filled by the
@@ -615,40 +635,53 @@ export function feats(ctx) {
 export const featBanner = id=>`${achievementIcon(id)}<span><small>Conquista</small><b>${A.BY_ID[id].name}</b></span>`;
 
 // ---------- Estatísticas ----------
-// What the team did over all its runs, in four tabs. A line of a list is a name, a bar with the share won, that
-// share and the count behind it. The cards and the teams come from the album, which has counted them since always;
-// the rest is counted from the day the statistics arrived on (the screen doesn't say which).
+// What the team did over all its runs, in four tabs. Every list is a table with named columns, so that a number is
+// never read for another: how much a thing was used (a bar and the part it is of the total), how many times, and
+// the part of those won. The cards and the teams come from the album, which has counted them since always; the rest
+// is counted from the day the statistics arrived on (the screen doesn't say which).
 const STATS_TABS = {run:'Campanha',squad:'Elenco',rivals:'Rivais',duels:'Confrontos'};
-const share = each=>{const value=ST.rate(each);return value===null?'-':value+'%';};
-const statRow = (label,each,lead='')=>`<li class="stat-row"><span class="stat-name">${lead}<span>${label}</span></span><span class="stat-bar" style="--v:${ST.rate(each)??0}%"><i></i></span><b>${share(each)}</b><small>${each.w} de ${each.n}</small></li>`;
-// A line that counts instead of comparing wins: the bar is its part of the largest count of the list.
-const countRow = (label,n,most,extra='',lead='')=>`<li class="stat-row count"><span class="stat-name">${lead}<span>${label}</span></span><span class="stat-bar" style="--v:${most?Math.round(100*n/most):0}%"><i></i></span><b>${num(n)}</b><small>${extra}</small></li>`;
+const percent = value=>value===null?'-':value+'%';
+const share = each=>percent(ST.rate(each));
+const barCell = value=>`<td class="stat-meter"><span class="stat-bar" style="--v:${value??0}%"><i></i></span><b>${percent(value)}</b></td>`;
+const nameCell = (label,lead='')=>`<th scope="row"><span class="stat-name">${lead}<span>${label}</span></span></th>`;
+const statTable = (heads,rows,kind='')=>rows.length?`<table class="stat-table${kind?' '+kind:''}"><thead><tr><th></th>${heads.map(head=>`<th scope="col"><span>${head}</span></th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`
+  :'<p class="stat-none">Nada por aqui ainda</p>';
+// A line of a table of use: the name, the part of the total it is (with the bar), how many times, and the last
+// column, which is the part won unless the table says otherwise.
+const useRow = (label,n,total,last,lead='')=>`<tr>${nameCell(label,lead)}${barCell(ST.share(n,total))}<td class="num">${num(n)}</td><td class="num">${last}</td></tr>`;
+// A line of a table of results: the name, how many times, and the part won (with the bar).
+const winRow = (label,each)=>`<tr>${nameCell(label)}<td class="num">${num(each.n)}</td>${barCell(ST.rate(each))}</tr>`;
 const statPanel = (title,body,kind='')=>`<section class="panel stat-panel${kind?' '+kind:''}"><h2 class="eyebrow">${title}</h2>${body}</section>`;
-const statList = rows=>rows.length?`<ul class="stat-rows">${rows.join('')}</ul>`:'<p class="stat-none">Nada por aqui ainda</p>';
 const kpis = list=>`<dl class="career stat-kpis">${list.map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`;
 const statCard = (each,line,detail)=>`<button class="stat-card" data-action="detail" data-id="${each.player.id}" aria-label="${esc(each.player.name)}: ${line}"><img src="${each.player.image}" alt="" width="450" height="720" loading="lazy" decoding="async" draggable="false">${detail}</button>`;
 export function career(ctx) {
   const view=ST.overview(ctx.stats,{album:ctx.album,career:ctx.career,db:ctx.db}),tab=STATS_TABS[ctx.ui.careerTab]?ctx.ui.careerTab:'run';
-  const all={n:view.totals.matches,w:view.totals.wins},d=view.duels;
-  const most=list=>Math.max(0,...list.map(each=>each.n));
+  const all={n:view.totals.matches,w:view.totals.wins},d=view.duels,{matches,runs}=view.counted,records=view.records;
+  const USE=['Uso','Partidas','Vitórias'];
+  const used=(list,name,lead=()=>'')=>list.map(each=>useRow(name(each),each.n,matches,share(each),lead(each)));
   const body={
-    run:()=>kpis([['Runs',num(view.totals.runs)],['Títulos',num(view.totals.titles)],['Melhor campanha',esc(ctx.career.best||'-')],['Maior sequência',view.streak?`${view.streak} ${view.streak===1?'vitória':'vitórias'}`:'-']])
-      +statPanel('Onde as runs acabaram',statList(view.outcomes.filter(each=>each.n>0).map(each=>countRow(each.name,each.n,most(view.outcomes)))))
-      +statPanel('Vitórias por fase',statList(view.stages.filter(each=>each.n>0).map(each=>statRow(each.name,each))))
-      +statPanel('Rounds',statList([['Ataque',view.rounds.atk],['Defesa',view.rounds.def],['Pistola',view.rounds.pistol],['Partidas na prorrogação',view.overtime]].filter(([,each])=>each.n>0).map(([name,each])=>statRow(name,each))))
-      +statPanel('Comissão técnica',statList(view.perks.slice(0,5).map(each=>countRow(esc(each.name),each.n,most(view.perks),each.t?`${each.t} ${each.t===1?'título':'títulos'}`:'')))),
-    squad:()=>statPanel('Cartas mais usadas',view.cards.length?`<div class="stat-cards">${view.cards.map(each=>statCard(each,`${each.m} partidas, ${ST.rate({n:each.m,w:each.w})}% de vitórias`,
-          `<b>${each.m}</b><small>${ST.rate({n:each.m,w:each.w})}%</small>`)).join('')}</div>`:statList([]),'wide')
-      +statPanel('Equipes mais usadas',statList(view.teams.map(each=>statRow(esc(each.team),{n:each.m,w:each.w},teamLogo(each.team)))))
-      +statPanel('Formações',statList(view.formations.map(each=>statRow(each.name,each,formationIcon(each.key)))))
-      +statPanel('Agentes mais usados',statList(view.agents.map(each=>statRow(esc(each.agent),each,agentIcon(each.agent)))))
-      +statPanel('Composições',view.comps.length?`<ul class="stat-rows">${view.comps.map(each=>`<li class="stat-comp"><span class="stat-five" role="img" aria-label="${each.agents.map(esc).join(', ')}">${each.agents.map(agentIcon).join('')}</span><b>${share(each)}</b><small>${each.w} de ${each.n}</small></li>`).join('')}</ul>`:statList([])),
-    rivals:()=>statPanel('Rivais mais enfrentados',statList(view.rivals.map(each=>statRow(esc(each.team),each,teamLogo(each.team)))),'wide'),
-    duels:()=>kpis([['Confrontos',num(d.all.n)],['Vencidos',share(d.all)]])
-      +statPanel('De quem era a jogada',statList([['Suas jogadas',d.mine],['Jogadas do rival',d.theirs]].filter(([,each])=>each.n>0).map(([name,each])=>statRow(name,each))))
-      +statPanel('Como foram decididos',statList([['Nos atributos',d.attributes],['No overall',d.overall],['Na moeda',d.coin]].filter(([,each])=>each.n>0).map(([name,each])=>statRow(name,each))))
-      +statPanel('Por tipo de confronto',statList(d.types.filter(each=>each.n>0).map(each=>statRow(each.label,each))))
-      +statPanel('Melhor nos confrontos',d.best?`<div class="stat-cards one">${statCard(d.best,`${d.best.dw} confrontos vencidos de ${d.best.dn}`,`<b>${d.best.dw}</b><small>de ${d.best.dn}</small>`)}<p class="stat-best">${esc(d.best.player.name)}</p></div>`:statList([]))
+    run:()=>kpis([['Runs',num(view.totals.runs)],['Títulos',num(view.totals.titles)],['Melhor campanha',esc(ctx.career.best||'-')]])
+      +statPanel('Onde as runs acabaram',statTable(['Parte','Runs'],view.outcomes.filter(each=>each.n>0).map(each=>`<tr>${nameCell(each.name)}${barCell(ST.share(each.n,runs))}<td class="num">${num(each.n)}</td></tr>`)))
+      +statPanel('Partidas',statTable(['Partidas','Vitórias'],[...view.stages,{name:'Na prorrogação',...view.overtime}].filter(each=>each.n>0).map(each=>winRow(each.name,each)),'wins'))
+      +statPanel('Rounds',statTable(['Rounds','Vitórias'],[['Ataque',view.rounds.atk],['Defesa',view.rounds.def],['Pistola',view.rounds.pistol]].filter(([,each])=>each.n>0).map(([name,each])=>winRow(name,each)),'wins'))
+      +statPanel('Comissão técnica',statTable(['Uso','Runs','Títulos'],view.perks.slice(0,5).map(each=>useRow(esc(each.name),each.n,runs,num(each.t)))))
+      +statPanel('Recordes',`<dl class="stat-records">${[['Maior sequência de vitórias',records.streak?`${records.streak} ${records.streak===1?'partida':'partidas'}`:'-'],
+          ...[['Round mais difícil vencido',records.won],['Round mais fácil perdido',records.lost]].map(([label,chance])=>[label,chance===null?'-':`${chance}% de chance`])].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`),
+    squad:()=>statPanel('Cartas mais usadas',view.cards.length?`<div class="stat-cards">${view.cards.map(each=>{const use=percent(ST.share(each.m,all.n)),win=share({n:each.m,w:each.w});
+          return statCard(each,`${each.m} partidas, ${use} de uso, ${win} de vitórias`,`<b>${each.m}</b><small>partidas</small><span><i>${use}</i> uso</span><span><i>${win}</i> vitórias</span>`);}).join('')}</div>`:statTable([],[]),'wide')
+      +statPanel('Equipes mais usadas',statTable(['Uso','Vezes','Vitórias'],view.teams.map(each=>useRow(esc(each.team),each.m,5*all.n,share({n:each.m,w:each.w}),teamLogo(each.team)))))
+      +statPanel('Formações',statTable(USE,used(view.formations,each=>each.name,each=>formationIcon(each.key))))
+      +statPanel('Agentes mais usados',statTable(USE,used(view.agents,each=>esc(each.agent),each=>agentIcon(each.agent))))
+      +statPanel('Composições',statTable(USE,view.comps.map(each=>`<tr><th scope="row"><span class="stat-five" role="img" aria-label="${each.agents.map(esc).join(', ')}">${each.agents.map(agentIcon).join('')}</span></th>${barCell(ST.share(each.n,matches))}<td class="num">${num(each.n)}</td><td class="num">${share(each)}</td></tr>`))),
+    rivals:()=>statPanel('Rivais mais enfrentados',statTable(['Frequência','Partidas','Vitórias'],used(view.rivals,each=>esc(each.team),each=>teamLogo(each.team))),'wide'),
+    duels:()=>{
+      const part=list=>list.filter(([,each])=>each.n>0).map(([name,each])=>useRow(name,each.n,d.all.n,share(each)));
+      return kpis([['Confrontos',num(d.all.n)],['Vencidos',share(d.all)]])
+        +statPanel('De quem era a jogada',statTable(['Parte','Confrontos','Vitórias'],part([['Suas jogadas',d.mine],['Jogadas do rival',d.theirs]])))
+        +statPanel('Como foram decididos',statTable(['Parte','Confrontos','Vitórias'],part([['Nos atributos',d.attributes],['No overall',d.overall],['Na moeda',d.coin]])))
+        +statPanel('Por tipo de confronto',statTable(['Frequência','Confrontos','Vitórias'],part(d.types.map(each=>[each.label,each]))))
+        +statPanel('Melhor nos confrontos',d.best?`<div class="stat-cards one">${statCard(d.best,`${d.best.dw} confrontos vencidos de ${d.best.dn}`,`<b>${d.best.dw}</b><small>de ${d.best.dn} confrontos</small>`)}<p class="stat-best">${esc(d.best.player.name)}</p></div>`:statTable([],[]));
+    }
   }[tab]();
   return `${band('Estatísticas',`${num(all.n)} ${all.n===1?'partida':'partidas'}`,all.n?`${share(all)} de vitórias`:'','compact')}
   <div class="album-filters stats-tabs" role="group" aria-label="Estatísticas de">${Object.entries(STATS_TABS).map(([key,label])=>`<button data-action="career-tab" data-id="${key}" aria-pressed="${key===tab}">${label}</button>`).join('')}</div>
@@ -706,8 +739,8 @@ export function swapDialog(ctx,id,other){
 export function saleDialog(ctx,id){
   const p=ctx.db.byId.get(id);
   return `${dialogHead('Venda de carta',esc(p.name))}${impactPanel(previewChange(ctx.run,ctx.db,{type:'sell',id}))}
-    <p class="sale-wallet">Saldo: ${coin(ctx.run.coins)} → ${coin(ctx.run.coins+C.sellValue(p))}</p>
-    <div class="dialog-actions"><button class="btn primary" data-action="confirm-sell" data-id="${id}" autofocus>Vender ${coin(C.sellValue(p))}</button><button class="btn" data-action="close">Cancelar</button></div>`;
+    <p class="sale-wallet">Saldo: ${coin(ctx.run.coins)} → ${coin(ctx.run.coins+C.sellValue(p,ctx.run))}</p>
+    <div class="dialog-actions"><button class="btn primary" data-action="confirm-sell" data-id="${id}" autofocus>Vender ${coin(C.sellValue(p,ctx.run))}</button><button class="btn" data-action="close">Cancelar</button></div>`;
 }
 // The guide to the formations: every one that exists, how it is put together and what it gives. It is read from the
 // same data the match uses, and marks the one the team has right now.
@@ -761,18 +794,23 @@ export function cardDetail(ctx,id) {
   const {db,run}=ctx,p=db.byId.get(id),mine=run&&C.rosterIds(run).includes(id),canSell=mine&&ctx.screen==='hub',kept=ctx.album[id];
   const roles=Object.entries(p.roleMaps).filter(([,n])=>n).sort((a,b)=>b[1]-a[1]),info=teamInfo(p.team);
   const agents=Object.entries(p.agentMaps).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  // A card of the next rival says the agent he plays in that game and what it gives and takes: it is here that whoever
+  // looks into the rival finds a player out of his role.
+  const rival=run?.opponent?.ids.includes(id)?C.opponentLineup(run,db):null,slot=rival?.find(s=>s.player.id===id),eff=slot&&E.effective(p,slot.agent,rival);
+  const fit=eff?`<p class="label">Neste jogo</p><p class="detail-fit">${agentChip(slot.agent)}${eff.comfort?`<span class="good">Conforto +${eff.comfort}</span>`:''}${eff.chemistry?`<span class="good">Equipe +${eff.chemistry}</span>`:''}${eff.penalty?`<span class="bad">${eff.label} ${signed(eff.penalty)}</span>`:''}<span>Overall efetivo <b>${eff.value}</b></span></p>`:'';
   return `${dialogHead(teamMark(p.team),esc(p.name))}
     <div class="detail">
       <div class="detail-art">${cardArt(p,{eager:true})}</div>
       <div class="detail-info">
         ${info.org?`<p class="muted">${esc(info.org)}${info.stateName?' · '+esc(info.stateName):''}</p>`:''}
         <p>${roleTag(p.role)} <span class="muted">${plural(p.maps,'mapa','mapas')} · ${num(p.rounds)} rounds</span></p>
+        ${fit}
         ${stats(p)}
         <p class="label">Funções</p><p>${roles.map(([role,n])=>`${role} ${n}`).join(' · ')||'-'}</p>
         <p class="label">Agentes</p>
         <div class="chips">${agents.map(([agent,n])=>E.AGENTS[agent]?agentChip(agent,`<small>${n}${run?.pool.includes(agent)?' ✓':''}</small>`):'').join('')}</div>
         <p class="label">Álbum</p><p>${kept?`${plural(kept.m,'partida','partidas')} · ${plural(kept.w,'vitória','vitórias')}${kept.t?` · ${plural(kept.t,'título','títulos')} ★`:''}`:'Ainda não jogou pelo seu time'}</p>
-        ${canSell?`<button class="btn" data-action="sell" data-id="${p.id}">Vender ${coin(C.sellValue(p))}</button>`:''}
+        ${canSell?`<button class="btn" data-action="sell" data-id="${p.id}">Vender ${coin(C.sellValue(p,ctx.run))}</button>`:''}
       </div>
     </div>`;
 }

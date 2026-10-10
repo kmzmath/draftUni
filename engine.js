@@ -1,5 +1,5 @@
 // Regras puras do jogo: draft, sinergia, formação e simulação da partida. Sem DOM.
-import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=9417779706';
+import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=ddb9ffb608';
 export const ROLES = ['Duelista','Iniciador','Controlador','Sentinela'];
 export const AGENTS = Object.fromEntries(Object.entries({
   Duelista:['Jett','Phoenix','Raze','Neon','Reyna','Yoru','Iso','Waylay'],
@@ -20,11 +20,13 @@ export const PLAYS = 3;
 // the 800 a half starts with; negociador, the discount in percent; viradaGap, how far behind the bonus starts to act;
 // baseCount, how many starters get the bonus (its key is still `base`, from when it was called Aposta na base, so that
 // a saved run keeps it); contatos, the free changes of offers of each shop; guerreirosRate, the points of chance for
-// each point of effective overall the rival has over yours, and guerreiros, the most they add up to.
+// each point of effective overall the rival has over yours, and guerreiros, the most they add up to; trader, the
+// discount in percent on the packs of cards, and traderSell, how much more, in percent, a player who has played for
+// the team sells for.
 // These are the numbers of the rebalance: each bonus was played alone through thousands of runs and compared with a
 // run without any (the third argument of the simulator), and the ones that weighed too much or too little were moved.
 export const PERK_VALUES = {polivalencia:3,entrosamento:1,pistoleiros:12,sangue_frio:2,segundo_folego:3,virada:8,viradaGap:2,patrocinio:30,olheiro:1,
-  negociador:35,armeiro:400,caixa:400,capitao:3,base:1,baseCount:3,especialistas:2,equilibrio:2,vitrine:4,contatos:2,bicho:40,quarta_jogada:1,psicologo:2,guerreiros:2,guerreirosRate:1};
+  negociador:35,armeiro:400,caixa:400,capitao:3,base:1,baseCount:3,especialistas:2,equilibrio:2,vitrine:4,contatos:2,bicho:40,quarta_jogada:1,psicologo:2,guerreiros:2,guerreirosRate:1,trader:10,traderSell:10};
 const PV = PERK_VALUES;
 const dots = n=>String(n).replace(/\B(?=(\d{3})+$)/g,'.');
 // The names and the texts are the user's; a number that comes from the table is written from it.
@@ -54,7 +56,8 @@ export const PERKS = {
   // rare: bônus que aparecem bem menos nas ofertas (veja RARE_WEIGHT em campaign.js).
   equilibrio:{name:'Equilíbrio',text:`Com as quatro funções entre os titulares, +${PV.equilibrio} pontos de chance no ataque e na defesa`,rare:true},
   quarta_jogada:{name:'Quarta jogada',text:`${PLAYS+PV.quarta_jogada} Jogadas de Efeito por partida, em vez de ${PLAYS}`,rare:true},
-  repescagem:{name:'Repescagem',text:'A primeira derrota que eliminaria o time não conta. Vale uma vez na run. Não vale na final',rare:true}
+  repescagem:{name:'Repescagem',text:'A primeira derrota que eliminaria o time não conta. Vale uma vez na run. Não vale na final',rare:true},
+  trader:{name:'Trader',text:`Pacotes custam ${PV.trader}% a menos. Um jogador vendido na mesma rodada em que saiu de um pacote vale ${PV.traderSell}% a mais`,rare:true}
 };
 
 export const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
@@ -195,22 +198,66 @@ export function assignAgents(players,pool=null,{mains=players.length}={}) {
 // half of what a point of level does, so strength is the level twice and the cards once.
 export const rivalStrength=(level,rating)=>(2*level+rating)/3;
 // How far from the strength asked for a rival may be.
-export const RIVAL_SPREAD=.5;
+export const RIVAL_SPREAD=1;
+// How often the rival is a stronger team that comes with players out of their roles, when one fits the game.
+export const RIVAL_TRADED=.1;
 // The rival of a match. `target` is the strength it must have (see rivalStrength). Every rival is a real team with its
 // synergy: the five cards that played the most rounds, each with the +4 of the other four. What a team can vary is how
 // many of the five are on their main (the comfort agent, +1), from all of them to none, and it comes with as many as
 // bring it closest to the strength asked for. The rival is drawn among all the teams that get within RIVAL_SPREAD of it
 // (among the four closest when fewer do).
+// Now and then (RIVAL_TRADED) the rival is instead a team too strong for the game however it came, with players out
+// of their roles: two of the five have traded agents (never more: it comes only a little weaker). The agents and the
+// formation are the team's own, and each of the two plays under what anybody pays out of his role (see familiarity). Weaker for it, the team
+// gets as close to the strength asked as the usual candidates go (a point, or as far as the fourth of them where fewer
+// than four are within a point: the first game of a run, in a base with few weak teams). `traded` is how many of the
+// five play another's agent. Nothing announces it: who looks at the rival's cards sees the agents and the numbers.
+// `recent` is the memory of the teams met in the last runs, the latest last: the ones met longest ago (or never) come
+// first, and the draw is made among that half of the candidates. A team does not come back while others wait.
 // rating is the average of the cards; level, the average effective overall of the five; mains, how many are on their main.
-export function buildOpponent(players,{target,excludeIds=[],excludeTeams=[]},random) {
+export function buildOpponent(players,{target,excludeIds=[],excludeTeams=[],recent=[]},random) {
   const ids=new Set(excludeIds),skip=new Set(excludeTeams),byTeam={};
   for(const p of players)if(!ids.has(p.id)&&!skip.has(p.team))(byTeam[p.team]??=[]).push(p);
-  const off=option=>Math.abs(option.strength-target);
-  const options=Object.entries(byTeam).filter(([,list])=>list.length>=5)
-    .map(([,list])=>rivalOptions([...list].sort((a,b)=>b.rounds-a.rounds).slice(0,5)).reduce((best,option)=>off(option)<off(best)-1e-9?option:best))
-    .sort((a,b)=>off(a)-off(b));
-  const close=options.filter(option=>off(option)<=RIVAL_SPREAD+1e-9),pick=sample(close.length>=4?close:options.slice(0,4),random);
+  const off=option=>Math.abs(option.strength-target),within=option=>off(option)<=RIVAL_SPREAD+1e-9;
+  const closest=options=>options.reduce((best,option)=>off(option)<off(best)-1e-9?option:best);
+  const squads=Object.values(byTeam).filter(list=>list.length>=5).map(list=>[...list].sort((a,b)=>b.rounds-a.rounds));
+  const options=squads.map(list=>closest(rivalOptions(list.slice(0,5)))).sort((a,b)=>off(a)-off(b));
+  const close=options.filter(within),usual=close.length>=4?close:options.slice(0,4);
+  const reach=Math.max(RIVAL_SPREAD,off(usual.at(-1))),taken=new Set(usual.map(option=>option.name));
+  const traded=squads.map(list=>list.slice(0,5)).filter(five=>!taken.has(five[0].team)&&rivalOptions(five).every(option=>option.strength>target))
+    .map(tradedOptions).filter(list=>list.length).map(closest).filter(option=>off(option)<=reach+1e-9).sort((a,b)=>off(a)-off(b));
+  const chance=random(),pick=sample(longestUnmet(traded.length&&chance<RIVAL_TRADED?traded:usual,recent),random);
   return {...pick,lineup:pick.lineup.map(s=>({...s}))};
+}
+// The half of the candidates the team has gone the longest without meeting. The ones never met come first and all of
+// them stay, even when they are more than half: the memory only holds back teams that were met.
+function longestUnmet(candidates,recent) {
+  const when=option=>recent.lastIndexOf(option.name),unmet=candidates.filter(option=>when(option)<0).length;
+  if(unmet===candidates.length)return candidates;
+  return candidates.map((option,i)=>[option,i]).sort((a,b)=>when(a[0])-when(b[0])||a[1]-b[1]).slice(0,Math.max(unmet,Math.ceil(candidates.length/2))).map(([option])=>option);
+}
+// What a given five can be with agents traded: two of the players, each playing the other's agent, on top of every
+// way the team comes whole (from everybody on his main down to nobody). Only the trades that put both out of their
+// roles count: a trade inside a role changes nothing. Worked out once for each five.
+const TRADES=(()=>{const pairs=[];for(let i=0;i<5;i++)for(let j=i+1;j<5;j++)pairs.push([i,j]);return pairs;})();
+const TRADED_OPTIONS=new Map();
+function tradedOptions(five){
+  const key=five.map(p=>p.id).join(' ');
+  if(!TRADED_OPTIONS.has(key)){
+    const name=five[0].team,rating=avg(five.map(p=>p.ovr)),options=[];
+    for(const count of [5,4,3,2,1,0]){
+      const whole=assignAgents(five,null,{mains:count});
+      for(const trade of TRADES){
+        const lineup=whole.map(s=>({...s})),[i,j]=trade;
+        lineup[i].agent=whole[j].agent;lineup[j].agent=whole[i].agent;
+        if(!trade.every(k=>familiarity(lineup[k].player,lineup[k].agent).penalty<0))continue;
+        const level=avg(lineup.map(s=>effective(s.player,s.agent,lineup).value));
+        options.push({name,rating,level,strength:rivalStrength(level,rating),mains:lineup.filter(s=>s.agent===s.player.comfort).length,lineup,traded:2});
+      }
+    }
+    TRADED_OPTIONS.set(key,options);
+  }
+  return TRADED_OPTIONS.get(key);
 }
 // What a given five can be as a rival, from everybody on his main down to nobody (so, on a tie, the fuller one wins).
 // It only depends on who the five are, so it is worked out once: a run asks for a rival before every match, and a

@@ -1,6 +1,6 @@
 // Componentes de interface compartilhados pelas telas. Tudo aqui devolve HTML em texto.
-import * as E from './engine.js?v=9417779706';
-import {abilityKey} from './abilities.js?v=9417779706';
+import * as E from './engine.js?v=ddb9ffb608';
+import {abilityKey} from './abilities.js?v=ddb9ffb608';
 
 export const $ = selector=>document.querySelector(selector);
 export const esc = value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -16,23 +16,35 @@ export const statText = (key,value,exact=false)=>key==='kast'?num(value*100,exac
 export const statLabel = key=>E.STAT_NAMES[key]+(key==='mpr'?' ↓':'');
 export const STAT_HELP = {acs:'Pontuação média de combate',kast:'Rounds com abate, assistência, sobrevivência ou troca',kpr:'Abates por round',mpr:'Mortes por round: menor é melhor',apr:'Assistências por round',swing:'Impacto médio nos rounds'};
 
-// Where a value sits among the cards of the base (0 = worst, 1 = best), so a raw number can be read at a glance.
+// How much of the rest of the base a value beats, so a raw number can be read at a glance: 0 for the card that beats
+// nobody (the worst of the base), 1 for the one that beats every other card (the best), and in between the exact part
+// of the others it beats. Cards with the same value beat the same ones, and not each other.
 let sorted=null;
 export function useBase(players) {
   sorted=Object.fromEntries(Object.keys(E.STAT_NAMES).map(key=>[key,players.map(p=>p.stats[key]).sort((a,b)=>a-b)]));
 }
 export function percentile(key,value) {
-  const list=sorted[key];let lo=0,hi=list.length;
-  while(lo<hi){const mid=(lo+hi)>>1;if(list[mid]<value)lo=mid+1;else hi=mid;}
-  const below=lo/list.length;return key==='mpr'?1-below:below;
+  const list=sorted[key];
+  // how many values are under this one, and how many are not over it
+  let under=0,top=list.length;
+  while(under<top){const mid=(under+top)>>1;if(list[mid]<value)under=mid+1;else top=mid;}
+  let upTo=under;top=list.length;
+  while(upTo<top){const mid=(upTo+top)>>1;if(list[mid]<=value)upTo=mid+1;else top=mid;}
+  // in deaths per round the better card is the one with less
+  const beaten=key==='mpr'?list.length-upTo:under;
+  return list.length>1?beaten/(list.length-1):0;
 }
 const tier = p=>p>=.85?'elite':p>=.6?'good':p>=.35?'mid':'low';
 // How a value ranks among the cards of the base, as a word the styles can colour: elite, good, mid or low.
 export const tierOf = (key,value)=>tier(percentile(key,value));
+// The bar under an attribute: as wide as the part of the other cards the card beats, with that part written in it.
+// Only the best card of the base has a full bar and a 100, and only the worst an empty bar and a 0: nobody else is
+// rounded into them. The number sits at the end of the filling: inside it from half the bar on, right after it before
+// that, so the edge of the filling never runs through a digit.
 export function meter(key,value) {
-  const p=percentile(key,value);
-  const text=`Melhor que ${num(p*100)}% das cartas`;
-  return `<span class="meter ${tier(p)}" role="img" aria-label="${text}" data-tip="${text}"><i style="width:${Math.max(6,Math.round(p*100))}%"></i></span>`;
+  const part=percentile(key,value),shown=part<=0?0:part>=1?100:Math.min(99,Math.max(1,Math.round(part*100))),wide=Math.round(part*1000)/10;
+  const text=`Melhor que ${shown}% das cartas`;
+  return `<span class="meter ${tier(part)} ${part>=.5?'in':'out'}" role="img" aria-label="${text}" data-tip="${text}" style="--v:${wide}%"><i></i><b>${shown}%</b></span>`;
 }
 export function stats(player,keys=Object.keys(E.STAT_NAMES)) {
   return `<dl class="stats">${keys.map(key=>`<div data-tip="${STAT_HELP[key]}"><dt>${statLabel(key)}</dt><dd>${statText(key,player.stats[key])}</dd>${meter(key,player.stats[key])}</div>`).join('')}</dl>`;

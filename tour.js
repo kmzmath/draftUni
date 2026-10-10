@@ -21,7 +21,7 @@ export const TOURS = {
     {el:'.contracts',title:'Contratos de agente',text:'Você só pode pickar agentes que você tem o contrato! Cada jogador tem seu main e joga melhor com ele. Estes foram sorteados para esta run, com todas as funções. Você pode comprar novos agentes na loja!'},
     {el:'.offer',title:'A carta',text:'Overall, equipe e atributos do jogador. Clique na carta ou em Escolher para ficar com ela'},
     {el:'.offer .facts',title:'Encaixe no seu time',text:'O agente mostrado é o de conforto da carta. Tente usar os mains dos jogadores! Além disso, jogadores da mesma equipe possuem sinergia e jogam melhor juntos!'},
-    {el:'.offer .stats',title:'Atributos',text:'ACS, KAST, KPR, MPR, APR e Swing decidem os confrontos da partida. A barrinha mostra o quão bom é cada stat comparado com as demais cartas do jogo!'},
+    {el:'.offer .stats',title:'Atributos',text:'ACS, KAST, KPR, MPR, APR e Swing decidem os confrontos da partida. A barrinha mostra de quantos por cento das demais cartas do jogo o jogador ganha em cada stat: cheia só para o melhor do jogo, vazia para o pior!'},
     {el:'.draft-roster',title:'Seu elenco',text:'As escolhas aparecem aqui com overall, função, agente de conforto e equipe. Clique numa carta para ver os detalhes'}
   ],
   perk:[
@@ -57,7 +57,7 @@ export const TOURS = {
   'match:board':[
     {el:'.arena',title:'Placar',text:'Vence quem fizer 13 rounds com 2 de vantagem, e os lados trocam depois do round 12. Antes de cada round, o centro do placar mostra o freezetime: a partida espera, e é a hora de decidir se você usa uma Jogada de Efeito'},
     {el:'.play-call',title:'Jogada de Efeito',text:'Cada time tem 3 por partida; os losangos mostram quantas restam. Use durante o freezetime: o round vira um confronto entre um jogador seu e um do rival, e quem vencer o confronto leva o round. Guarde para um round que parece perdido, como um eco, ou para um que não pode escapar. O rival faz a mesma conta: usa as dele principalmente quando entra pior armado'},
-    {el:'.buys',title:'Chance do round',text:'A barra mostra a chance de cada time no round que vai começar, e em cada ponta o nome da compra do time. A chance parte do equipamento: a parte de cada time no valor das armas, dos coletes e das habilidades que os dois levam, com as ultimates em uso contando mais ou menos como um rifle. As cartas, a formação e a comissão técnica somam ou tiram pontos a partir daí. Ela fica sempre entre 8% e 92%'},
+    {el:'.buys',title:'Chance do round',text:'A barra mostra a chance de cada time no round que vai começar, e em cada ponta o nome da compra do time. A chance parte do equipamento: a parte de cada time no valor das armas, dos coletes e das habilidades que os dois levam, com as ultimates em uso contando mais ou menos como um rifle. As cartas, a formação e a comissão técnica somam ou tiram pontos a partir daí. Ela fica sempre entre 8% e 92%. Deixe o ponteiro na barra, ou toque nela, para ver a conta deste round, parte por parte; no nome da compra, o que o time leva'},
     {el:'.squad.us',title:'Seu time',text:'Abates, mortes, assistências, créditos, habilidades, arma e colete de cada jogador, na ordem dos abates. O losango ao lado do nome mostra quem ainda pode ir a um confronto'},
     {el:'.controls',title:'Ritmo',text:'O round começa quando você clica em Começar round. Com ele em andamento, o mesmo botão pausa a partida. Ao lado fica a velocidade. Em Ajustes dá para ligar o automático, em que o round começa sozinho depois de uma contagem'},
     {el:'.timeline',more:true,title:'Rounds',text:'Cada quadrado é um round: verde é round vencido, vermelho é round perdido. O ícone mostra como o round acabou. O losango marca um round com Jogada de Efeito: verde quando foi sua, vermelho quando foi do rival'},
@@ -71,7 +71,7 @@ export const TOURS = {
   'match:moment':[
     {el:'.moment .band',title:'Jogada de Efeito',text:'Este round vai ser decidido num confronto. A faixa diz quem chamou a jogada, você ou o rival; nos dois casos é você quem escolhe o seu jogador, sem ver quem vem do outro lado'},
     {el:'.actors',title:'Quem vai',text:'O confronto compara os dois atributos mostrados acima das cartas: quem levar os dois vence, e em 1 a 1 vence o maior overall efetivo. Vencer ganha o round; perder entrega o round. Quem foi fica indisponível até os cinco terem ido'},
-    {el:'.actor',more:true,title:'Os números',text:'Os números grandes de cada carta são os atributos que valem neste confronto, e a barra mostra o quanto o jogador é bom nisso entre todas as cartas do jogo'}
+    {el:'.actor',more:true,title:'Os números',text:'Os números grandes de cada carta são os atributos que valem neste confronto, e a barra mostra de quantos por cento das outras cartas do jogo o jogador ganha nisso'}
   ],
   postmatch:[
     {el:'.post-head',title:'Resultado',text:'O placar final e o adversário'},
@@ -91,7 +91,7 @@ export const TOURS = {
   career:[
     {el:'.band',title:'Estatísticas',text:'As partidas que o seu time já disputou e a parte delas que venceu, somando todas as runs dos dois modos'},
     {el:'.stats-tabs',title:'Quatro abas',text:'Campanha mostra onde as runs acabaram e as vitórias por fase. Elenco, as cartas, as equipes, as formações e os agentes que você mais usou. Rivais, os times que mais enfrentou. Confrontos, como o time se sai nas Jogadas de Efeito'},
-    {el:'.stat-panel',title:'Como ler',text:'Em cada linha, a barra e a porcentagem são a parte vencida, e ao lado vem a conta: quantas vitórias em quantas partidas, rounds ou confrontos. As cartas e as equipes vêm do álbum, e tocar numa carta abre a carta'}
+    {el:'.stat-panel',title:'Como ler',text:'Cada coluna tem o seu nome. Uso (ou Frequência, ou Parte) é quanto aquilo apareceu: a barra e a porcentagem são a parte dele no total de partidas, runs ou confrontos. Depois vem quantas vezes foi, e Vitórias é a parte dessas vezes que você venceu. As cartas e as equipes vêm do álbum, e tocar numa carta abre a carta'}
   ],
   feats:[
     {el:'.band',title:'Conquistas',text:'Quantos feitos você já marcou, somando o Desafio do dia e o modo tradicional'},

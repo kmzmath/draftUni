@@ -1,10 +1,11 @@
 // As estatísticas da carreira: o que o jogador fez em todas as runs, somado partida a partida e guardado entre elas.
 // O que já era guardado continua onde estava: as cartas (partidas, vitórias e títulos de cada uma) no álbum, e o número
 // de runs e de títulos na carreira. Aqui fica o resto, contado a partir do dia em que a contagem começou (`since`):
-// vitórias por fase, rounds por lado, rivais, formações, agentes, confrontos e onde cada run acabou.
+// vitórias por fase, rounds por lado, rivais, formações, agentes, confrontos, onde cada run acabou e os recordes de
+// round (o mais difícil vencido e o mais fácil perdido).
 // É JSON puro. Um par é {n, w}: quantas vezes, e quantas delas vencidas.
-import * as E from './engine.js?v=9417779706';
-import {STAGES} from './campaign.js?v=9417779706';
+import * as E from './engine.js?v=ddb9ffb608';
+import {STAGES} from './campaign.js?v=ddb9ffb608';
 
 // Where a run ended, from the best ending to the worst. `quit` is a run given up or replaced before its end.
 export const OUTCOMES = ['champion','final','semis','quarters','groups','qualifier','quit'];
@@ -17,10 +18,12 @@ const pair = ()=>({n:0,w:0});
 const add = (book,key,won)=>{const each=book[key]??=pair();each.n++;if(won)each.w++;};
 // The share won, as a whole percentage; nothing played has no share.
 export const rate = each=>each&&each.n?Math.round(100*each.w/each.n):null;
+// The part a count is of a total, as a whole percentage: how much something was used, or how often it happened.
+export const share = (n,total)=>total?Math.round(100*n/total):null;
 
 const empty = today=>({v:1,since:today,runs:{free:{},daily:{}},matches:STAGES.map(pair),overtime:pair(),rounds:{atk:pair(),def:pair(),pistol:pair()},
   rivals:{},formations:{},agents:{},comps:{},duels:{mine:pair(),theirs:pair(),types:{},ties:Object.fromEntries(TIES.map(key=>[key,pair()]))},
-  cards:{},perks:{},streak:{now:0,best:0}});
+  cards:{},perks:{},streak:{now:0,best:0},records:{won:null,lost:null}});
 
 // What is saved is only trusted where it makes sense: whole counts, wins that fit in the games, and only cards, agents,
 // formations, confrontations and bonuses that exist. Anything else is dropped, and a save of another shape starts over.
@@ -47,6 +50,8 @@ export function cleanStats(raw,{byId,today}) {
     if(E.PERKS[key]&&each&&whole(each.n)&&each.n>0&&whole(each.t)&&each.t<=each.n)stats.perks[key]={n:each.n,t:each.t};
   }
   if(whole(raw.streak?.now)&&whole(raw.streak?.best)&&raw.streak.now<=raw.streak.best)stats.streak={now:raw.streak.now,best:raw.streak.best};
+  const chance=value=>whole(value)&&value<=100?value:null;
+  if(raw.records&&typeof raw.records==='object')stats.records={won:chance(raw.records.won),lost:chance(raw.records.lost)};
   return stats;
 }
 
@@ -73,6 +78,13 @@ export function recordMatch(stats,{run,match,summary}) {
     add(stats.rounds,round.side==='Ataque'?'atk':'def',round.won);
     if(round.round===1||round.round===13)add(stats.rounds,'pistol',round.won);
     const event=round.event;
+    // The records of rounds: the hardest one won and the easiest one lost, by the chance the bar showed. A round a
+    // Jogada de Efeito decided is not one of them: its chance decided nothing.
+    if(!event&&Number.isFinite(round.odds)){
+      const shown=Math.round(100*round.odds),records=stats.records;
+      if(round.won)records.won=records.won===null?shown:Math.min(records.won,shown);
+      else records.lost=records.lost===null?shown:Math.max(records.lost,shown);
+    }
     if(!event?.contest)continue;
     add(stats.duels,event.by===0?'mine':'theirs',event.contest.won);
     add(stats.duels.types,event.type,event.contest.won);
@@ -119,11 +131,16 @@ export function overview(stats,{album,career,db}) {
   const all={n:stats.duels.mine.n+stats.duels.theirs.n,w:stats.duels.mine.w+stats.duels.theirs.w},ties=Object.values(stats.duels.ties);
   const duelists=Object.entries(stats.cards).filter(([id,each])=>each.dw>0&&db.byId.has(id)).map(([id,each])=>({player:db.byId.get(id),dn:each.dn,dw:each.dw}))
     .sort((a,b)=>b.dw-a.dw||a.dn-b.dn||b.player.ovr-a.player.ovr);
+  const runs=sum(['free','daily'].flatMap(mode=>Object.values(stats.runs[mode]).map(n=>({n}))),'n');
   return {
     totals,
+    // What the parts are counted over: the matches, the runs and the confrontations written down here (the cards and
+    // the teams are counted over the matches of always, in `totals`).
+    counted:{matches:sum(stats.matches,'n'),runs,duels:all.n},
+    records:{streak:stats.streak.best,...stats.records},
     outcomes:OUTCOMES.map(key=>({key,name:OUTCOME_NAMES[key],n:(stats.runs.free[key]||0)+(stats.runs.daily[key]||0)})),
     stages:STAGES.map((stage,i)=>({name:stage.name,...stats.matches[i]})),
-    rounds:{...stats.rounds},overtime:{...stats.overtime},streak:stats.streak.best,
+    rounds:{...stats.rounds},overtime:{...stats.overtime},
     cards,teams,rivals:ranked(stats.rivals,'team').slice(0,TOP),
     formations:ranked(stats.formations,'key').map(each=>({...each,name:E.FORMATIONS.find(f=>f.key===each.key).name})),
     agents:ranked(stats.agents,'agent').slice(0,TOP),

@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=9417779706';
+import * as E from './engine.js?v=ddb9ffb608';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -87,7 +87,9 @@ export const stageBonus = run=>on(run,'stage')?V.stage:STAGE_BONUS;
 export const rosterMax = run=>on(run,'roster')?V.roster:ROSTER_MAX;
 // What something costs in this run's shop, from its price in the game as it is.
 const priced = (run,cost)=>on(run,'prices')?Math.round(cost*V.prices/10)*10:cost;
-export const packsOf = run=>PACKS.map(pack=>on(run,'prices')?{...pack,cost:priced(run,pack.cost)}:pack);
+// What a pack of cards costs with the Trader on the staff: so much less, in tens.
+const traded = (run,cost)=>run.perks?.includes('trader')?Math.round(cost*(1-E.PERK_VALUES.trader/100)/10)*10:cost;
+export const packsOf = run=>PACKS.map(pack=>{const cost=traded(run,priced(run,pack.cost));return cost===pack.cost?pack:{...pack,cost};});
 // An elimination game: every one of the Playoffs and, in the other stages, the one the team plays with one defeat
 // left, when losing it ends the run (a Repescagem in hand changes nothing here). It is where the Psicólogo acts.
 export const mustWin = run=>run.record[run.stage].l+1>=stagesOf(run)[run.stage].losses;
@@ -130,8 +132,30 @@ const discount = run=>run.perks.includes('negociador')?1-PV.negociador/100:1;
 // A contract is the one price that may end in 5: with the Negociador it costs exactly what the discount says.
 export const agentPrice = run=>priced(run,Math.round(AGENT_PRICE*discount(run)/5)*5);
 export const playerPrice = (run,player)=>priced(run,round10((30+(player.ovr-72)**2*2)*discount(run)));
-export const sellValue = player=>round10(playerPrice({perks:[]},player)/2);
+// What a card sells for: half its price on the market, whatever the run. With the Trader on the staff a card sold
+// in the round of the shop in which it came out of a pack (run.packed) sells for more: a refund of sorts, for whoever
+// did not like what the pack gave and wants to open another. A player who was already on the team sells for the usual.
+// (At 10% and 10% a card sold straight out of its pack still does not pay for the pack on average; a test opens
+// hundreds of packs to hold that.)
+export function sellValue(player,run=null) {
+  const usual=round10(playerPrice({perks:[]},player)/2);
+  return run?.perks?.includes('trader')&&run.packed?.includes(player.id)?round10(usual*(1+PV.traderSell/100)):usual;
+}
 export const rosterIds = run=>[...run.lineup.map(s=>s.id),...run.bench];
+// The memory of the rivals met, kept from one run to the next: each team once, the latest last, and enough places for
+// every team of the base. `same` are the teams already met in the run being played (run.usedTeams): the new one goes
+// in front of them, so that inside a run the order is the other way round and its first rival stays the latest of all.
+// It is the team that opened the last run that should be the last one to open the next.
+export const RIVALS_KEPT = 120;
+export function metRival(list,team,same=[]) {
+  const rest=list.filter(name=>name!==team),at=rest.findIndex(name=>same.includes(name));
+  return (at<0?[...rest,team]:[...rest.slice(0,at),team,...rest.slice(at)]).slice(-RIVALS_KEPT);
+}
+export function cleanRivals(raw,db) {
+  if(!Array.isArray(raw))return [];
+  const teams=new Set(db.players.map(p=>p.team));
+  return raw.filter(name=>typeof name==='string'&&teams.has(name)).reduce((list,name)=>metRival(list,name),[]);
+}
 export const lineupSlots = (run,db)=>run.lineup.map(s=>({player:db.byId.get(s.id),agent:s.agent}));
 export const opponentLineup = (run,db)=>run.opponent.ids.map((id,i)=>({player:db.byId.get(id),agent:run.opponent.agents[i]}));
 export const lineupError = (run,db)=>E.validLineup(lineupSlots(run,db),run.pool);
@@ -161,13 +185,16 @@ function distinct(list,count,random,weight) {
 // ---------- Início e draft ----------
 // `daily` is the day (see dayKey) of the Desafio do dia this run belongs to; a run of the traditional mode has none.
 // `ascension` is the step of the ladder the run is played on (see LADDER); the Desafio do dia never has one.
-export function createRun(db,seed,{daily,ascension=0}={}) {
+// `recent` is the memory of the rivals met in the last runs (see metRival): a run of the traditional mode carries it,
+// so that its rivals are the teams met longest ago; the Desafio do dia, which is the same for everybody, does not.
+export function createRun(db,seed,{daily,ascension=0,recent=[]}={}) {
   if(!Number.isInteger(ascension)||ascension<0||ascension>LADDER.length)throw new Error('Este degrau não existe');
   const run={version:3,seed:seed>>>0,rolls:0,status:'draft',pool:[],lineup:[],bench:[],coins:START_COINS,stage:0,
     record:STAGES.map(()=>({w:0,l:0})),history:[],usedTeams:[],perks:[],perkOffer:null,draft:{picked:[],choices:[],plan:[]},
     shop:null,pack:null,opponent:null,matchSeed:0,live:null,result:null};
   if(daily)run.daily=daily;
   else if(ascension)run.ascension=ascension;
+  if(!daily&&recent.length)run.recent=recent.slice(-RIVALS_KEPT);
   if(on(run,'coins'))run.coins=V.coins;
   run.pool=E.startingPool(db.players,roll(run),on(run,'contracts')?V.contracts:undefined);
   run.draft.plan=E.draftPlan(roll(run));
@@ -223,7 +250,7 @@ export function choosePerk(run,db,key) {
 // ---------- Próximo jogo e loja ----------
 function prepareHub(run,db) {
   const target=rivalTarget(run);
-  const rival=E.buildOpponent(db.players,{target,excludeIds:rosterIds(run),excludeTeams:run.usedTeams},roll(run));
+  const rival=E.buildOpponent(db.players,{target,excludeIds:rosterIds(run),excludeTeams:run.usedTeams,recent:run.recent||[]},roll(run));
   run.opponent={team:rival.name,rating:rival.rating,level:rival.level,strength:rival.strength,mains:rival.mains,
     ids:rival.lineup.map(s=>s.player.id),agents:rival.lineup.map(s=>s.agent)};
   run.matchSeed=Math.floor(roll(run)()*4294967296);
@@ -274,13 +301,13 @@ export function sellPlayer(run,db,id) {
   if(!slot)run.bench.splice(run.bench.indexOf(id),1);
   else if(run.bench.length)slot.id=run.bench.shift();
   else run.lineup.splice(run.lineup.indexOf(slot),1);
-  run.coins+=sellValue(db.byId.get(id));
+  run.coins+=sellValue(db.byId.get(id),run);
   if(run.packed)run.packed=run.packed.filter(each=>each!==id);
 }
 // The role pack on this shop's shelf, or null when the shop has none (a run saved before role packs existed).
 export function rolePack(run) {
   const role=run.shop?.role;
-  return role?{key:'funcao',role,name:`Pacote de ${ROLE_PLURAL[role]}`,cost:priced(run,ROLE_PACK_COST[run.stage]),range:[...STAGES[run.stage].market]}:null;
+  return role?{key:'funcao',role,name:`Pacote de ${ROLE_PLURAL[role]}`,cost:traded(run,priced(run,ROLE_PACK_COST[run.stage])),range:[...STAGES[run.stage].market]}:null;
 }
 // What a pack key stands for in this run's shop: one of the three packs by overall, or the role pack.
 export const packFor = (run,key)=>key==='funcao'?rolePack(run):packsOf(run).find(p=>p.key===key)||null;
@@ -303,7 +330,8 @@ export function openPack(run,db,key) {
 export function takePackCard(run,db,id) {
   if(!run.pack?.cards.includes(id))throw new Error('Esta carta não está no pacote aberto');
   seat(run,db,id);run.pack=null;
-  // The cards taken from packs since the last match: one of them sold before the next match is a conquest.
+  // The cards taken from packs since the last match: one of them sold before the next match is a conquest, and with
+  // the Trader it is sold for more.
   (run.packed??=[]).push(id);
 }
 

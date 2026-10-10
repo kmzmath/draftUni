@@ -1,20 +1,20 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=9417779706';
-import * as C from './campaign.js?v=9417779706';
-import * as S from './screens.js?v=9417779706';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=9417779706';
-import {startTour,closeTour,tourOpen} from './tour.js?v=9417779706';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=9417779706';
-import {stamp,cleanAlbum} from './album.js?v=9417779706';
-import {initTips,refreshTips} from './tip.js?v=9417779706';
-import {shareModel,copyShareImage} from './share.js?v=9417779706';
-import {staleSave,stampSave} from './save.js?v=9417779706';
-import * as A from './achievements.js?v=9417779706';
-import * as ST from './stats.js?v=9417779706';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=9417779706';
-import {playChime} from './sound.js?v=9417779706';
+import * as E from './engine.js?v=ddb9ffb608';
+import * as C from './campaign.js?v=ddb9ffb608';
+import * as S from './screens.js?v=ddb9ffb608';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=ddb9ffb608';
+import {startTour,closeTour,tourOpen} from './tour.js?v=ddb9ffb608';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=ddb9ffb608';
+import {stamp,cleanAlbum} from './album.js?v=ddb9ffb608';
+import {initTips,refreshTips} from './tip.js?v=ddb9ffb608';
+import {shareModel,copyShareImage} from './share.js?v=ddb9ffb608';
+import {staleSave,stampSave} from './save.js?v=ddb9ffb608';
+import * as A from './achievements.js?v=ddb9ffb608';
+import * as ST from './stats.js?v=ddb9ffb608';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=ddb9ffb608';
+import {playChime} from './sound.js?v=ddb9ffb608';
 
-const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats';
+const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats',RIVALS_KEY='univava:rivals';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
 // Two runs can be under way at once, each in its own slot: the traditional one, started whenever the player wants, and
 // the Desafio do dia. ctx.run is the one on screen (ctx.slots[ctx.mode]). ctx.today is the day of today's challenge.
@@ -275,7 +275,8 @@ function recordCareer(run){
 function startRun(period=0){
   const old=ctx.slots.free;
   if(old&&old.status!=='over')recordCareer(old);
-  ctx.slots.free=C.createRun(ctx.db,crypto.getRandomValues(new Uint32Array(1))[0],{ascension:Math.min(period,C.periodsOf(ctx.career).period)});
+  // (the run takes the memory of the rivals of the last runs with it: its rivals are the teams met longest ago)
+  ctx.slots.free=C.createRun(ctx.db,crypto.getRandomValues(new Uint32Array(1))[0],{ascension:Math.min(period,C.periodsOf(ctx.career).period),recent:ctx.rivals});
   activate('free');ctx.ui.tab='lineup';ctx.ui.opened=0;
   route();
 }
@@ -375,7 +376,11 @@ function finishMatch(){
   clearTimeout(timer);clearTimeout(duelTimer);ctx.ui.play=null;ctx.ui.duel=null;
   // What the match in progress already knows about its conquests is read before the campaign closes it.
   const live=ctx.run.live,seen=live?.feated||0,during=(live?.feats||[]).filter(id=>A.BY_ID[id]);
+  const rival=ctx.run.opponent.team,before=[...ctx.run.usedTeams];
   ctx.summary=C.recordMatch(ctx.run,ctx.db,ctx.match);
+  // The rival goes into the memory of the teams met, whatever the mode: the next runs of the traditional mode draw
+  // their rivals among the ones met longest ago.
+  ctx.rivals=C.metRival(ctx.rivals,rival,before);store(RIVALS_KEY,ctx.rivals);
   // The five who played the match go into the album.
   stamp(ctx.album,ctx.match.teams[0].lineup.map(s=>s.player.id),{won:ctx.summary.won,title:ctx.summary.outcome==='champion'});
   store(ALBUM_KEY,ctx.album);
@@ -462,7 +467,7 @@ const actions={
   'confirm-swap'(id,el){C.swapPlayers(ctx.run,ctx.db,id,el.dataset.other);closeDialog();ctx.ui.selected=null;announce('Troca aplicada.');},
   sell(id){openDialog(S.saleDialog(ctx,id));return false;},
   'confirm-sell'(id){
-    const value=C.sellValue(ctx.db.byId.get(id)),sale=A.fromSale(ctx.run,id);
+    const value=C.sellValue(ctx.db.byId.get(id),ctx.run),sale=A.fromSale(ctx.run,id);
     C.sellPlayer(ctx.run,ctx.db,id);closeDialog();ctx.ui.selected=null;toast(`${name(id)} vendido por ${num(value)} moedas`);
     earn(sale);
   },
@@ -606,6 +611,7 @@ addEventListener('storage',event=>{
   else if(event.key===ALBUM_KEY)ctx.album=cleanAlbum(load(ALBUM_KEY),ctx.db.byId);
   else if(event.key===FEATS_KEY)ctx.feats=A.cleanFeats(load(FEATS_KEY));
   else if(event.key===STATS_KEY)ctx.stats=readStats();
+  else if(event.key===RIVALS_KEY)ctx.rivals=C.cleanRivals(load(RIVALS_KEY),ctx.db);
   else return;
   if(!playing&&!$('#dialog').open)render();
 });
@@ -614,7 +620,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=9417779706');
+    const response=await fetch('players.json?v=ddb9ffb608');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -625,7 +631,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=9417779706');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=ddb9ffb608');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
@@ -639,6 +645,7 @@ async function init(){
   ctx.today=C.dayKey();
   ctx.album=cleanAlbum(load(ALBUM_KEY),ctx.db.byId);
   ctx.stats=readStats();
+  ctx.rivals=C.cleanRivals(load(RIVALS_KEY),ctx.db);
   for(const mode of ['free','daily'])ctx.slots[mode]=readSlot(mode);
   ctx.run=ctx.slots.free;
   // The conquests already won, plus what the saved history, album and runs already prove (titles, the best campaign,

@@ -141,9 +141,17 @@ img.card{height:auto;container-type:normal}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem .9rem}
 .stats dt{font:600 .72rem/1 var(--data);letter-spacing:.14em;color:var(--dim)}
 .stats dd{font:700 1.2rem/1.2 var(--data);font-variant-numeric:tabular-nums}
-.meter{display:block;height:3px;background:rgba(255,255,255,.16);margin-top:.2rem}
-.meter i{display:block;height:100%;background:var(--dim)}
+/* The bar under an attribute: as wide as the part of the other cards the card beats, with that part written at the
+   end of the filling: dark and inside it from half the bar on, light and right after it before that. The number has
+   to fit in either half of the bar, so it shrinks with the bar: the six in a row of an offer on a 360 phone are 44px. */
+.meter{position:relative;display:block;height:14px;margin-top:.25rem;background:rgba(255,255,255,.16);border-radius:3px;overflow:hidden;container-type:inline-size}
+.meter i{position:absolute;inset:0 auto 0 0;width:var(--v);background:var(--dim)}
 .meter.mid i{background:var(--grey)}.meter.good i{background:var(--white)}.meter.elite i{background:var(--lime)}
+.meter.meter b{position:absolute;top:0;display:block;padding:0 .2rem;font:700 .7rem/14px var(--data);letter-spacing:0;white-space:nowrap;font-variant-numeric:tabular-nums}
+.meter.out b{left:var(--v);color:var(--white)}
+.meter.in b{right:calc(100% - var(--v));color:var(--black)}
+@container (max-width:56px){.meter.meter b{padding:0 .14rem;font-size:.6rem}}
+@container (max-width:42px){.meter.meter b{padding:0 .08rem;font-size:.54rem}}
 .facts{display:grid;gap:.4rem;font-size:.9rem;color:var(--grey)}
 .facts li{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .55rem}
 .facts .good{color:var(--lime)}.facts .bad{color:var(--coral)}.facts .muted{color:var(--dim)}
@@ -415,6 +423,7 @@ img.card{height:auto;container-type:normal}
 /* A rival on his main (the comfort agent): a lime line under the agent, the same lime the game uses for a bonus. */
 .rival-cards span{display:grid;justify-items:center;padding-bottom:.3rem;border-bottom:3px solid transparent}
 .rival-cards span.main{border-bottom-color:var(--lime)}
+.rival-cards span.off{border-bottom-color:var(--coral)}
 .next .btn{width:100%}
 .next .warn{margin-bottom:.7rem}
 /* The symbol of a formation (see formationIcon): the size of the text beside it unless a place gives it its own. */
@@ -544,7 +553,9 @@ img.card{height:auto;container-type:normal}
 .buys p{display:flex;justify-content:space-between;align-items:center;gap:1rem}
 .buys p b{display:flex;align-items:center;gap:.6rem;font:700 .86rem/1 var(--data);letter-spacing:.16em;text-transform:uppercase;color:var(--side)}
 .buys p i{font:400 2.1rem/.8 var(--display);font-style:normal;letter-spacing:.02em;color:var(--white)}
-.buys-bar{display:flex;gap:3px;height:12px}
+.buys-bar{position:relative;display:flex;gap:3px;height:12px}
+/* (the bar answers a pointer, or a finger, a little beyond its own height, without reaching what is above or below it) */
+.buys-bar::before{content:"";position:absolute;inset:-6px 0 -8px}
 .buys-bar i{min-width:3%;background:var(--side);border-radius:2px;transition:width .5s var(--ease)}
 .buys-bar .them{flex:1}
 .squad thead th{font:600 .72rem/1 var(--data);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);padding:.35rem .5rem;text-align:right}
@@ -884,6 +895,8 @@ dialog>p{color:var(--grey)}
 .detail{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:1.6rem;align-items:start}
 .detail-info{display:grid;gap:.85rem}
 .detail-info .label{margin:.3rem 0 -.5rem}
+.detail-fit{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .8rem;font:600 .9rem/1.2 var(--data);letter-spacing:.03em;color:var(--grey)}
+.detail-fit b{color:var(--white)}
 .detail-info .stats{gap:.9rem 1.2rem}
 .detail-info .stats dd{font-size:1.5rem}
 .pack-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:1.2rem}
@@ -988,7 +1001,7 @@ dialog.skipped .pack-pick{animation:none}
 /* ---------- Caixa de dica ---------- */
 /* The game's own tooltip (tip.js), in place of the browser's: a small Univavá banner, cream with the lime strip on top,
    and a pointer aimed at the element it describes. As a popover it opens in the top layer, above dialogs. */
-#tip{position:fixed;inset:auto;z-index:200;margin:0;border:0;width:max-content;max-width:min(280px,calc(100vw - 12px));padding:.5rem .75rem .55rem;overflow:visible;
+#tip{position:fixed;inset:auto;z-index:200;margin:0;border:0;width:max-content;max-width:min(360px,calc(100vw - 12px));white-space:pre-line;padding:.5rem .75rem .55rem;overflow:visible;
   font:600 .86rem/1.35 var(--body);text-wrap:balance;color:var(--black);background:var(--cream);border-top:4px solid var(--lime);border-radius:5px;
   box-shadow:0 12px 30px rgba(0,0,0,.55),0 0 0 1px rgba(20,20,20,.25);animation:tip-in .14s var(--ease)}
 #tip:not([popover]){display:none}
@@ -1687,26 +1700,46 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 .stat-kpis dd{color:var(--white)}
 .stat-panel{background:var(--tray);border-radius:var(--radius)}
 .stat-panel .eyebrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .7rem;margin-bottom:.9rem}
-.stat-rows{display:grid;gap:.6rem;list-style:none;margin:0;padding:0}
-.stat-row{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr) 3.4rem 5.4rem;align-items:center;gap:.8rem}
+.stat-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.stat-table th,.stat-table td{padding:.3rem 0 .3rem .7rem;vertical-align:middle}
+.stat-table thead th{padding-bottom:.45rem;font:700 .64rem/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;text-align:right;color:var(--grey)}
+/* (the name of a column sits on the side of its numbers; when it is wider than the column, that is the side it keeps,
+   and it spills to the other) */
+.stat-table thead th span{display:flex;justify-content:flex-end;white-space:nowrap}
+.stat-table thead th:first-child,.stat-table tbody th{padding-left:0;text-align:left}
+.stat-table thead th:first-child{width:38%}
+.stat-table tbody th{font-weight:inherit}
 .stat-name{display:flex;align-items:center;gap:.5rem;min-width:0;font:600 .98rem/1.2 var(--body);color:var(--white)}
 .stat-name>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stat-name .logo,.stat-name .logo-dot,.stat-name .agent-icon,.stat-name .role-icon,.stat-name .formation-icon{width:1.6rem;height:1.6rem;flex:none}
 .stat-name .formation-icon{color:var(--lime)}
-.stat-bar{display:block;height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}
+/* The column with the bar: the bar takes what is left of the cell, and the part it shows is written after it. */
+.stat-table .stat-meter{display:flex;align-items:center;gap:.55rem;padding-left:.7rem}
+.stat-table thead th:nth-child(2){text-align:left;padding-left:.7rem}
+.stat-table thead th:nth-child(2) span,.stat-table.wins thead th:nth-child(3) span{justify-content:flex-start}
+.stat-table.wins thead th:nth-child(2) span{justify-content:flex-end}
+.stat-bar{display:block;flex:1;min-width:1.2rem;height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}
 .stat-bar i{display:block;width:var(--v);height:100%;background:var(--lime);border-radius:4px}
-.stat-row.count .stat-bar i{background:var(--white)}
-.stat-row b,.stat-comp b{font:400 1.55rem/1 var(--display);color:var(--white);text-align:right}
-.stat-row small,.stat-comp small{font:600 .8rem/1 var(--data);color:var(--grey);text-align:right;white-space:nowrap}
+.stat-meter b{min-width:2.9rem;font:400 1.45rem/1 var(--display);color:var(--white);text-align:right}
+.stat-table td.num{font:400 1.45rem/1 var(--display);color:var(--white);text-align:right;white-space:nowrap}
+.stat-table thead th:nth-child(n+3){width:17%}
+/* In a table of results the bar is in the last column, and the count before it is the narrow one. */
+.stat-table.wins thead th:nth-child(2){width:17%;text-align:right;padding-left:0}
+.stat-table.wins thead th:nth-child(3){width:45%;text-align:left;padding-left:.7rem}
+.stat-records{display:grid;gap:.55rem;margin:0}
+.stat-records div{display:flex;align-items:baseline;justify-content:space-between;gap:1rem}
+.stat-records dt{font:600 .98rem/1.2 var(--body);color:var(--white)}
+.stat-records dd{margin:0;font:400 1.45rem/1 var(--display);color:var(--lime);white-space:nowrap}
 .stat-none{color:var(--grey)}
 .stat-cards{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:.7rem}
 .stat-card{display:grid;gap:.15rem;justify-items:center;padding:0 0 .2rem;text-align:center;border-radius:8px;transition:transform .2s var(--ease)}
 .stat-card img{display:block;width:100%;height:auto;border-radius:6px}
 .stat-card b{font:400 1.7rem/1 var(--display);color:var(--lime);margin-top:.35rem}
-.stat-card small{font:600 .78rem/1 var(--data);color:var(--grey)}
+.stat-card small{font:700 .58rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:.2rem}
+.stat-card span{font:600 .74rem/1.25 var(--data);letter-spacing:.02em;color:var(--grey);white-space:nowrap}
+.stat-card span i{font-style:normal;color:var(--white)}
 .stat-cards.one{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr);align-items:center;gap:1.1rem}
 .stat-best{font:400 2.2rem/.95 var(--display);text-transform:uppercase;color:var(--white)}
-.stat-comp{display:grid;grid-template-columns:minmax(0,1fr) 3.4rem 5.4rem;align-items:center;gap:.8rem}
 .stat-five{display:flex;gap:.3rem}
 .stat-five .agent-icon,.stat-five .role-icon{width:2rem;height:2rem}
 @media (hover:hover){.stat-card:hover{transform:translateY(-4px)}}
@@ -1719,13 +1752,17 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .screen-career .stats-tabs button{flex:1;padding:0 .3rem;font-size:.7rem;letter-spacing:.04em}
   .stats .stat-kpis{gap:.7rem 1.4rem}
   .stat-panel{padding:1rem .9rem}
-  .stat-rows{gap:.7rem}
-  .stat-row{grid-template-columns:minmax(0,1fr) auto auto;align-items:baseline;gap:.3rem .7rem}
-  .stat-row .stat-name{grid-area:1/1;align-self:center}
-  .stat-row b{grid-area:1/2;font-size:1.3rem}
-  .stat-row small{grid-area:1/3;min-width:3.9rem}
-  .stat-row small:empty{display:none}
-  .stat-row .stat-bar{grid-area:2/1/3/4;height:4px}
-  .stat-comp{grid-template-columns:minmax(0,1fr) auto auto;gap:.6rem}
+  .stat-table th,.stat-table td{padding:.28rem 0 .28rem .45rem}
+  .stat-table thead th{font-size:.56rem;letter-spacing:.06em}
+  .stat-table thead th:first-child{width:34%}
+  .stat-table thead th:nth-child(n+3){width:17%}
+  .stat-table .stat-meter{gap:.35rem;padding-left:.45rem}
+  .stat-table thead th:nth-child(2){padding-left:.45rem}
+  .stat-name{font-size:.86rem;gap:.35rem}
+  .stat-name .logo,.stat-name .logo-dot,.stat-name .agent-icon,.stat-name .role-icon,.stat-name .formation-icon{width:1.3rem;height:1.3rem}
+  .stat-meter b,.stat-table td.num,.stat-records dd{font-size:1.2rem}
+  .stat-meter b{min-width:2.3rem}
+  .stat-records dt{font-size:.86rem}
+  .stat-card span{font-size:.66rem}
   .stat-five .agent-icon,.stat-five .role-icon{width:1.7rem;height:1.7rem}
 }

@@ -3,9 +3,9 @@
 // O que já saiu fica guardado entre as runs como {got:{id:dia}, formations:[...], tosses:n}: o dia em que cada
 // conquista saiu; para a Estrategista, as formações com que o time já venceu; e, para a Moeda viciada, quantos
 // sorteios seguidos o time venceu (ou perdeu, abaixo de zero).
-import * as E from './engine.js?v=9417779706';
-import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=9417779706';
-import {albumSummary} from './album.js?v=9417779706';
+import * as E from './engine.js?v=ddb9ffb608';
+import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=ddb9ffb608';
+import {albumSummary} from './album.js?v=ddb9ffb608';
 
 export const GROUPS = ['Campanha','Partida','Jogada de Efeito','Elenco','Álbum'];
 export const ACHIEVEMENTS = [
@@ -44,7 +44,7 @@ export const ACHIEVEMENTS = [
   ['home','Elenco','Time da casa','Jogar uma partida com cinco titulares da mesma equipe'],
   ['mains','Elenco','Cada um no seu','Jogar uma partida com os cinco titulares no agente de conforto'],
   ['selecao','Elenco','Seleção','Ter um time com 90 de média efetiva'],
-  ['best','Elenco','Melhor do Mundo','Ter um jogador com 93 de overall efetivo no elenco'],
+  ['best','Elenco','Melhor do Mundo','Ter um jogador com 94 de overall efetivo no elenco'],
   ['strategist','Elenco','Estrategista','Vencer com cada uma das cinco formações'],
   ['find','Elenco','Achado','Ficar com uma carta de overall 90 ou mais num pacote'],
   ['vault','Elenco','Cofre cheio','Juntar 1.000 moedas'],
@@ -57,7 +57,7 @@ export const ACHIEVEMENTS = [
 export const BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a=>[a.id,a]));
 // The five formations a team of five can have: the Estrategista asks for a win with each of them.
 const FORMATION_KEYS = E.FORMATIONS.filter(f=>f.role).map(f=>f.key);
-const SELECAO = 90, BEST = 93, VAULT = 1000;
+const SELECAO = 90, BEST = 94, VAULT = 1000;
 // The chances the conquests of the plays ask for, as the bar of the round shows them (whole percentages): a round let
 // go by at this or less, a round lost at this or more, a play called at exactly this, and a play called at this or more.
 const TRUST = 15, HOUSE = 85, PREVENT = 49, SURE = 80;
