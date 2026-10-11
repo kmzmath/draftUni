@@ -1,15 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=283c6931a1';
-import * as C from './campaign.js?v=283c6931a1';
-import {previewChange} from './impact.js?v=283c6931a1';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=283c6931a1';
-import {albumSummary,cardStatus} from './album.js?v=283c6931a1';
-import * as A from './achievements.js?v=283c6931a1';
-import * as ST from './stats.js?v=283c6931a1';
-import * as B from './abilities.js?v=283c6931a1';
-import * as K from './crest.js?v=283c6931a1';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=283c6931a1';
+import * as E from './engine.js?v=72200b50cd';
+import * as C from './campaign.js?v=72200b50cd';
+import {previewChange} from './impact.js?v=72200b50cd';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=72200b50cd';
+import {albumSummary,cardStatus} from './album.js?v=72200b50cd';
+import * as A from './achievements.js?v=72200b50cd';
+import * as ST from './stats.js?v=72200b50cd';
+import * as B from './abilities.js?v=72200b50cd';
+import * as K from './crest.js?v=72200b50cd';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=72200b50cd';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -382,6 +382,15 @@ function chanceTip(prep) {
     side('Seu time',prep.ours,true),side('Rival',prep.theirs,false),
     `50 ${ours<0?'-':'+'} ${num(Math.abs(ours),1)} ${theirs<0?'+':'-'} ${num(Math.abs(theirs),1)} = ${one(raw)} → ${Math.round(100*prep.odds)}%${raw<8?' (o mínimo)':raw>92?' (o máximo)':''}`].join('\n');
 }
+// The order for the purchase of the round about to start, in the freezetime: the team's own call or one of the three
+// the coach can give. It is only there while there is something to choose (see canBuy in the engine).
+const BUY_ORDERS = {auto:['Auto','O time decide a compra'],eco:['Eco','Ninguém compra: o time guarda os créditos'],half:['Meia','Cada jogador gasta até metade dos créditos'],full:['Total','Cada jogador gasta tudo o que tem']};
+function buyPlan(ctx,view) {
+  const m=ctx.match;
+  if(!ctx.ui.freeze||view.playing||view.over||!E.canBuy(m))return '';
+  return `<div class="buy-plan" role="group" aria-label="Compra do round">${Object.entries(BUY_ORDERS).map(([key,[label,tip]])=>
+    `<button data-action="buy-plan" data-id="${key}" aria-pressed="${m.prepared.plan===key}" aria-label="${E.BUY_PLANS[key]}" data-tip="${tip}">${label}</button>`).join('')}</div>`;
+}
 function buyBar(ctx,view) {
   if(!view.gear)return '';
   // (the explanation belongs to the whole bar: a finger does not have to find one of its two sides)
@@ -440,13 +449,14 @@ function controls(ctx,view) {
   if(view.over)return `<section class="controls over"><button class="btn primary big" data-action="see-result">Ver resultado</button></section>`;
   return `<section class="controls ${freeze?'freezing':''}" style="--phase:-${Date.now()%1000}ms" aria-label="Controles da partida">
     ${left?`<button class="btn play-call" data-action="play-call" ${between?'':'disabled'}><span>Jogada de Efeito</span>${playPips(left,m.playsMax[0])}</button>`
-      :'<p class="plays-out" role="status">Todas as Jogadas de Efeito já utilizadas, freezetime desabilitado</p>'}
+      :`<p class="plays-out" role="status">Todas as Jogadas de Efeito já utilizadas${prefs.freezeAll?'':', freezetime desabilitado'}</p>`}
     <button class="btn flow ${freeze?'start':ui.paused?'primary':''}" data-action="${freeze?'start-round':'pause'}" ${layered?'disabled':''}>${freeze?'<span>Começar<span class="wide"> round</span></span>':ui.paused?'Retomar':'Pausar'}</button>
     <div class="speed" role="group" aria-label="Velocidade">${[1,2,4].map(s=>`<button data-action="speed" data-id="${s}" aria-pressed="${ui.speed===s}">${s}x</button>`).join('')}</div>
     <div class="settings"><button class="btn gear" data-action="settings" aria-expanded="${!!ui.settings}">Ajustes</button>
       ${ui.settings?`<div class="settings-pop" role="group" aria-label="Freezetime antes de cada round"><p class="label">Freezetime</p>
         <button class="auto" data-action="freeze-auto" aria-pressed="${prefs.freezeAuto}">Automático</button>
-        <div class="speed">${FREEZE_OPTIONS.map(s=>`<button data-action="freeze-time" data-id="${s}" aria-pressed="${prefs.freeze===s}" ${prefs.freezeAuto?'':'disabled'}>${s}s</button>`).join('')}</div></div>`:''}</div>
+        <div class="speed">${FREEZE_OPTIONS.map(s=>`<button data-action="freeze-time" data-id="${s}" aria-pressed="${prefs.freeze===s}" ${prefs.freezeAuto?'':'disabled'}>${s}s</button>`).join('')}</div>
+        <button class="auto" data-action="freeze-all" aria-pressed="${!!prefs.freezeAll}">Em todo round</button></div>`:''}</div>
   </section>`;
 }
 function moment(ctx) {
@@ -529,7 +539,7 @@ export function match(ctx) {
   const {match:m,ui}=ctx,view=matchView(ctx),layered=!!(ui.duel||m.pending&&ui.showEvent&&!ui.play);
   return `<div class="match">${scorebug(ctx,view)}${timeline(view)}${controls(ctx,view)}
     <div class="match-stack ${layered?'layered':''}">
-      <div class="match-body" ${layered?'inert':''}><section class="board tray">${buyBar(ctx,view)}${teamTable(ctx,view,0)}${teamTable(ctx,view,1)}</section><aside class="match-side">${feed(view)}</aside></div>
+      <div class="match-body" ${layered?'inert':''}><section class="board tray">${buyBar(ctx,view)}${buyPlan(ctx,view)}${teamTable(ctx,view,0)}${teamTable(ctx,view,1)}</section><aside class="match-side">${feed(view)}</aside></div>
       ${layered?`<div class="play-layer">${ui.duel?momentResult(ctx):moment(ctx)}</div>`:''}
     </div>
   </div>`;

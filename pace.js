@@ -22,8 +22,10 @@ export function freezeClock(elapsed,total) {
 // player gets the freezetime to decide: a fixed number of real seconds in automatic mode (match speed doesn't shorten
 // it), or as long as it takes in manual mode (wait is null: the round only starts on a click). With nothing to decide
 // the round simply follows the last one.
-export function beforeRound({pending,plays,auto,seconds,speed}) {
-  if(pending||plays<=0)return {wait:BEAT.buy*PACE[speed],freeze:false};
+// `always` is the player's choice of a freezetime in every round, to command the purchase all match long: the round
+// then also waits when the purchase is the only thing to decide (`buyable`: see canBuy in the engine).
+export function beforeRound({pending,plays,auto,seconds,speed,always=false,buyable=false}) {
+  if(pending||(plays<=0&&!(always&&buyable)))return {wait:BEAT.buy*PACE[speed],freeze:false};
   return {wait:auto?seconds*1000:null,freeze:true};
 }
 // How many kills are on screen when a round starts. The freezetime already showed the buys, so the round opens on its

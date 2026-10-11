@@ -1,19 +1,19 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=283c6931a1';
-import * as C from './campaign.js?v=283c6931a1';
-import * as S from './screens.js?v=283c6931a1';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=283c6931a1';
-import {startTour,closeTour,tourOpen} from './tour.js?v=283c6931a1';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=283c6931a1';
-import {stamp,cleanAlbum} from './album.js?v=283c6931a1';
-import {initTips,refreshTips} from './tip.js?v=283c6931a1';
-import {shareModel,copyShareImage} from './share.js?v=283c6931a1';
-import {staleSave,stampSave} from './save.js?v=283c6931a1';
-import * as A from './achievements.js?v=283c6931a1';
-import * as ST from './stats.js?v=283c6931a1';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=283c6931a1';
-import {playChime} from './sound.js?v=283c6931a1';
-import * as K from './crest.js?v=283c6931a1';
+import * as E from './engine.js?v=72200b50cd';
+import * as C from './campaign.js?v=72200b50cd';
+import * as S from './screens.js?v=72200b50cd';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=72200b50cd';
+import {startTour,closeTour,tourOpen} from './tour.js?v=72200b50cd';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=72200b50cd';
+import {stamp,cleanAlbum} from './album.js?v=72200b50cd';
+import {initTips,refreshTips} from './tip.js?v=72200b50cd';
+import {shareModel,copyShareImage} from './share.js?v=72200b50cd';
+import {staleSave,stampSave} from './save.js?v=72200b50cd';
+import * as A from './achievements.js?v=72200b50cd';
+import * as ST from './stats.js?v=72200b50cd';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=72200b50cd';
+import {playChime} from './sound.js?v=72200b50cd';
+import * as K from './crest.js?v=72200b50cd';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats',RIVALS_KEY='univava:rivals';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
@@ -318,7 +318,7 @@ function schedule(){
   // starts over when the tutorial closes.
   const held=tourOpen();
   if(play){if(!held)timer=setTimeout(step,playbackBeat(play.shown,play.record.kills.length,ui.speed));return;}
-  const {wait,freeze}=beforeRound({pending:m.pending,plays:m.plays[0],auto:prefs.freezeAuto,seconds:prefs.freeze,speed:ui.speed});
+  const {wait,freeze}=beforeRound({pending:m.pending,plays:m.plays[0],auto:prefs.freezeAuto,seconds:prefs.freeze,speed:ui.speed,always:prefs.freezeAll,buyable:E.canBuy(m)});
   if(freeze)ui.freeze=wait===null||held?{manual:true}:{start:Date.now(),total:wait};
   if(wait!==null&&!held)timer=setTimeout(step,wait);
 }
@@ -519,6 +519,10 @@ const actions={
   'start-round'(){if(betweenRounds()&&!ctx.ui.paused){clearTimeout(timer);step();}return false;},
   settings(){ctx.ui.settings=!ctx.ui.settings;},
   'freeze-auto'(){prefs.freezeAuto=!prefs.freezeAuto;prefs.freezeSet=true;store(PREFS_KEY,prefs);schedule();},
+  // A freezetime in every round, to command the purchase all match long (and not only while a play is in hand).
+  'freeze-all'(){prefs.freezeAll=!prefs.freezeAll;store(PREFS_KEY,prefs);schedule();},
+  // The order for the purchase of the round about to start: it counts at once, and is kept with the match.
+  'buy-plan'(id){if(!betweenRounds()||!ctx.ui.freeze)return false;C.setBuy(ctx.run,ctx.match,id);},
   'freeze-time'(id){prefs.freeze=cleanFreeze(Number(id));store(PREFS_KEY,prefs);schedule();},
   // The speed is about what happens inside a round. A freezetime that is counting keeps counting from where it is.
   speed(id){ctx.ui.speed=prefs.speed=Number(id);store(PREFS_KEY,prefs);if(ctx.ui.play)schedule();},
@@ -638,7 +642,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=283c6931a1');
+    const response=await fetch('players.json?v=72200b50cd');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -649,7 +653,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=283c6931a1');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=72200b50cd');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
@@ -657,7 +661,7 @@ async function init(){
   // (An older version kept `tourOff`, with which skipping one tutorial turned them all off. It is no longer read.)
   prefs.seen={...(saved_prefs.seen||{})};
   if(Number.isInteger(saved_prefs.period))prefs.period=saved_prefs.period;
-  prefs.freezeAuto=prefs.freezeSet=savedFreezeAuto(saved_prefs);prefs.freeze=cleanFreeze(saved_prefs.freeze);
+  prefs.freezeAuto=prefs.freezeSet=savedFreezeAuto(saved_prefs);prefs.freeze=cleanFreeze(saved_prefs.freeze);prefs.freezeAll=saved_prefs.freezeAll===true;
   if(typeof saved_prefs.team==='string')ctx.team=prefs.team=saved_prefs.team.replace(/\s+/g,' ').trim().slice(0,24);
   ctx.crest=prefs.crest=K.cleanCrest(saved_prefs.crest);
   ctx.ui.speed=prefs.speed;

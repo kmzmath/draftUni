@@ -1,5 +1,5 @@
 // Regras puras do jogo: draft, sinergia, formação e simulação da partida. Sem DOM.
-import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=283c6931a1';
+import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=72200b50cd';
 export const ROLES = ['Duelista','Iniciador','Controlador','Sentinela'];
 export const AGENTS = Object.fromEntries(Object.entries({
   Duelista:['Jett','Phoenix','Raze','Neon','Reyna','Yoru','Iso','Waylay'],
@@ -433,13 +433,59 @@ function buyPhase(match,t){
   // What the team counts on being paid for the next round. A player who saves keeps what a full buy with all his
   // abilities will cost him then.
   const allIn=able||urgent||gamble,income=team.wonLast?3000:lossPay(team.lossStreak+1);
+  // What each player had before buying, and what the team decided by itself: with them the purchase can be made
+  // again another way while the round has not started (see setBuy), without drawing anything again.
+  team.before={allIn,income,players:team.players.map(p=>({credits:p.credits,weapon:p.weapon,shield:p.shield,abi:[...p.abi],util:p.util}))};
+  return purchase(team,'auto');
+}
+// The purchase itself, by the team's own call ('auto') or by an order of the coach: nothing (eco), up to half of what
+// each player has (half), or everything (full).
+function purchase(team,plan){
+  const {allIn,income}=team.before,all=plan==='full'||(plan==='auto'&&allIn);
   for(const p of team.players){
-    const budget=allIn?p.credits:Math.max(0,p.credits-(FULL_BUY+utilityCost(p.agent)-income)),pick=loadout(p,budget);
+    const budget=plan==='eco'?0:plan==='half'?Math.floor(p.credits/2):all?p.credits:Math.max(0,p.credits-(FULL_BUY+utilityCost(p.agent)-income)),pick=loadout(p,budget);
     p.weapon=pick.weapon;p.shield=pick.shield;p.credits-=pick.cost;
     equip(p,budget-pick.cost);
   }
-  if(allIn)return team.players.filter(rifle).length>=4?'Completa':'Forçado';
+  if(all)return team.players.filter(rifle).length>=4?'Completa':'Forçado';
   return avg(team.players.map(armsValue))>=1500?'Parcial':'Eco';
+}
+// The orders the coach can give for the purchase of a round, in the freezetime. Automatic is the team's own call.
+export const BUY_PLANS={auto:'Automático',eco:'Eco',half:'Meia-compra',full:'Compra total'};
+// Whether the purchase of the round about to start can be chosen: not in a pistol round (everybody has the same 800
+// credits), not in overtime (everybody has the same 5000), and not with a Jogada de Efeito on the round: the
+// confrontation decides it whatever the team carries, so the purchase of such a round is always the team's own.
+export const canBuy=match=>!match.over&&!match.pending&&match.round!==1&&match.round!==13&&!isOvertime(match.round);
+export function setBuy(match,plan){
+  if(!Object.hasOwn(BUY_PLANS,plan))throw new Error('Compra desconhecida');
+  if(match.over)throw new Error('A partida já foi encerrada');
+  if(match.pending)throw new Error('Num round com Jogada de Efeito a compra é a automática');
+  if(!canBuy(match))throw new Error(isOvertime(match.round)?'Na prorrogação não há compra para escolher':'No round de pistola não há compra para escolher');
+  return rebuy(match,plan);
+}
+// A team (0 yours, 1 the rival) buys again from what it had, and the round is rated again. The other team's purchase,
+// the ultimates and the draws of the match stay as they were.
+function rebuy(match,plan,t=0){
+  const team=match.teams[t];
+  team.players.forEach((p,i)=>{const was=team.before.players[i];Object.assign(p,{credits:was.credits,weapon:was.weapon,shield:was.shield,abi:[...was.abi],util:was.util});});
+  match.prepared.gear[t]=purchase(team,plan);
+  if(t)match.prepared.rival.plan=plan;else match.prepared.plan=plan;
+  rate(match);
+  return match.prepared;
+}
+// The rival reads the round before it starts, as a coach who commands the purchases does: against your team's own
+// call, it keeps its credits when the round looks lost either way (under `lost` with its own call and with everything
+// bought), and buys everything when that turns the round (`turn` more than its own call, and at least `worth`). Your
+// team's own call does no such reading: it is what the orders give a coach who uses them. There is no reading in a
+// pistol round nor in overtime, and a Jogada de Efeito on the round undoes it (see openPlay).
+export const RIVAL_READ={lost:.3,turn:.12,worth:.45};
+function rivalOrder(match){
+  if(match.round===1||match.round===13||isOvertime(match.round))return;
+  const theirs=plan=>1-rebuy(match,plan,1).odds;
+  const full=theirs('full'),auto=theirs('auto');
+  const plan=Math.max(auto,full)<RIVAL_READ.lost?'eco':full-auto>=RIVAL_READ.turn&&full>=RIVAL_READ.worth?'full':'auto';
+  if(plan!=='auto')rebuy(match,plan,1);
+  Object.assign(match.prepared.rival,{plan,auto,full});
 }
 
 // ---------- Partida ----------
@@ -475,11 +521,21 @@ export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS,decisi
 // Compra e força do round que vai começar, e a jogada do rival quando for a vez dela. Roda ao fim do round anterior,
 // para que o placar já mostre as armas e os créditos do próximo.
 function prepareRound(match){
-  const side=sideForRound(match.round,match.startSide),pistol=match.round===1||match.round===13;
+  const side=sideForRound(match.round,match.startSide);
   const gear=[0,1].map(t=>buyPhase(match,t));
   // Ultimates: whoever has the points when the round is about to start uses the ultimate in it, and starts counting
   // again from zero.
   for(const p of match.teams.flatMap(team=>team.players)){p.ultOn=p.ult>=ABILITIES[p.agent].x.points;if(p.ultOn)p.ult=0;}
+  // plan: the order the purchase of your team followed ('auto' until the coach gives another: see setBuy).
+  // rival: the reading the rival made of the round and the order it gave itself (see rivalOrder).
+  match.prepared={side,gear,plan:'auto',rival:{plan:'auto'}};
+  rate(match);
+  rivalOrder(match);
+  if(rivalCalls(match))openPlay(match,1);
+}
+// The strength of each side and the chance of the round, from what the two teams carry into it.
+function rate(match){
+  const {side}=match.prepared,pistol=match.round===1||match.round===13;
   // Armament: your share of the value of everything both teams carry into the round (the bar on the scoreboard) is, by
   // itself, your chance in it. 65% of the equipment is 15 points above an even round; the cards move it from there.
   const share=loadoutShare(match.teams.map(team=>team.players)),edge=(share-50)/2;
@@ -491,12 +547,14 @@ function prepareRound(match){
   // chance: what the round is drawn with; a confrontation turns it into 1 or 0. odds: the chance the round started
   // with, which is what the bar on the scoreboard shows and stays as it was whatever decides the round.
   const chance=roundChance(ours,theirs);
-  match.prepared={side,gear,share,ours,theirs,chance,odds:chance};
-  if(rivalCalls(match))openPlay(match,1);
+  Object.assign(match.prepared,{share,ours,theirs,chance,odds:chance});
 }
 // Spends one play of team `by` (0 = yours, 1 = the rival's) on the round about to be played and draws the confrontation.
 // It says nothing about who is on the other side: the rival's player is only chosen when yours is.
 function openPlay(match,by){
+  // A round with a Jogada de Efeito is played on each team's own purchase: the confrontation decides it whatever the
+  // teams carry, so nobody saves credits on it by an order.
+  if(match.prepared.rival.plan!=='auto')rebuy(match,'auto',1);
   const side=match.prepared.side,strong=composition(match.teams[0].lineup).strong;
   const fits=Object.keys(EVENT_TYPES).filter(key=>!EVENT_TYPES[key].when||EVENT_TYPES[key].when===side);
   // Your own plays only draw among the confrontations of your formation, when the side has one. With the Jogada
@@ -513,6 +571,8 @@ export function callPlay(match){
   if(match.over)throw new Error('A partida já foi encerrada');
   if(match.pending)throw new Error('Este round já tem uma Jogada de Efeito');
   if(match.plays[0]<=0)throw new Error('Seu time não tem mais Jogadas de Efeito nesta partida');
+  // A round with a Jogada de Efeito is played on the team's own purchase: an order given before is undone.
+  if(match.prepared.plan!=='auto')rebuy(match,'auto');
   return openPlay(match,0);
 }
 // Distribui abates, mortes e assistências de um round já decidido, respeitando quem venceu e o confronto da Jogada de Efeito.

@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=283c6931a1';
+import * as E from './engine.js?v=72200b50cd';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -403,7 +403,7 @@ export function swapPlayers(run,db,a,b) {
 // replaying it under other rules (abilities and ultimates came with 2; the points of the ultimate going back to zero
 // at the side swap, and no ultimates in overtime, with 3) would give another match with the same choices, so such a
 // match is not continued. It starts over. The numbers of the staff bonuses, when they were rebalanced, came with 4.
-export const MATCH_RULES = 4;
+export const MATCH_RULES = 5;
 export const sameRules = live=>live?.rules===MATCH_RULES;
 export function beginMatch(run,db) {
   const error=run.status!=='hub'?'Nenhuma partida preparada':lineupError(run,db);
@@ -416,6 +416,9 @@ export function beginMatch(run,db) {
   const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:(on(run,'plays')?V.plays:E.PLAYS)+(prepOf(run).play?1:0),decisive:mustWin(run),train:prepOf(run).train,studied:prepOf(run).study});
   let used=0;
   while(!match.over){
+    // (the order given for the purchase of a round comes back with it, before the round is played again)
+    const order=run.live.buys?.[match.round];
+    if(order&&E.canBuy(match)&&match.prepared.plan!==order)E.setBuy(match,order);
     if(!match.pending&&run.live.calls.includes(match.round))E.callPlay(match);
     if(match.pending){if(used<run.live.picks.length)E.resolveEvent(match,run.live.picks[used++]);else break;}
     else if(match.log.length<run.live.rounds)E.advanceRound(match);
@@ -428,7 +431,16 @@ export function beginMatch(run,db) {
 export function callPlay(run,match) {
   const event=E.callPlay(match);
   run.live.calls.push(event.round);
+  if(run.live.buys)delete run.live.buys[event.round];
   return event;
+}
+// The order for the purchase of the round about to start (see E.setBuy). Kept with the match, round by round, so that
+// a match that is loaded again is rebuilt with the purchases it had; the automatic one needs no keeping.
+export function setBuy(run,match,plan) {
+  E.setBuy(match,plan);
+  const buys=run.live.buys??={};
+  if(plan==='auto')delete buys[match.round];else buys[match.round]=plan;
+  return match.prepared;
 }
 // The player sent to a confrontation. Recorded at once too, so it stands even if the page is closed before the round ends.
 export function pickActor(run,match,id) {
