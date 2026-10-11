@@ -1,5 +1,5 @@
 // Regras puras do jogo: draft, sinergia, formação e simulação da partida. Sem DOM.
-import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=ddb9ffb608';
+import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=acbfe278b2';
 export const ROLES = ['Duelista','Iniciador','Controlador','Sentinela'];
 export const AGENTS = Object.fromEntries(Object.entries({
   Duelista:['Jett','Phoenix','Raze','Neon','Reyna','Yoru','Iso','Waylay'],

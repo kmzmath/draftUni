@@ -1,6 +1,6 @@
 // Read-only previews use the same campaign operations as the final action.
-import * as C from './campaign.js?v=ddb9ffb608';
-import * as E from './engine.js?v=ddb9ffb608';
+import * as C from './campaign.js?v=acbfe278b2';
+import * as E from './engine.js?v=acbfe278b2';
 
 export function teamSnapshot(run,db){
   const lineup=C.lineupSlots(run,db),composition=E.composition(lineup);

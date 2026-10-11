@@ -1,14 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=ddb9ffb608';
-import * as C from './campaign.js?v=ddb9ffb608';
-import {previewChange} from './impact.js?v=ddb9ffb608';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=ddb9ffb608';
-import {albumSummary,cardStatus} from './album.js?v=ddb9ffb608';
-import * as A from './achievements.js?v=ddb9ffb608';
-import * as ST from './stats.js?v=ddb9ffb608';
-import * as B from './abilities.js?v=ddb9ffb608';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=ddb9ffb608';
+import * as E from './engine.js?v=acbfe278b2';
+import * as C from './campaign.js?v=acbfe278b2';
+import {previewChange} from './impact.js?v=acbfe278b2';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=acbfe278b2';
+import {albumSummary,cardStatus} from './album.js?v=acbfe278b2';
+import * as A from './achievements.js?v=acbfe278b2';
+import * as ST from './stats.js?v=acbfe278b2';
+import * as B from './abilities.js?v=acbfe278b2';
+import * as K from './crest.js?v=acbfe278b2';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=acbfe278b2';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -24,6 +25,8 @@ const effectiveAvg = (lineup,perks=[])=>E.avg(lineup.map(s=>effectiveOf(s,lineup
 // Brand pictures from the Univavá site (crest, stickers). Each one is simply absent when the art is not installed.
 const mark = (key,name,alt='')=>brandArt(key)?`<img class="${name}" src="${esc(brandArt(key))}" alt="${esc(alt)}" draggable="false">`:'';
 const crest = ()=>mark('crest','crest');
+// The mark of the player's team: the crest it has put together, or the one of the tournament while it has none.
+const ourCrest = ctx=>K.crestSvg(ctx.crest,{name:ctx.team||''})||crest();
 // The cream banner used by the tournament: lime ticker on top, purple headline.
 const band = (kicker,title,note='',kind='')=>`<header class="band ${kind}">${ticker()}<div class="band-body"><div><p class="band-kicker">${kicker}</p><h1>${title}</h1></div>${note?`<p class="band-note">${note}</p>`:''}</div></header>`;
 // How an eliminated run reads, by where it stopped.
@@ -43,7 +46,7 @@ function path(run) {
   }).join('')}</ol>`;
 }
 export function chrome(ctx,content) {
-  const run=ctx.run,inRun=run&&!['home','album','feats','career'].includes(ctx.screen);
+  const run=ctx.run,inRun=run&&!['home','album','feats','career','team'].includes(ctx.screen);
   return `<header class="ribbon"><div class="ribbon-bar">
     <button class="brand" data-action="home" ${ctx.screen==='match'?'disabled':''} aria-label="Univavá Draft: tela inicial">${crest()}<b>UNIVAVÁ</b><em>DRAFT</em></button>
     ${inRun?path(run):'<span class="ribbon-fill"></span>'}
@@ -81,7 +84,8 @@ export function home(ctx) {
     <div class="hero-copy">
       ${mark('lockup','lockup','Valorant Universitário')||'<p class="eyebrow">Valorant universitário</p>'}
       <h1 class="hero-title">UNIVAVÁ <em>DRAFT</em></h1>
-      <label class="team-name"><span>Seu time</span><input data-input="team" value="${esc(ctx.team)}" maxlength="24" placeholder="Nome do time" autocomplete="off" spellcheck="false" enterkeyhint="done"></label>
+      <div class="team-id"><button class="crest-edit" data-action="team" aria-label="Personalizar o escudo do time">${ourCrest(ctx)}</button>
+        <label class="team-name"><span>Seu time</span><input data-input="team" value="${esc(ctx.team)}" maxlength="24" placeholder="Nome do time" autocomplete="off" spellcheck="false" enterkeyhint="done"></label></div>
       ${modes(ctx)}
       <div class="hero-foot">
         <dl class="career"><div><dt>Runs</dt><dd>${career.runs}</dd></div><div><dt>Títulos</dt><dd>${career.titles}</dd></div><div><dt>Melhor campanha</dt><dd>${esc(career.best||'-')}</dd></div></dl>
@@ -224,7 +228,7 @@ function nextMatch(ctx) {
   const {mine,rival,short,error}=fixture(ctx),comp=E.composition(rival);
   return `<section class="panel next" style="--team:${teamColor(rivalTeam)}">
     ${map?`<div class="map-shot" style="background-image:url(${esc(map.file)})"><span>Mapa</span><b>${esc(map.name)}</b></div>`:''}
-    <div class="versus-head">${crest()}<i>x</i>${teamLogo(rivalTeam)}</div>
+    <div class="versus-head">${ourCrest(ctx)}<i>x</i>${teamLogo(rivalTeam)}</div>
     <p class="eyebrow">Próximo adversário</p>
     <h2>${esc(rivalTeam)}</h2>
     ${info.org?`<p class="team-org">${teamFlag(rivalTeam)}<span>${esc(info.org)}${info.state?' · '+esc(info.state):''}</span></p>`:''}
@@ -340,7 +344,7 @@ function scorebug(ctx,view) {
   return `<header class="arena ${freeze?'freezing':''}" style="--phase:-${Date.now()%1100}ms;${map?`background-image:linear-gradient(180deg,rgba(20,20,20,.55),rgba(20,20,20,.92)),url(${esc(map.file)})`:''}">
     ${map?`<p class="arena-map"><span>Mapa</span><b>${esc(map.name)}</b></p>`:''}
     <div class="bug">
-      <div class="bug-team us"><div><b>${ourName(ctx)}</b><p class="bug-meta">${ours}${playPips(view.plays[0],m.playsMax[0])}</p></div>${crest()}</div>
+      <div class="bug-team us"><div><b>${ourName(ctx)}</b><p class="bug-meta">${ours}${playPips(view.plays[0],m.playsMax[0])}</p></div>${ourCrest(ctx)}</div>
       <div class="bug-score" role="img" aria-label="Placar: você ${view.score[0]}, rival ${view.score[1]}${freeze?'. Freezetime':''}"><b class="us">${view.score[0]}</b>
         <span class="bug-mid"><small>${view.over?'Fim de jogo':'Round '+view.round}</small>${counting?`<b id="freeze-clock" class="freeze-clock">${freezeClock(elapsed,freeze.total)}</b>`:''}<i>${view.over?'':freeze?'Freezetime':half(view.round)}</i></span>
         <b class="them">${view.score[1]}</b></div>
@@ -409,7 +413,7 @@ function teamTable(ctx,view,t) {
   const name=ctx.match.teams[t].name,used=new Set(ctx.match.used);
   const rows=[...view.teams[t]].sort((a,b)=>b.k-a.k||a.d-b.d||b.a-a.a||a.order-b.order);
   return `<table class="squad ${t?'them':'us'}">
-    <caption>${t?teamLogo(name):crest()}<b>${t?esc(name):ourName(ctx)}</b></caption>
+    <caption>${t?teamLogo(name):ourCrest(ctx)}<b>${t?esc(name):ourName(ctx)}</b></caption>
     <thead><tr><th scope="col" class="c-mug"><span class="sr-only">Foto</span></th><th scope="col" class="c-agent"><span class="sr-only">Agente</span></th><th scope="col">Jogador</th><th scope="col" aria-label="Abates" data-tip="Abates">K</th><th scope="col" aria-label="Mortes" data-tip="Mortes">D</th><th scope="col" aria-label="Assistências" data-tip="Assistências">A</th><th scope="col">Créditos</th><th scope="col" class="c-ab">Habilidades</th><th scope="col">Arma</th></tr></thead>
     <tbody>${rows.map(p=>`<tr data-flip="${p.id}" class="${p.dead?'dead':''} ${p.fell?'fell':''}"><td class="c-mug">${mug(p.id)}</td><td class="c-agent role-${roleKey(E.AGENTS[p.agent])}">${agentIcon(p.agent)}</td>
         <th scope="row"><span class="who"><b>${esc(p.name)}</b><small>${p.agent}</small></span>${t?'':`<i class="ready ${used.has(p.id)?'spent':''}" role="img" aria-label="${used.has(p.id)?'Já foi a um confronto':'Pode ir a um confronto'}" data-tip="${used.has(p.id)?'Já foi a um confronto':'Pode ir a um confronto'}"></i>`}</th>
@@ -481,7 +485,7 @@ export function duelStepMs(contest,step) {
 // of who took it. `clock` is how long the step lasts and how much of it has gone by, so a screen that is drawn
 // again in the middle of the toss goes on from where the coin was instead of tossing it again.
 function tossCoin(ctx,contest,state,{ms,elapsed}) {
-  return `<span class="toss ${state}" aria-hidden="true" style="--ms:${ms}ms;--at:${-elapsed}ms"><i class="coin-toss ${state}" style="--end:${1800+(contest.won?0:180)}deg"><span class="face us">${crest()}</span><span class="face them">${teamLogo(ctx.match.teams[1].name)}</span></i></span><em>Sorteio</em>`;
+  return `<span class="toss ${state}" aria-hidden="true" style="--ms:${ms}ms;--at:${-elapsed}ms"><i class="coin-toss ${state}" style="--end:${1800+(contest.won?0:180)}deg"><span class="face us">${ourCrest(ctx)}</span><span class="face them">${teamLogo(ctx.match.teams[1].name)}</span></i></span><em>Sorteio</em>`;
 }
 // One side of the confrontation. `team` is the line under the name: the rival's team, or the player's own.
 // A player with a photo stands next to his card, on the outer side: photo then card for yours, card then photo for the
@@ -503,7 +507,7 @@ function momentResult(ctx) {
   return `<section class="moment resolved ${called?(r.won?'won':'lost'):''}" aria-labelledby="moment-title">
     <p class="eyebrow" id="moment-title">Round ${r.round} · ${event.by?'Jogada de Efeito do rival':'Sua Jogada de Efeito'} · ${event.label}</p>
     <div class="duel">
-      ${duelist(event.actor,event.actorAgent,'us',`<span class="team">${crest()}<span>${ourName(ctx)}</span></span>`,c.ownOvr)}
+      ${duelist(event.actor,event.actorAgent,'us',`<span class="team">${ourCrest(ctx)}<span>${ourName(ctx)}</span></span>`,c.ownOvr)}
       <div class="duel-table">${rows.map(row).join('')}
         ${called?`<p class="duel-score new"><b>${num(ours,ours%1?1:0)}</b><i>x</i><b>${num(theirs,theirs%1?1:0)}</b></p>`:''}
       </div>
@@ -546,7 +550,7 @@ function finalTable(ctx,t) {
   const m=ctx.match,name=m.teams[t].name,stats=E.matchStats(m);
   const rows=[...m.teams[t].players].sort((a,b)=>b.k-a.k||a.d-b.d||b.a-a.a);
   return `<table class="squad final ${t?'them':'us'}">
-    <caption>${t?teamLogo(name):crest()}<b>${t?esc(name):ourName(ctx)}</b></caption>
+    <caption>${t?teamLogo(name):ourCrest(ctx)}<b>${t?esc(name):ourName(ctx)}</b></caption>
     <thead><tr><th scope="col" class="c-mug"><span class="sr-only">Foto</span></th><th scope="col" class="c-agent"><span class="sr-only">Agente</span></th><th scope="col">Jogador</th>${
       FINAL_COLS.map(([key,label,tip])=>`<th scope="col" class="c-${key}" aria-label="${tip}" data-tip="${tip}">${label}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(p=>{
@@ -631,6 +635,36 @@ export function feats(ctx) {
     return `<section class="feat-group"><h2>${group}<span>${list.filter(a=>got[a.id]).length} / ${list.length}</span></h2>
       <ul class="feat-list">${list.map(a=>`<li class="feat${got[a.id]?' got':''}">${achievementIcon(a.id)}<div><b>${a.name}</b><span>${a.text}</span>${
         got[a.id]?`<em class="sr-only">Conquistada em</em><small>${C.dayLabel(got[a.id])}</small>`:'<em class="sr-only">Ainda não conquistada</em>'}</div></li>`).join('')}</ul></section>`;}).join('')}</div>`;
+}
+// ---------- Seu time ----------
+// The workshop of the crest: the mark in use and the name on one side, the pieces on the other. Every choice counts at
+// once. Each piece is drawn on the crest as it is, so what is chosen is what is seen; a team with no crest yet sees
+// the pieces on the starting design, and the first one it picks makes the crest.
+const CREST_TABS = {shape:'Formato',pattern:'Padrão',colors:'Cores',sign:'Adorno'};
+const CREST_PARTS = {shape:K.SHAPES,pattern:K.PATTERNS,sign:K.SIGNS};
+export function team(ctx) {
+  const mine=K.cleanCrest(ctx.crest),draft=mine||K.DEFAULT_CREST,name=ctx.team||'';
+  const tab=Object.hasOwn(CREST_TABS,ctx.ui.crestTab)?ctx.ui.crestTab:'shape',slot=K.SLOTS.some(([key])=>key===ctx.ui.crestSlot)?ctx.ui.crestSlot:'base';
+  const pressed=(part,key)=>!!mine&&mine[part]===key;
+  const pieces=()=>`<div class="crest-options">${Object.entries(CREST_PARTS[tab]).map(([key,each])=>
+    `<button class="crest-option" data-action="crest-set" data-id="${tab}:${key}" aria-pressed="${pressed(tab,key)}" aria-label="${CREST_TABS[tab]}: ${each.name}" data-tip="${each.name}">${K.crestSvg({...draft,[tab]:key},{name})}</button>`).join('')}</div>`;
+  const colors=()=>{
+    const place=K.SLOTS.find(([key])=>key===slot)[1];
+    return `<div class="crest-slots" role="group" aria-label="Onde vai a cor">${K.SLOTS.map(([key,text])=>`<button class="crest-slot" data-action="crest-slot" data-id="${key}" aria-pressed="${key===slot}" style="--c:${K.COLORS[draft[key]].hex}">${text}</button>`).join('')}</div>
+      <div class="crest-swatches">${Object.entries(K.COLORS).map(([key,each])=>`<button class="crest-swatch" data-action="crest-set" data-id="${slot}:${key}" aria-pressed="${pressed(slot,key)}" aria-label="${place}: ${each.name}" data-tip="${each.name}" style="--c:${each.hex}"></button>`).join('')}</div>`;
+  };
+  return `${band('Seu time','Escudo','','compact')}
+  <div class="workshop">
+    <section class="crest-stage">
+      <div class="crest-view">${ourCrest(ctx)}</div>
+      <label class="team-name"><span>Nome do time</span><input data-input="team" value="${esc(name)}" maxlength="24" placeholder="Nome do time" autocomplete="off" spellcheck="false" enterkeyhint="done"></label>
+      <div class="crest-actions"><button class="btn primary" data-action="crest-random">Sortear</button><button class="btn" data-action="crest-reset"${mine?'':' disabled'}>Marca da Univavá</button></div>
+    </section>
+    <section class="crest-parts">
+      <div class="album-filters crest-tabs" role="group" aria-label="Peças do escudo">${Object.entries(CREST_TABS).map(([key,label])=>`<button data-action="crest-tab" data-id="${key}" aria-pressed="${key===tab}">${label}</button>`).join('')}</div>
+      ${tab==='colors'?colors():pieces()}
+    </section>
+  </div>`;
 }
 export const featBanner = id=>`${achievementIcon(id)}<span><small>Conquista</small><b>${A.BY_ID[id].name}</b></span>`;
 

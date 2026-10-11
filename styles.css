@@ -206,6 +206,12 @@ img.card{height:auto;container-type:normal}
 .hero-title em{color:var(--lime);font-style:normal}
 .hero .lede{margin:1.4rem 0 1.7rem;font-size:1.15rem}
 .team-name{display:grid;gap:.4rem;max-width:23rem;margin:1.4rem 0 1.1rem}
+/* The mark of the team beside its name: a button to the workshop of the crest. */
+.team-id{display:grid;grid-template-columns:max-content minmax(0,23rem);justify-content:start;align-items:end;gap:.8rem;margin:1.4rem 0 1.1rem}
+.team-id .team-name{margin:0}
+.crest-edit{display:grid;place-items:center;width:4.1rem;height:4.1rem;padding:.4rem;background:rgba(20,20,20,.35);border-radius:10px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.2);transition:transform .2s var(--ease),box-shadow .2s}
+.crest-edit .crest{width:auto;height:100%;max-width:100%}
+.crest-edit:hover,.crest-edit:focus-visible{box-shadow:inset 0 0 0 2px var(--lime);transform:translateY(-2px)}
 .team-name span{font:700 .62rem/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.75)}
 .team-name input{width:100%;height:4.1rem;padding:.2rem .8rem 0;font:400 2.5rem/1.2 var(--display);letter-spacing:.02em;text-transform:uppercase;color:var(--white);
   background:rgba(20,20,20,.35);border:0;border-bottom:3px solid var(--lime);border-radius:6px 6px 0 0}
@@ -1215,6 +1221,9 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .lockup{width:min(62%,230px)}
   .hero-title{display:flex;flex-wrap:wrap;gap:0 .2em;font-size:clamp(3.4rem,17vw,4.6rem);padding-top:.26em}
   .team-name{max-width:none;margin:.9rem 0 .8rem}
+  .team-id{grid-template-columns:max-content minmax(0,1fr);justify-content:stretch;gap:.6rem;margin:.9rem 0 .8rem}
+  .team-id .team-name{margin:0}
+  .crest-edit{width:3.4rem;height:3.4rem;padding:.3rem}
   .team-name span,.career dt,.album-link span{font-size:.68rem}
   .team-name input{height:3.4rem;font-size:2rem}
   .modes{gap:.6rem}
@@ -1743,6 +1752,44 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 .stat-five{display:flex;gap:.3rem}
 .stat-five .agent-icon,.stat-five .role-icon{width:2rem;height:2rem}
 @media (hover:hover){.stat-card:hover{transform:translateY(-4px)}}
+/* ---------- Seu time: a oficina do escudo ---------- */
+.workshop{display:grid;grid-template-columns:minmax(0,21rem) minmax(0,1fr);gap:1.1rem;align-items:start}
+.crest-stage,.crest-parts{background:var(--tray);border-radius:var(--radius);padding:1.3rem 1.4rem 1.4rem}
+.crest-stage{display:grid;gap:1.1rem}
+.crest-view{display:grid;place-items:center;padding:1.4rem 0 .6rem}
+.crest-view .crest{width:auto;height:13rem;max-width:100%;filter:drop-shadow(0 .5rem 0 rgba(20,20,20,.4))}
+.crest-stage .team-name{max-width:none;margin:0}
+.crest-actions{display:flex;flex-wrap:wrap;gap:.6rem}
+.crest-actions .btn{flex:1 1 9rem}
+.crest-tabs{display:flex;width:max-content;max-width:100%;margin-bottom:1.1rem}
+.crest-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(5.6rem,1fr));gap:.6rem}
+.crest-option{display:grid;place-items:center;aspect-ratio:1;padding:.6rem;background:rgba(255,255,255,.05);border-radius:10px;box-shadow:inset 0 0 0 2px transparent;transition:transform .2s var(--ease),box-shadow .2s,background .2s}
+.crest-option .crest{width:100%;height:100%}
+.crest-option[aria-pressed="true"]{background:rgba(209,243,80,.12);box-shadow:inset 0 0 0 2px var(--lime)}
+.crest-slots{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.1rem}
+.crest-slot{display:flex;align-items:center;gap:.55rem;min-height:2.75rem;padding:0 .95rem 0 .7rem;font:700 .74rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,.06);border-radius:999px;box-shadow:inset 0 0 0 2px transparent;transition:box-shadow .2s,background .2s}
+.crest-slot::before{content:"";width:1.25rem;height:1.25rem;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+.crest-slot[aria-pressed="true"]{background:rgba(209,243,80,.12);box-shadow:inset 0 0 0 2px var(--lime)}
+.crest-swatches{display:grid;grid-template-columns:repeat(8,minmax(0,4.2rem));gap:.7rem}
+.crest-swatch{aspect-ratio:1;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 2px rgba(255,255,255,.3);transition:transform .2s var(--ease),box-shadow .2s}
+.crest-swatch[aria-pressed="true"]{box-shadow:inset 0 0 0 2px rgba(255,255,255,.3),0 0 0 3px var(--tray),0 0 0 6px var(--lime)}
+@media (hover:hover){.crest-option:hover,.crest-swatch:hover{transform:translateY(-3px)}}
+@media (max-width:860px){
+  .workshop{grid-template-columns:minmax(0,1fr)}
+  .crest-stage{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:.8rem 1rem;padding:1rem .9rem}
+  .crest-view{padding:0}
+  .crest-view .crest{height:6.2rem}
+  .crest-actions{grid-column:1/-1}
+  .crest-actions .btn{padding-inline:.5rem;font-size:.72rem;letter-spacing:.06em;white-space:nowrap}
+  .crest-parts{padding:1rem .9rem}
+  .crest-tabs{width:100%}
+  .crest-tabs button{flex:1;padding:0 .3rem;font-size:.72rem;letter-spacing:.04em}
+  .crest-options{grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
+  .crest-option{padding:.45rem}
+  .crest-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .crest-swatches{grid-template-columns:repeat(4,minmax(0,1fr));gap:.9rem 1rem;justify-items:center}
+  .crest-swatch{width:100%;max-width:4rem}
+}
 @media (max-width:900px){
   .stat-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
 }

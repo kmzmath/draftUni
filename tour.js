@@ -6,7 +6,7 @@ const PERIOD_OPENED = {el:'.period-opened',title:'Período liberado',text:'O tí
 export const TOURS = {
   home:[
     {el:'.hero-title',title:'Univavá Draft',text:'Você é um bom técnico? Tente montar seu time dos sonhos com as cartinhas de todo mundo que jogou o Univavá, e leve seu time à glória! Passando pelo caminho completo: classificatória, fase de grupos e Playoffs!'},
-    {el:'.team-name',title:'Seu time',text:'Dê um nome ao seu time. Ele aparece no placar das partidas e pode ser trocado aqui quando quiser'},
+    {el:'.team-id',title:'Seu time',text:'Dê um nome e um escudo ao seu time. Os dois aparecem no placar das partidas e podem ser trocados quando quiser: o nome aqui mesmo, o escudo num clique na marca ao lado'},
     {el:'.mode.free',title:'Modo tradicional',text:'Uma run sorteada só para você, quantas vezes quiser. Cada run começa com um draft novo e termina no título ou na eliminação'},
     {el:'.period-pips',title:'Períodos',text:'Cada título no modo tradicional abre um período: uma run com uma regra a mais, que se soma às dos períodos anteriores. São 10, do 1º ao 10º. Ao começar uma run você escolhe em qual jogar, entre os que já abriu. Os losangos acesos são os períodos que você já venceu. O Desafio do dia não tem períodos'},
     {el:'.mode.daily',title:'Desafio do dia',text:'Uma run por dia, igual para todo mundo: os mesmos contratos, o mesmo draft, os mesmos bônus oferecidos e os mesmos rivais. Só dá para jogar uma vez. No fim, copie o resultado para comparar com os amigos. O desafio vira à meia-noite de Brasília. As duas runs ficam salvas, cada uma no seu lugar: dá para fechar o jogo e continuar depois'},
@@ -92,6 +92,11 @@ export const TOURS = {
     {el:'.band',title:'Estatísticas',text:'As partidas que o seu time já disputou e a parte delas que venceu, somando todas as runs dos dois modos'},
     {el:'.stats-tabs',title:'Quatro abas',text:'Campanha mostra onde as runs acabaram e as vitórias por fase. Elenco, as cartas, as equipes, as formações e os agentes que você mais usou. Rivais, os times que mais enfrentou. Confrontos, como o time se sai nas Jogadas de Efeito'},
     {el:'.stat-panel',title:'Como ler',text:'Cada coluna tem o seu nome. Uso (ou Frequência, ou Parte) é quanto aquilo apareceu: a barra e a porcentagem são a parte dele no total de partidas, runs ou confrontos. Depois vem quantas vezes foi, e Vitórias é a parte dessas vezes que você venceu. As cartas e as equipes vêm do álbum, e tocar numa carta abre a carta'}
+  ],
+  team:[
+    {el:'.crest-stage',title:'O escudo do time',text:'É a marca do seu time no placar, na ficha de cada partida e na imagem do resultado. Enquanto você não monta um, o time joga com a marca da Univavá'},
+    {el:'.crest-tabs',title:'As peças',text:'Formato, padrão, cores e adorno. Cada peça aparece já no seu escudo, e a que você escolher vale na hora, sem precisar salvar. As iniciais vêm do nome do time'},
+    {el:'.crest-actions',more:true,title:'Sortear',text:'Monta um escudo ao acaso, quantas vezes quiser. Marca da Univavá desfaz o escudo e volta à marca do torneio'}
   ],
   feats:[
     {el:'.band',title:'Conquistas',text:'Quantos feitos você já marcou, somando o Desafio do dia e o modo tradicional'},

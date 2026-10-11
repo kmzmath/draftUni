@@ -1,18 +1,19 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=ddb9ffb608';
-import * as C from './campaign.js?v=ddb9ffb608';
-import * as S from './screens.js?v=ddb9ffb608';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=ddb9ffb608';
-import {startTour,closeTour,tourOpen} from './tour.js?v=ddb9ffb608';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=ddb9ffb608';
-import {stamp,cleanAlbum} from './album.js?v=ddb9ffb608';
-import {initTips,refreshTips} from './tip.js?v=ddb9ffb608';
-import {shareModel,copyShareImage} from './share.js?v=ddb9ffb608';
-import {staleSave,stampSave} from './save.js?v=ddb9ffb608';
-import * as A from './achievements.js?v=ddb9ffb608';
-import * as ST from './stats.js?v=ddb9ffb608';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=ddb9ffb608';
-import {playChime} from './sound.js?v=ddb9ffb608';
+import * as E from './engine.js?v=acbfe278b2';
+import * as C from './campaign.js?v=acbfe278b2';
+import * as S from './screens.js?v=acbfe278b2';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=acbfe278b2';
+import {startTour,closeTour,tourOpen} from './tour.js?v=acbfe278b2';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=acbfe278b2';
+import {stamp,cleanAlbum} from './album.js?v=acbfe278b2';
+import {initTips,refreshTips} from './tip.js?v=acbfe278b2';
+import {shareModel,copyShareImage} from './share.js?v=acbfe278b2';
+import {staleSave,stampSave} from './save.js?v=acbfe278b2';
+import * as A from './achievements.js?v=acbfe278b2';
+import * as ST from './stats.js?v=acbfe278b2';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=acbfe278b2';
+import {playChime} from './sound.js?v=acbfe278b2';
+import * as K from './crest.js?v=acbfe278b2';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats',RIVALS_KEY='univava:rivals';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
@@ -24,7 +25,7 @@ const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY
 // the career (see stats.js). ui.opened is the período the run on screen has just opened.
 const ctx={db:null,run:null,mode:'free',slots:{free:null,daily:null},today:'',album:{},feats:A.cleanFeats(null),stats:null,match:null,summary:null,screen:'home',showcase:[],team:'',prefs:null,
   career:{runs:0,titles:0,best:'',bestRank:-1,daily:{},period:0,cleared:0},
-  ui:{tab:'lineup',selected:null,paused:false,speed:1,showEvent:false,play:null,duel:null,freeze:null,settings:false,sort:null,albumFilter:'all',careerTab:'run',opened:0}};
+  ui:{tab:'lineup',selected:null,paused:false,speed:1,showEvent:false,play:null,duel:null,freeze:null,settings:false,sort:null,albumFilter:'all',careerTab:'run',crestTab:'shape',crestSlot:'base',opened:0}};
 // What the player chose to keep between visits: the team's name, match speed, how the freezetime before each round
 // works (automatic or on a click, and for how many seconds), which screens the tutorial already explained and the
 // período chosen for the last run.
@@ -73,7 +74,7 @@ function switchBuild(){
 // Where the player was before the move to a newer build: the same screen of the same run, or the album, the
 // conquests or the statistics.
 function backToPlace({screen,mode,tab,careerTab,albumFilter}={}){
-  if(['album','feats','career'].includes(screen)){
+  if(['album','feats','career','team'].includes(screen)){
     ctx.screen=screen;
     if(typeof careerTab==='string')ctx.ui.careerTab=careerTab;
     if(typeof albumFilter==='string')ctx.ui.albumFilter=albumFilter;
@@ -372,6 +373,8 @@ function roundFeats(){
   if(fresh.length){(live.feats??=[]).push(...fresh);celebrate(fresh);}
   saveRun();
 }
+// The crest of the team, kept with what the player chose to keep between visits (null: the mark of the tournament).
+function keepCrest(crest){ctx.crest=prefs.crest=crest;store(PREFS_KEY,prefs);}
 function finishMatch(){
   clearTimeout(timer);clearTimeout(duelTimer);ctx.ui.play=null;ctx.ui.duel=null;
   // What the match in progress already knows about its conquests is read before the campaign closes it.
@@ -401,6 +404,13 @@ const actions={
   album(){ctx.screen='album';},
   feats(){ctx.screen='feats';},
   career(){ctx.screen='career';},
+  // The workshop of the crest. Every choice is the team's mark at once, here and in every run.
+  team(){ctx.screen='team';},
+  'crest-tab'(id){ctx.ui.crestTab=id;},
+  'crest-slot'(id){ctx.ui.crestSlot=id;},
+  'crest-set'(id){const [part,key]=id.split(':');keepCrest(K.cleanCrest({...(ctx.crest||K.DEFAULT_CREST),[part]:key}));},
+  'crest-random'(){keepCrest(K.randomCrest());},
+  'crest-reset'(){keepCrest(null);},
   'career-tab'(id){ctx.ui.careerTab=id;},
   'album-filter'(id){ctx.ui.albumFilter=id;},
   // Desafio do dia: one run a day, with the seed of the day. A challenge still being played comes first, whatever its day.
@@ -518,7 +528,7 @@ const actions={
   'see-result'(){finishMatch();},
   // The result as a picture, on the clipboard (or saved as a file where the browser doesn't let a page copy images).
   'copy-image'(){
-    copyShareImage(shareModel(ctx.run,ctx.team,ctx.db)).then(how=>toast(how==='copied'?'Imagem copiada':'Imagem salva em arquivo: o navegador não deixou copiar'),()=>toast('Não deu para gerar a imagem'));
+    copyShareImage(shareModel(ctx.run,ctx.team,ctx.db,ctx.crest)).then(how=>toast(how==='copied'?'Imagem copiada':'Imagem salva em arquivo: o navegador não deixou copiar'),()=>toast('Não deu para gerar a imagem'));
     return false;
   },
   'after-match'(){ctx.match=null;ctx.summary=null;ctx.ui.tab='lineup';route();}
@@ -556,6 +566,10 @@ document.addEventListener('input',event=>{
   if(el.dataset.input!=='team')return;
   ctx.team=prefs.team=el.value.replace(/\s+/g,' ').trim().slice(0,24);
   store(PREFS_KEY,prefs);
+  // The initials on the crests on screen follow the name as it is typed (the screen is not drawn again: the field
+  // would lose what is being typed).
+  const letters=K.initials(ctx.team);
+  for(const text of document.querySelectorAll('svg.crest text')){text.textContent=letters;text.setAttribute('font-size',K.letterSize(letters,Number(text.dataset.scale)||1));}
 });
 document.addEventListener('keydown',event=>{
   if(ctx.screen!=='match'||$('#dialog').open||tourOpen()||event.target.closest('button,a,input'))return;
@@ -604,7 +618,7 @@ function readCareer(){
 // what was saved. Anything else (the run of the other mode, the history, the album) is simply read again.
 addEventListener('storage',event=>{
   if(event.storageArea!==localStorage||!ctx.db)return;
-  const mode=event.key===RUN_KEY?'free':event.key===DAILY_KEY?'daily':null,playing=!['home','album','feats','career'].includes(ctx.screen);
+  const mode=event.key===RUN_KEY?'free':event.key===DAILY_KEY?'daily':null,playing=!['home','album','feats','career','team'].includes(ctx.screen);
   if(event.key===null||(playing&&mode===ctx.mode)){resync();return;}
   if(mode){ctx.slots[mode]=readSlot(mode);if(mode===ctx.mode)ctx.run=ctx.slots[mode];}
   else if(event.key===CAREER_KEY)readCareer();
@@ -620,7 +634,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=ddb9ffb608');
+    const response=await fetch('players.json?v=acbfe278b2');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -631,7 +645,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=ddb9ffb608');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=acbfe278b2');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
@@ -641,6 +655,7 @@ async function init(){
   if(Number.isInteger(saved_prefs.period))prefs.period=saved_prefs.period;
   prefs.freezeAuto=prefs.freezeSet=savedFreezeAuto(saved_prefs);prefs.freeze=cleanFreeze(saved_prefs.freeze);
   if(typeof saved_prefs.team==='string')ctx.team=prefs.team=saved_prefs.team.replace(/\s+/g,' ').trim().slice(0,24);
+  ctx.crest=prefs.crest=K.cleanCrest(saved_prefs.crest);
   ctx.ui.speed=prefs.speed;
   ctx.today=C.dayKey();
   ctx.album=cleanAlbum(load(ALBUM_KEY),ctx.db.byId);
