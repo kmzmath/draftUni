@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=72200b50cd';
+import * as E from './engine.js?v=08314e7589';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -168,6 +168,14 @@ export function matchLabel(stage,game,run) {
 export function nextMatchLabel(run) { const r=run.record[run.stage];return matchLabel(run.stage,r.w+r.l,run); }
 // While a match is being played the roster and the shop are frozen: the match must end the way it started.
 function idle(run) { if(run.live)throw new Error('Há uma partida em andamento'); }
+// A pack on the table is settled before anything else: its card is chosen before the market sells another one, before
+// a match starts or is given away, before the staff is offered a bonus. (The screen holds the player on the pack; this
+// is the rule itself.)
+function noPack(run) { if(run.pack)throw new Error('Escolha uma carta do pacote que já está aberto'); }
+// A run that has played: at least one match in its history (a W.O. is one). A run given up in the draft, at its
+// first bonus or before its first game is not counted anywhere: not among the runs of the career, not in the
+// statistics.
+export const hasPlayed = run=>(run?.history?.length||0)>0;
 function pay(run,cost) { if(run.coins<cost)throw new Error('Moedas insuficientes');run.coins-=cost; }
 function needSeat(run) { if(rosterIds(run).length>=rosterMax(run))throw new Error(`Elenco cheio (${rosterMax(run)}). Libere uma vaga vendendo um jogador`); }
 // A new card goes to the bench, unless a starting place is open: then it starts, on the best free agent under contract.
@@ -234,6 +242,7 @@ export function openPerkPack(run,db) {
   idle(run);
   if(run.status==='perk')throw new Error('Escolha um bônus oferecido');
   if(run.status!=='hub')throw new Error('A loja está fechada');
+  noPack(run);
   const cost=perkPackCost(run);
   if(cost===null)throw new Error('Seu time já tem todos os bônus');
   pay(run,cost);
@@ -280,6 +289,7 @@ export const trainedOf = (run,id)=>run.trained?.[id]||0;
 export const drillCost = run=>PREP.drill+PREP.drillStep*(run.drills||0);
 export function drill(run,db,id) {
   idle(run);
+  if(run.status!=='hub')throw new Error('Nenhuma partida preparada');
   if(!rosterIds(run).includes(id))throw new Error('Este jogador não está no seu elenco');
   if(trainedOf(run,id)>=PREP.drillMax)throw new Error('Este jogador já treinou o máximo');
   pay(run,drillCost(run));
@@ -323,7 +333,7 @@ export function buyPlayer(run,db,id) {
   idle(run);
   const place=run.shop.market.findIndex(o=>o.id===id&&!o.sold);
   if(place<0)throw new Error('Este jogador não está em oferta');
-  needSeat(run);pay(run,playerPrice(run,db.byId.get(id)));
+  noPack(run);needSeat(run);pay(run,playerPrice(run,db.byId.get(id)));
   seat(run,db,id);
   // The place on the shelf doesn't stay empty: another card of the stage's range takes it. Only if there is none left
   // does the offer stay there, marked as sold.
@@ -357,8 +367,7 @@ export function openPack(run,db,key) {
   idle(run);
   const pack=packFor(run,key);
   if(!pack)throw new Error('Pacote desconhecido');
-  if(run.pack)throw new Error('Escolha uma carta do pacote que já está aberto');
-  needSeat(run);pay(run,pack.cost);
+  noPack(run);needSeat(run);pay(run,pack.cost);
   const taken=new Set([...rosterIds(run),...run.opponent.ids]),[lo,hi]=pack.range;
   const fits=p=>!taken.has(p.id)&&p.ovr>=lo&&p.ovr<=hi&&(!pack.role||E.draftRole(p)===pack.role);
   const cards=distinct(db.players.filter(fits),3+(run.perks.includes('olheiro')?PV.olheiro:0),roll(run));
@@ -403,11 +412,14 @@ export function swapPlayers(run,db,a,b) {
 // replaying it under other rules (abilities and ultimates came with 2; the points of the ultimate going back to zero
 // at the side swap, and no ultimates in overtime, with 3) would give another match with the same choices, so such a
 // match is not continued. It starts over. The numbers of the staff bonuses, when they were rebalanced, came with 4.
-export const MATCH_RULES = 5;
+// With 6, a Jogada de Efeito is played on the purchases as they stood when it was called (before, each team went back
+// to its own call).
+export const MATCH_RULES = 6;
 export const sameRules = live=>live?.rules===MATCH_RULES;
 export function beginMatch(run,db) {
   const error=run.status!=='hub'?'Nenhuma partida preparada':lineupError(run,db);
   if(error)throw new Error(error);
+  noPack(run);
   // run.live is all that is saved of a match in progress: the rounds in which you called a Jogada de Efeito, the
   // players you sent to each confrontation and how many rounds were already resolved. The match is fully determined by
   // its seed and those decisions, so replaying them rebuilds it exactly. That is what makes a reload pointless: the same
@@ -429,9 +441,9 @@ export function beginMatch(run,db) {
 // Your Jogada de Efeito on the round about to be played. It is recorded at once: once the confrontation is on the
 // table, closing the page neither gives the play back nor draws another one.
 export function callPlay(run,match) {
+  // (the order given for the purchase of the round stays in run.live.buys: the play was called on it)
   const event=E.callPlay(match);
   run.live.calls.push(event.round);
-  if(run.live.buys)delete run.live.buys[event.round];
   return event;
 }
 // The order for the purchase of the round about to start (see E.setBuy). Kept with the match, round by round, so that
@@ -454,11 +466,14 @@ export function forfeitMatch(run,db) {
   idle(run);
   if(run.status!=='hub')throw new Error('Nenhuma partida preparada');
   if(!shortHanded(run))throw new Error('O time está completo: a partida precisa ser jogada');
+  noPack(run);
   return recordMatch(run,db,{score:[0,13],forfeit:true});
 }
 export function recordMatch(run,db,match) {
   if(run.status==='over')throw new Error('A run já foi encerrada');
   if(run.status!=='hub')throw new Error('Nenhuma partida preparada');
+  // (a result is one that ends a match: thirteen rounds, two ahead)
+  if(!E.isMatchOver(...match.score))throw new Error('A partida ainda não acabou');
   const won=match.score[0]>match.score[1],stage=stagesOf(run)[run.stage],record=run.record[run.stage],forfeit=!!match.forfeit;
   const label=matchLabel(run.stage,record.w+record.l,run);
   run.packed=[];run.prep=null;

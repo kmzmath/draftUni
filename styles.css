@@ -59,7 +59,6 @@ h3{font-size:2.1rem}
 .label{font:600 .86rem/1.2 var(--data);letter-spacing:.16em;text-transform:uppercase;color:var(--grey);margin-bottom:.6rem;display:flex;flex-wrap:wrap;justify-content:space-between;gap:.2rem 1rem}
 .label span{letter-spacing:.04em;text-transform:none;color:var(--dim);font-weight:500}
 .lede{color:rgba(255,255,255,.86);font-size:1.1rem;max-width:56ch}
-.fine{font-size:.86rem;color:var(--dim);line-height:1.45}
 .muted{color:var(--dim)}
 .good{color:var(--lime)}
 .bad{color:var(--coral)}
@@ -193,6 +192,7 @@ img.card{height:auto;container-type:normal}
 .pip-gap{width:6px}
 .screen{max-width:1340px;margin:0 auto;padding:clamp(1.1rem,2.6vw,2rem) var(--gutter) 4rem}
 .boot{min-height:70vh;display:grid;place-content:center;justify-items:center;gap:1rem;text-align:center}
+.boot-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem}
 #toast{position:fixed;left:50%;bottom:1.5rem;z-index:60;transform:translate(-50%,calc(100% + 3rem));visibility:hidden;padding:.8rem 1.2rem;max-width:min(92vw,520px);
   font:700 .86rem/1.3 var(--ui);color:var(--black);background:var(--lime);border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s var(--ease),visibility .3s}
 #toast.on{transform:translate(-50%,0);visibility:visible}
@@ -235,7 +235,6 @@ img.card{height:auto;container-type:normal}
 .album-link span{font:700 .62rem/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.75)}
 .album-link b{font:400 2.6rem/1 var(--display);color:var(--lime)}
 .album-link small{font-size:.6em;color:var(--white)}
-.hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center}
 .career{display:flex;gap:2.2rem;margin-top:2rem}
 .career dt{font:700 .62rem/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.75)}
 .career dd{font:400 2.6rem/1 var(--display);text-transform:uppercase;color:var(--lime)}
@@ -977,7 +976,6 @@ dialog.skipped .pack-pick{animation:none}
 .impact-table th:first-child{text-align:left}
 .impact-table thead{font-size:.875rem;color:var(--grey)}
 .impact-table td{font-weight:700;white-space:nowrap}
-.impact-note{margin:.7rem 0;font:.875rem/1.45 var(--body);color:var(--grey)}
 .agent-preview{display:grid;grid-template-columns:minmax(260px,.9fr) minmax(0,1.1fr);gap:1.2rem;align-items:start}
 .agent-preview .agent-list{max-height:62vh;overflow:auto;padding:2px}
 /* Next to the list: the player's card with the overall he would have on the agent being looked at, and what it does to the team. */
@@ -1699,15 +1697,20 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 }
 
 /* ---------- Estatísticas ----------
-   A carreira em quatro abas. Cada lista é uma coluna de linhas iguais: nome, barra com a parte vencida, a parte e a
-   conta. No computador os painéis vão em duas colunas; no celular, um embaixo do outro, e a linha passa a ter dois
-   andares (nome e conta em cima, barra e porcentagem embaixo), para o nome de uma equipe caber inteiro. */
+   A carreira em quatro abas. No computador os painéis vão em duas colunas, cada um logo embaixo do de cima (um muro
+   de tijolos, e não fileiras: um painel curto não deixa um vão ao lado de um comprido); no celular, um embaixo do
+   outro. Uma tabela de uso tem as colunas com nome; na campanha, a barra diz o que conta: a conta vai escrita dentro
+   dela, e a parte ao lado. */
 .screen-career .stats-tabs{display:flex;width:max-content;max-width:100%}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.1rem;align-items:start}
 .stats .stat-kpis,.stat-panel.wide{grid-column:1/-1}
 .stats .stat-kpis{margin:0 0 .3rem;flex-wrap:wrap;gap:1rem 2.4rem}
+.stat-wall{display:block;columns:2;column-gap:1.1rem}
+.stat-wall>*{break-inside:avoid;margin:0 0 1.1rem}
+.stat-wall>.stat-kpis,.stat-wall>.stat-panel.wide{column-span:all}
+.stat-wall>.stat-kpis{margin-bottom:1.4rem}
 .stat-kpis dd{color:var(--white)}
-.stat-panel{background:var(--tray);border-radius:var(--radius)}
+.stat-panel{background:var(--tray);border-radius:var(--radius);container-type:inline-size}
 .stat-panel .eyebrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .7rem;margin-bottom:.9rem}
 .stat-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .stat-table th,.stat-table td{padding:.3rem 0 .3rem .7rem;vertical-align:middle}
@@ -1725,16 +1728,38 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 /* The column with the bar: the bar takes what is left of the cell, and the part it shows is written after it. */
 .stat-table .stat-meter{display:flex;align-items:center;gap:.55rem;padding-left:.7rem}
 .stat-table thead th:nth-child(2){text-align:left;padding-left:.7rem}
-.stat-table thead th:nth-child(2) span,.stat-table.wins thead th:nth-child(3) span{justify-content:flex-start}
-.stat-table.wins thead th:nth-child(2) span{justify-content:flex-end}
+.stat-table thead th:nth-child(2) span{justify-content:flex-start}
 .stat-bar{display:block;flex:1;min-width:1.2rem;height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}
 .stat-bar i{display:block;width:var(--v);height:100%;background:var(--lime);border-radius:4px}
 .stat-meter b{min-width:2.9rem;font:400 1.45rem/1 var(--display);color:var(--white);text-align:right}
 .stat-table td.num{font:400 1.45rem/1 var(--display);color:var(--white);text-align:right;white-space:nowrap}
 .stat-table thead th:nth-child(n+3){width:17%}
-/* In a table of results the bar is in the last column, and the count before it is the narrow one. */
-.stat-table.wins thead th:nth-child(2){width:17%;text-align:right;padding-left:0}
-.stat-table.wins thead th:nth-child(3){width:45%;text-align:left;padding-left:.7rem}
+/* A bar that says what it counts: tall enough for the count written inside it. The ink is black over the filling and
+   white over the rest, wherever the filling ends, so it reads at any part. */
+.stat-bar.told{position:relative;height:1.6rem;border-radius:5px}
+.stat-bar.told i{position:absolute;inset:0 auto 0 0;height:auto;border-radius:0}
+.stat-bar.told small{position:absolute;inset:0;padding:0 .55rem;font:700 .78rem/1.6rem var(--data);letter-spacing:.02em;white-space:nowrap;overflow:hidden;color:var(--white)}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .stat-bar.told small{background:linear-gradient(90deg,var(--black) var(--v),var(--white) var(--v));-webkit-background-clip:text;background-clip:text;color:transparent}
+}
+/* These tables have no names of columns. One bar a line: the first line gives the widths. */
+.stat-table.told tbody th{width:38%}
+/* Two bars a line: a grid, the two bars side by side after the name (two flex cells in a row of a table would share
+   one cell, one over the other). */
+.stat-table.duo,.stat-table.duo tbody{display:block}
+.stat-table.duo tr{display:grid;grid-template-columns:27% repeat(2,minmax(0,1fr));align-items:center}
+.stat-table.duo .stat-meter{padding-left:1rem}
+/* In a narrow panel (a phone, or two columns on a small screen) the line has two floors: the name, and the two bars
+   under it. */
+@container (max-width:27rem){
+  .stat-table.duo tr{grid-template-columns:repeat(2,minmax(0,1fr));gap:.3rem .8rem;padding:.4rem 0}
+  .stat-table.duo tbody th{grid-column:1/-1;padding:0}
+  .stat-table.duo .stat-meter{padding:0}
+  .stat-bar.told small{padding:0 .4rem;font-size:.7rem}
+}
+/* The button at the end of a table that shows the rest of it. */
+.stat-more{display:flex;justify-content:center;margin-top:1rem}
+.stat-more .btn{min-height:2.75rem;padding:0 1.5rem}
 .stat-records{display:grid;gap:.55rem;margin:0}
 .stat-records div{display:flex;align-items:baseline;justify-content:space-between;gap:1rem}
 .stat-records dt{font:600 .98rem/1.2 var(--body);color:var(--white)}
@@ -1747,8 +1772,12 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 .stat-card small{font:700 .58rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:.2rem}
 .stat-card span{font:600 .74rem/1.25 var(--data);letter-spacing:.02em;color:var(--grey);white-space:nowrap}
 .stat-card span i{font-style:normal;color:var(--white)}
-.stat-cards.one{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr);align-items:center;gap:1.1rem}
-.stat-best{font:400 2.2rem/.95 var(--display);text-transform:uppercase;color:var(--white)}
+/* The five best of the confrontations: in a row, or three and two in a narrow panel. */
+.stat-cards.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+@container (max-width:27rem){
+  .stat-cards.five{display:flex;flex-wrap:wrap;justify-content:center}
+  .stat-cards.five .stat-card{flex:0 0 calc((100% - 1.4rem)/3)}
+}
 .stat-five{display:flex;gap:.3rem}
 .stat-five .agent-icon,.stat-five .role-icon{width:2rem;height:2rem}
 @media (hover:hover){.stat-card:hover{transform:translateY(-4px)}}
@@ -1792,6 +1821,16 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .prep-roster{grid-template-columns:repeat(4,minmax(0,1fr))}
   .prep .label{display:grid;gap:.3rem}
 }
+/* The way back to the home, on the screens opened from it. */
+.back-line{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;margin:0 0 .8rem}
+/* The switch of the sound of the conquests: a lit mark while it is on. */
+.btn.sound{gap:.55rem;min-height:2.75rem;padding:0 1.1rem 0 .95rem;color:var(--white);background:var(--black)}
+.btn.sound::before{content:"";width:.6rem;height:.6rem;border-radius:50%;background:var(--lime)}
+.btn.sound[aria-pressed="false"]{color:var(--grey)}
+.btn.sound[aria-pressed="false"]::before{background:transparent;box-shadow:inset 0 0 0 2px var(--grey)}
+.btn.back{gap:.55rem;min-height:2.75rem;padding:0 1.1rem 0 .9rem;color:var(--white);background:var(--black)}
+.btn.back span{font:700 1.15rem/1 var(--body)}
+.btn.back:hover{color:var(--black);background:var(--lime)}
 /* ---------- Seu time: a oficina do escudo ---------- */
 .workshop{display:grid;grid-template-columns:minmax(0,21rem) minmax(0,1fr);gap:1.1rem;align-items:start}
 .crest-stage,.crest-parts{background:var(--tray);border-radius:var(--radius);padding:1.3rem 1.4rem 1.4rem}
@@ -1806,14 +1845,14 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 .crest-option{display:grid;place-items:center;aspect-ratio:1;padding:.6rem;background:rgba(255,255,255,.05);border-radius:10px;box-shadow:inset 0 0 0 2px transparent;transition:transform .2s var(--ease),box-shadow .2s,background .2s}
 .crest-option .crest{width:100%;height:100%}
 .crest-option[aria-pressed="true"]{background:rgba(209,243,80,.12);box-shadow:inset 0 0 0 2px var(--lime)}
-.crest-slots{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.1rem}
-.crest-slot{display:flex;align-items:center;gap:.55rem;min-height:2.75rem;padding:0 .95rem 0 .7rem;font:700 .74rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,.06);border-radius:999px;box-shadow:inset 0 0 0 2px transparent;transition:box-shadow .2s,background .2s}
-.crest-slot::before{content:"";width:1.25rem;height:1.25rem;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(255,255,255,.35)}
-.crest-slot[aria-pressed="true"]{background:rgba(209,243,80,.12);box-shadow:inset 0 0 0 2px var(--lime)}
-.crest-swatches{display:grid;grid-template-columns:repeat(8,minmax(0,4.2rem));gap:.7rem}
+.crest-color{margin-top:1.25rem}
+.crest-color:first-child{margin-top:0}
+.crest-color .label{margin:0 0 .6rem}
+.crest-swatches{display:grid;grid-template-columns:repeat(16,minmax(0,2.75rem));gap:.45rem}
 .crest-swatch{aspect-ratio:1;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 2px rgba(255,255,255,.3);transition:transform .2s var(--ease),box-shadow .2s}
 .crest-swatch[aria-pressed="true"]{box-shadow:inset 0 0 0 2px rgba(255,255,255,.3),0 0 0 3px var(--tray),0 0 0 6px var(--lime)}
 @media (hover:hover){.crest-option:hover,.crest-swatch:hover{transform:translateY(-3px)}}
+@media (max-width:1100px){.crest-swatches{grid-template-columns:repeat(8,minmax(0,2.75rem))}}
 @media (max-width:860px){
   .workshop{grid-template-columns:minmax(0,1fr)}
   .crest-stage{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:.8rem 1rem;padding:1rem .9rem}
@@ -1826,15 +1865,16 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .crest-tabs button{flex:1;padding:0 .3rem;font-size:.72rem;letter-spacing:.04em}
   .crest-options{grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
   .crest-option{padding:.45rem}
-  .crest-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-  .crest-swatches{grid-template-columns:repeat(4,minmax(0,1fr));gap:.9rem 1rem;justify-items:center}
-  .crest-swatch{width:100%;max-width:4rem}
+  .crest-swatches{grid-template-columns:repeat(8,minmax(0,3.2rem));gap:.55rem}
 }
 @media (max-width:900px){
   .stat-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media (max-width:700px){
   .stats{grid-template-columns:1fr;gap:.7rem}
+  .stat-wall{columns:1}
+  .stat-wall>*{margin-bottom:.7rem}
+  .stat-wall>.stat-kpis{margin-bottom:1rem}
   .screen-career .stats-tabs{width:100%}
   .screen-career .stats-tabs button{flex:1;padding:0 .3rem;font-size:.7rem;letter-spacing:.04em}
   .stats .stat-kpis{gap:.7rem 1.4rem}
@@ -1853,3 +1893,173 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
   .stat-card span{font-size:.66rem}
   .stat-five .agent-icon,.stat-five .role-icon{width:1.7rem;height:1.7rem}
 }
+@media (max-width:480px){.crest-swatches{grid-template-columns:repeat(6,minmax(0,1fr));gap:.5rem}}
+/* ---------- Celular: uma tela por vez ----------
+   No celular, o que se decide numa tela cabe nela, sem rolar a página: a tela inicial inteira; as três cartas de uma
+   escolha do draft, lado a lado como no computador, com os contratos em cima e o elenco embaixo; os titulares, a
+   formação e o banco; o rival, numa aba só dele (a quarta: no computador ele fica na coluna ao lado); a loja em três
+   vistas (pacotes, mercado, contratos); o resultado, com o botão de seguir logo depois do que a partida pagou.
+   O que é lista por natureza continua rolando: o álbum, as conquistas, o guia de formações, as estatísticas. */
+.tabs .tab-rival,.formation-strip,.album-filters.shop-nav{display:none}
+@media (max-width:700px){
+  /* --- a carta: os seis atributos em três colunas (numa coluna só, eles sozinhos passavam de uma tela) --- */
+  .detail-info .stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem .6rem}
+
+  /* --- início --- */
+  .hero-art{height:clamp(96px,17.5vh,214px);height:clamp(96px,17.5svh,214px)}
+  .hero-title{font-size:clamp(2.9rem,14.5vw,4.4rem)}
+  .team-id{margin:.4rem 0 .5rem}
+  .crest-edit{width:3rem;height:3rem}
+  .team-name input{height:3rem;font-size:1.8rem}
+  .modes{gap:.45rem}
+  .mode{padding:.5rem .7rem .6rem}
+  .mode h2{font-size:1.6rem}
+  .mode .btn.big{min-height:46px}
+  /* The history, and the three links on one row under it. */
+  .hero-foot{gap:.5rem;margin-top:.5rem}
+  .career dd,.album-link b{font-size:1.7rem}
+  .hero-foot .stats-link{flex:1}
+  .album-link{min-width:0;padding:.45rem .55rem .4rem}
+  .album-link span{font-size:.58rem;letter-spacing:.06em}
+  .screen-home::after{display:none}
+
+  /* --- depois da partida: o botão de seguir vem logo depois do que a partida pagou, antes dos detalhes --- */
+  .mvp{grid-template-columns:60px minmax(0,1fr);gap:.1rem .8rem}
+  .mvp h3{font-size:1.8rem}
+  .kda{font-size:1.7rem}
+  .rewards{display:flex;flex-direction:column}
+  .rewards>.reward-coins{order:1}
+  .rewards>[data-action="after-match"]{order:2;margin:.1rem 0 .9rem}
+  .rewards>ul{order:3}
+  .rewards>.post-feats{order:4}
+  .end-lineup{margin-bottom:.7rem}
+  .history{margin-bottom:.8rem}
+
+  /* --- janelas que passavam um pouco da tela --- */
+  .prep{gap:.6rem}
+  .prep-list{gap:.35rem}
+  .prep-item{padding:.5rem .7rem}
+  .prep-item b{font-size:1.25rem}
+  .prep-item div span{margin-top:.15rem;font-size:.8rem;line-height:1.25}
+  .periods{gap:3px}
+  .period{min-height:44px;padding-block:.2rem}
+  .period>span:not(.sr-only){font-size:.86rem;line-height:1.2}
+  .compare-picker{margin-bottom:.6rem}
+  .card-comparison{gap:.5rem .8rem;margin-bottom:.7rem}
+  .card-comparison figure{max-width:104px}
+  .impact-table th,.impact-table td{padding:.3rem .2rem}
+
+  /* --- elenco: quatro abas, e a coluna do rival só na dele --- */
+  .screen-hub .band{margin-bottom:.45rem}
+  .screen-hub .band.compact .band-kicker{display:none}
+  .screen-hub .band.compact .band-body{padding:.3rem .9rem .35rem;align-items:center}
+  .screen-hub .band.compact h1{font-size:1.5rem}
+  .screen-hub .band.compact .band-note{padding-bottom:0;font-size:1.25rem}
+  .tabs{gap:.9rem;margin-bottom:.45rem}
+  .tabs .tab-rival{display:inline-block}
+  .tabs button{min-width:44px;font-size:1.9rem}
+  .hub:not(.tab-rival) .hub-side{display:none}
+  .hub.tab-rival .hub-main>:not(.tabs){display:none}
+  .hub-side .identity{display:none}
+  /* The formation, between the starters and the bench: its name and what it gives on each side, then its tags. */
+  .formation-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.3rem .7rem;width:100%;margin-top:.5rem;padding:.45rem .7rem .5rem;text-align:left;color:var(--white);
+    background:var(--tray);border-radius:var(--radius);border-left:4px solid var(--role,var(--lime))}
+  .strip-name{display:flex;align-items:center;gap:.45rem;min-width:0}
+  .strip-name .formation-icon{flex:none;width:1.45rem;height:1.45rem;color:var(--role,var(--lime))}
+  .strip-name b{font:400 1.45rem/1 var(--display);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .strip-sides{display:flex;gap:.7rem;font:700 .62rem/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--grey)}
+  .strip-sides i{font-style:normal;white-space:nowrap}
+  .strip-sides b{font:400 1.3rem/1 var(--display);color:var(--white)}
+  .strip-sides .good b{color:var(--lime)}
+  .strip-sides .bad b{color:var(--coral)}
+  .formation-strip .tags{grid-column:1/-1;gap:.25rem}
+  .formation-strip .tags span{padding:.22rem .4rem;font-size:.68rem}
+  .under-stage{gap:.6rem;margin-top:.5rem}
+  /* The rival's tab: the bar on the bottom of the screen already has "Jogar partida", and the map is scenery. */
+  .next .map-shot,.next .versus-head{display:none}
+  .versus b{font-size:2.4rem}
+  .team-org{font-size:.88rem;line-height:1.25}
+  .panel.next>[data-action="play"],.panel.next>[data-action="forfeit"]{display:none}
+  .next h2{font-size:2.1rem}
+  .next .prep-line{margin-bottom:0}
+
+  /* --- loja: três vistas, cada uma numa tela --- */
+  .album-filters.shop-nav{display:flex;margin-bottom:0}
+  .shop{gap:.6rem}
+  .shop.at-packs>:not(.shop-nav):not(.in-packs),.shop.at-market>:not(.shop-nav):not(.in-market),.shop.at-agents>:not(.shop-nav):not(.in-agents){display:none}
+  .shop-block>h2{display:none}
+  /* The packs: two a row, the pack beside its name and its price. */
+  .packs{grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem}
+  .pack{grid-template-columns:auto minmax(0,1fr);align-content:center;gap:.05rem .55rem;padding:.5rem .5rem .55rem}
+  .pack-art{grid-row:1/4;width:38px;height:54px}
+  .pack-art .crest{height:1.35rem}
+  .pack-funcao .pack-art .role-icon{width:1.4rem;height:1.4rem}
+  .pack b{align-self:end;font-size:1.35rem}
+  .pack small{font-size:.68rem;line-height:1.15}
+  .pack .price{grid-column:2;grid-row:3;flex-direction:row;align-items:center;justify-content:flex-start;gap:.35rem;font-size:1rem}
+  .pack .role-order{grid-column:1/-1;justify-content:flex-start;margin-top:.3rem}
+  /* The market: two cards a row, each with the card, who he is and how he fits beside it, and its two buttons under. */
+  .market,.market.wide{grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem}
+  .market-card{grid-template-columns:50px minmax(0,1fr);grid-template-rows:auto 1fr auto auto;gap:.25rem .45rem;padding:.35rem .4rem .4rem}
+  .market-art{grid-column:1;grid-row:1/3}
+  .market-card .team-line{grid-column:2;grid-row:1;gap:.3rem}
+  .market-card .team-line>span{min-width:0}
+  .market-card .team-line .logo{flex:none;width:1.25rem;height:1.25rem}
+  .market-card .team-line b{font-size:.64rem;overflow-wrap:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .market-card .team-line small{display:none}
+  .market-card .facts{grid-column:2;grid-row:2;gap:.2rem;font-size:.66rem}
+  .market-card .facts li{gap:.15rem .3rem}
+  .market-card .facts .agent,.market-card .facts .role{font-size:.64rem}
+  .market-card .facts .agent-icon,.market-card .facts .role-icon{width:1.05rem;height:1.05rem}
+  .market-card .btn{min-height:44px;padding:.3rem .4rem}
+  .market-card [data-action="compare"]{grid-column:1/-1;grid-row:3;min-height:40px;font-size:.66rem}
+  .market-card [data-action="compare"] .wide{display:none}
+  .market-card [data-action="buy-player"],.market-card [data-action="buy-player"]:first-of-type{grid-column:1/-1;grid-row:4;font-size:.74rem}
+}
+@media (max-width:520px){
+  /* --- draft: as três cartas lado a lado, cada uma numa coluna, com os atributos e o botão na mesma altura --- */
+  .screen-draft{padding-bottom:.8rem}
+  .screen-draft .band{margin-bottom:.45rem}
+  .screen-draft .band.compact .band-body{padding:.4rem .9rem .45rem}
+  .screen-draft .band.compact .band-kicker{font-size:.76rem}
+  .screen-draft .band h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .screen-draft .contracts{margin-bottom:.45rem;padding:.4rem .5rem .45rem}
+  .screen-draft .contracts .label{margin-bottom:.3rem;font-size:.62rem;letter-spacing:.1em}
+  .screen-draft .contracts .chips{gap:.25rem}
+  .screen-draft .contracts .agent{padding:.12rem .38rem .12rem .12rem;font-size:.64rem}
+  .screen-draft .contracts .agent-icon,.screen-draft .contracts .role-icon{width:1.2rem;height:1.2rem}
+  .offers{grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem}
+  .offer{display:flex;flex-direction:column;gap:.28rem;padding:.3rem .3rem .4rem;border-top-width:3px}
+  .offer-art{width:100%}
+  .offer-info{display:flex;flex:1;flex-direction:column;gap:.26rem;min-width:0}
+  /* (the card says the name) */
+  .offer-info h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .offer-info .team-line{gap:.3rem}
+  .offer-info .team-line>span{min-width:0}
+  .offer-info .team-line .logo{flex:none;width:1.15rem;height:1.15rem}
+  .offer-info .team-line b{font-size:.62rem;line-height:1.1;overflow-wrap:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .offer-info .team-line small{display:none}
+  .offer-info .facts{gap:.22rem;font-size:.64rem;line-height:1.15}
+  .offer-info .facts li{gap:.1rem .3rem}
+  .offer-info .facts .agent,.offer-info .facts .role{font-size:.62rem}
+  .offer-info .facts .agent{padding:.12rem .3rem .12rem .12rem}
+  .offer-info .facts .agent-icon,.offer-info .facts .role-icon{width:1.05rem;height:1.05rem}
+  /* The six attributes in two columns, held to the bottom of the card: the name of each and its number on one line,
+     and a bar under them without a number of its own. */
+  .offer-info .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:.3rem .45rem;margin:auto 0 0}
+  .offer-info .stats div{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;column-gap:.2rem}
+  .offer-info .stats dt{font-size:.56rem;letter-spacing:.04em}
+  .offer-info .stats dd{font-size:.9rem;line-height:1.05;text-align:right}
+  .offer-info .stats .meter{grid-column:1/-1;height:5px;margin-top:.12rem}
+  .offer-info .stats .meter b{display:none}
+  .offer-info .btn{width:100%;min-height:42px;padding:.4rem .2rem;font-size:.7rem}
+  /* The roster so far: six small cards on one row. */
+  .draft-roster{grid-template-columns:repeat(6,minmax(0,44px));justify-content:center;gap:.35rem;margin-top:.45rem}
+  .mini,.mini.empty{display:block;position:relative;padding:0;background:none}
+  .mini .card{display:block;width:100%}
+  .mini-info,.mini-ovr{display:none}
+  .mini.empty{display:grid;grid-template-columns:minmax(0,1fr);place-items:center;aspect-ratio:450/720}
+  .mini.empty i{width:auto;height:auto;font-size:1.4rem}
+  .mini.empty span{display:none}
+}
+/* fim: uma tela por vez */

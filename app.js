@@ -1,19 +1,19 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=72200b50cd';
-import * as C from './campaign.js?v=72200b50cd';
-import * as S from './screens.js?v=72200b50cd';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=72200b50cd';
-import {startTour,closeTour,tourOpen} from './tour.js?v=72200b50cd';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=72200b50cd';
-import {stamp,cleanAlbum} from './album.js?v=72200b50cd';
-import {initTips,refreshTips} from './tip.js?v=72200b50cd';
-import {shareModel,copyShareImage} from './share.js?v=72200b50cd';
-import {staleSave,stampSave} from './save.js?v=72200b50cd';
-import * as A from './achievements.js?v=72200b50cd';
-import * as ST from './stats.js?v=72200b50cd';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=72200b50cd';
-import {playChime} from './sound.js?v=72200b50cd';
-import * as K from './crest.js?v=72200b50cd';
+import * as E from './engine.js?v=08314e7589';
+import * as C from './campaign.js?v=08314e7589';
+import * as S from './screens.js?v=08314e7589';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=08314e7589';
+import {startTour,closeTour,tourOpen} from './tour.js?v=08314e7589';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=08314e7589';
+import {stamp,cleanAlbum} from './album.js?v=08314e7589';
+import {initTips,refreshTips} from './tip.js?v=08314e7589';
+import {shareModel,copyShareImage} from './share.js?v=08314e7589';
+import {staleSave,stampSave} from './save.js?v=08314e7589';
+import * as A from './achievements.js?v=08314e7589';
+import * as ST from './stats.js?v=08314e7589';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=08314e7589';
+import {playChime} from './sound.js?v=08314e7589';
+import * as K from './crest.js?v=08314e7589';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats',RIVALS_KEY='univava:rivals';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
@@ -25,12 +25,14 @@ const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY
 // the career (see stats.js). ui.opened is the período the run on screen has just opened.
 const ctx={db:null,run:null,mode:'free',slots:{free:null,daily:null},today:'',album:{},feats:A.cleanFeats(null),stats:null,match:null,summary:null,screen:'home',showcase:[],team:'',prefs:null,
   career:{runs:0,titles:0,best:'',bestRank:-1,daily:{},period:0,cleared:0},
-  ui:{tab:'lineup',selected:null,paused:false,speed:1,showEvent:false,play:null,duel:null,freeze:null,settings:false,sort:null,albumFilter:'all',careerTab:'run',crestTab:'shape',crestSlot:'base',opened:0}};
+  ui:{tab:'lineup',selected:null,paused:false,speed:1,showEvent:false,play:null,duel:null,freeze:null,settings:false,sort:null,albumFilter:'all',careerTab:'run',rivalsAll:false,crestTab:'shape',opened:0}};
 // What the player chose to keep between visits: the team's name, match speed, how the freezetime before each round
 // works (automatic or on a click, and for how many seconds), which screens the tutorial already explained and the
 // período chosen for the last run.
-const prefs=ctx.prefs={team:'',speed:1,freezeAuto:false,freezeSet:false,freeze:FREEZE_DEFAULT,seen:{},period:null};
+const prefs=ctx.prefs={team:'',speed:1,freezeAuto:false,freezeSet:false,freeze:FREEZE_DEFAULT,seen:{},period:null,mute:false};
 let timer=null,duelTimer=null,clockTimer=null,shownKey='',toastTimer=null,packShown=0;
+// A phone: where the screen between matches gives the next rival a tab of its own (see hub in screens.js).
+const PHONE='(max-width:700px)';
 
 // Storage can be unavailable (private mode, blocked site data): the game then simply doesn't remember.
 function load(key){try{return JSON.parse(localStorage.getItem(key));}catch{return null;}}
@@ -82,7 +84,7 @@ function backToPlace({screen,mode,tab,careerTab,albumFilter}={}){
   }
   if(!screen||screen==='home'||!['free','daily'].includes(mode)||!ctx.slots[mode])return;
   resume(mode);
-  if(ctx.screen==='hub'&&['lineup','shop','stats'].includes(tab))ctx.ui.tab=tab;
+  if(ctx.screen==='hub'&&['lineup','shop','stats','rival'].includes(tab))ctx.ui.tab=tab;
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkBuild();});
 addEventListener('pageshow',event=>{if(event.persisted)checkBuild();});
@@ -124,7 +126,7 @@ function nextFeat(){
   el.innerHTML=S.featBanner(id);
   // the banner comes in again for each one, with its sound
   el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
-  playChime();
+  if(!prefs.mute)playChime();
   featTimer=setTimeout(nextFeat,featQueue.length?2400:3600);
 }
 function celebrate(ids){
@@ -149,6 +151,8 @@ function entryKey(){
   return screen;
 }
 function render(){
+  // (the tab of the rival only exists on a phone: a window made wider while on it goes back to the lineup)
+  if(ctx.ui.tab==='rival'&&!matchMedia(PHONE).matches)ctx.ui.tab='lineup';
   const app=$('#app'),focused=document.activeElement?.dataset,key=entryKey(),changed=key!==shownKey;
   const selector=focused?.action&&!$('#dialog').open?`[data-action="${focused.action}"]${focused.id?`[data-id="${CSS.escape(focused.id)}"]`:''}`:null;
   // Scoreboard rows remember where they were, so a change of order can be animated (first, last, invert, play).
@@ -198,7 +202,8 @@ function runClock(){
   },80);
 }
 // The tutorial of each screen opens by itself the first time; the Ajuda button opens it again on demand.
-const tourName = key=>key.startsWith('draft')?'draft':key==='match:result'?null:key;
+// (the tab of the rival is explained with the lineup: it is the same screen, with another part of it in front)
+const tourName = key=>key.startsWith('draft')?'draft':key==='match:result'?null:key==='hub:rival'?'hub:lineup':key;
 function openTour(key,auto){
   // The first período a title opens is explained on the spot, whatever the tutorial already showed of the end screen.
   const name=auto&&key==='end'&&ctx.ui.opened&&!prefs.seen.periods?'periods':tourName(key);
@@ -255,16 +260,21 @@ function enterMatch(){
 }
 function recordCareer(run){
   const last=run.history.at(-1),champion=run.result==='champion';
-  const rank=champion?100:run.stage*10+run.record[run.stage].w;
-  // A title in the traditional mode opens the next período, and the next run opens on it.
-  const {opened,...periods}=C.periodsAfter(ctx.career,run);
-  Object.assign(ctx.career,periods);
-  if(opened){ctx.ui.opened=opened;prefs.period=opened;store(PREFS_KEY,prefs);}
-  ctx.career.runs++;if(champion)ctx.career.titles++;
-  // Where the run ended and the bonuses it held go into the statistics.
-  ST.recordRun(ctx.stats,run);store(STATS_KEY,ctx.stats);
-  if(rank>ctx.career.bestRank){ctx.career.bestRank=rank;ctx.career.best=champion?'Campeão':run.stage===2&&last?last.label:C.STAGES[run.stage].name;}
+  // A run that never played a match (given up in the draft, or before its first game) is not a run played: it is not
+  // counted among the runs, it is nobody's best campaign and it leaves nothing in the statistics.
+  if(C.hasPlayed(run)){
+    const rank=champion?100:run.stage*10+run.record[run.stage].w;
+    // A title in the traditional mode opens the next período, and the next run opens on it.
+    const {opened,...periods}=C.periodsAfter(ctx.career,run);
+    Object.assign(ctx.career,periods);
+    if(opened){ctx.ui.opened=opened;prefs.period=opened;store(PREFS_KEY,prefs);}
+    ctx.career.runs++;if(champion)ctx.career.titles++;
+    // Where the run ended and the bonuses it held go into the statistics.
+    ST.recordRun(ctx.stats,run);store(STATS_KEY,ctx.stats);
+    if(rank>ctx.career.bestRank){ctx.career.bestRank=rank;ctx.career.best=champion?'Campeão':run.stage===2&&last?last.label:C.STAGES[run.stage].name;}
+  }
   // A finished Desafio do dia leaves its result behind, with the text to share, for the last two months of days.
+  // (Given up before its first match it is still spent: the day keeps its line, and can't be played again.)
   if(run.daily){
     const log={...ctx.career.daily,[run.daily]:{line:C.resultLine(run),share:C.shareText(run,ctx.team)}};
     ctx.career.daily=Object.fromEntries(Object.entries(log).sort(([a],[b])=>a.localeCompare(b)).slice(-60));
@@ -403,16 +413,19 @@ const actions={
   home(){clearTimeout(timer);clearTimeout(duelTimer);ctx.screen='home';ctx.today=C.dayKey();ctx.ui.opened=0;},
   album(){ctx.screen='album';},
   feats(){ctx.screen='feats';},
-  career(){ctx.screen='career';},
+  career(){ctx.screen='career';ctx.ui.rivalsAll=false;},
   // The workshop of the crest. Every choice is the team's mark at once, here and in every run.
   team(){ctx.screen='team';},
   'crest-tab'(id){ctx.ui.crestTab=id;},
-  'crest-slot'(id){ctx.ui.crestSlot=id;},
   'crest-set'(id){const [part,key]=id.split(':');keepCrest(K.cleanCrest({...(ctx.crest||K.DEFAULT_CREST),[part]:key}));},
   'crest-random'(){keepCrest(K.randomCrest());},
   'crest-reset'(){keepCrest(null);},
   'career-tab'(id){ctx.ui.careerTab=id;},
+  // Every rival ever met, or only the most met again.
+  'rivals-all'(){ctx.ui.rivalsAll=!ctx.ui.rivalsAll;},
   'album-filter'(id){ctx.ui.albumFilter=id;},
+  // The sound of a conquest that comes out, on or off, kept with what the player chose.
+  sound(){prefs.mute=!prefs.mute;store(PREFS_KEY,prefs);},
   // Desafio do dia: one run a day, with the seed of the day. A challenge still being played comes first, whatever its day.
   daily(){
     const slot=ctx.slots.daily;
@@ -460,6 +473,8 @@ const actions={
   perk(id){const bought=ctx.run.perkBought;C.choosePerk(ctx.run,ctx.db,id);ctx.ui.tab=bought?'shop':'lineup';route();toast(`${E.PERKS[id].name} entrou na comissão técnica`);},
   'open-perk-pack'(){C.openPerkPack(ctx.run,ctx.db);route();},
   tab(id){ctx.ui.tab=id;ctx.ui.selected=null;},
+  // The part of the shop on screen, where the shop is shown one part at a time (a phone).
+  'shop-view'(id){ctx.ui.shop=id;},
   // A click on a column of the Stats table sorts by it; a click on the same column goes back to the usual order.
   'stats-sort'(id){ctx.ui.sort=ctx.ui.sort===id?null:id;},
   select(id){
@@ -497,7 +512,11 @@ const actions={
   reroll(){C.rerollShop(ctx.run,ctx.db);},
   play(){enterMatch();announce('Partida iniciada. Você pode pausar quando quiser.');earn(A.fromKickoff(ctx.match.teams[0].lineup));},
   // From the bar at the bottom of a narrow screen to the rival's panel, further down the page.
-  'see-rival'(){$('.panel.next')?.scrollIntoView({block:'start',behavior:'smooth'});return false;},
+  // On a phone the rival has a tab of its own; on a wider narrow screen his panel is further down the page.
+  'see-rival'(){
+    if(matchMedia(PHONE).matches){ctx.ui.tab='rival';ctx.ui.selected=null;return;}
+    $('.panel.next')?.scrollIntoView({block:'start',behavior:'smooth'});return false;
+  },
   forfeit(){openDialog(S.forfeitDialog(ctx));return false;},
   'confirm-forfeit'(){
     closeDialog();ctx.match=null;ctx.summary=C.forfeitMatch(ctx.run,ctx.db);
@@ -560,7 +579,27 @@ document.addEventListener('click',event=>{
     if(actions[el.dataset.action](el.dataset.id,el)===false)return;
     earn();
     if(saveRun())render();
-  }catch(error){toast(error.message);}
+  }catch(error){
+    // A refusal of the rules says why in its own words. Anything else is a fault of the code: the player gets a plain
+    // message in the language of the game, and the fault itself goes to the console.
+    if(error?.constructor===Error)toast(error.message);
+    else{console.error(error);toast(FAULT);}
+  }
+});
+const FAULT='Algo deu errado. Recarregue a página e tente de novo';
+// A saved run that can't be drawn (a save from a version too old, or one changed by hand) must not leave a page that
+// never opens: the game says so and offers the two ways out. Giving up the runs in progress keeps everything else:
+// the album, the conquests, the statistics and the history.
+function broken(error){
+  console.error(error);
+  $('#app').innerHTML=`<div class="boot"><h1>O jogo não conseguiu abrir</h1><p>Uma run salva não pôde ser lida. O álbum, as conquistas e as estatísticas continuam guardados</p>
+    <div class="boot-actions"><button class="btn primary" data-boot="reload">Tentar de novo</button><button class="btn" data-boot="drop">Descartar as runs em andamento</button></div></div>`;
+}
+document.addEventListener('click',event=>{
+  const way=event.target.closest('[data-boot]')?.dataset.boot;
+  if(!way)return;
+  if(way==='drop'){try{localStorage.removeItem(RUN_KEY);localStorage.removeItem(DAILY_KEY);}catch{/* reloads as it is */}}
+  location.reload();
 });
 $('#dialog').addEventListener('cancel',event=>{if(event.currentTarget.dataset.locked==='1')event.preventDefault();});
 document.addEventListener('change',event=>{
@@ -642,7 +681,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=72200b50cd');
+    const response=await fetch('players.json?v=08314e7589');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -653,7 +692,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=72200b50cd');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=08314e7589');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
@@ -662,6 +701,7 @@ async function init(){
   prefs.seen={...(saved_prefs.seen||{})};
   if(Number.isInteger(saved_prefs.period))prefs.period=saved_prefs.period;
   prefs.freezeAuto=prefs.freezeSet=savedFreezeAuto(saved_prefs);prefs.freeze=cleanFreeze(saved_prefs.freeze);prefs.freezeAll=saved_prefs.freezeAll===true;
+  prefs.mute=saved_prefs.mute===true;
   if(typeof saved_prefs.team==='string')ctx.team=prefs.team=saved_prefs.team.replace(/\s+/g,' ').trim().slice(0,24);
   ctx.crest=prefs.crest=K.cleanCrest(saved_prefs.crest);
   ctx.ui.speed=prefs.speed;
@@ -674,12 +714,15 @@ async function init(){
   // The conquests already won, plus what the saved history, album and runs already prove (titles, the best campaign,
   // the cards of the album): those are marked here without ceremony, because they were not won just now.
   ctx.feats=A.cleanFeats(load(FEATS_KEY));
-  if(['free','daily'].map(mode=>A.award(ctx.feats,A.fromState({...ctx,run:ctx.slots[mode]}),ctx.today)).flat().length)store(FEATS_KEY,ctx.feats);
   // Back from a move to a newer build (see switchBuild): the player is put where they were, and told why the page blinked.
   let place=null;
   try{place=JSON.parse(sessionStorage.getItem(PLACE_KEY)||'null');sessionStorage.removeItem(PLACE_KEY);}catch{/* opens on the first screen */}
-  if(place)backToPlace(place);
-  render();
+  // (what is read from a saved run, here and on the first screen, is where a save that can't be drawn shows itself)
+  try{
+    if(['free','daily'].map(mode=>A.award(ctx.feats,A.fromState({...ctx,run:ctx.slots[mode]}),ctx.today)).flat().length)store(FEATS_KEY,ctx.feats);
+    if(place)backToPlace(place);
+    render();
+  }catch(error){broken(error);return;}
   if(place)toast('Jogo atualizado');
   // Back from a reload forced by another tab (see resync).
   let notice=null;

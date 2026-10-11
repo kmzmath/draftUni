@@ -4,14 +4,16 @@
 // vitórias por fase, rounds por lado, rivais, formações, agentes, confrontos, onde cada run acabou e os recordes de
 // round (o mais difícil vencido e o mais fácil perdido).
 // É JSON puro. Um par é {n, w}: quantas vezes, e quantas delas vencidas.
-import * as E from './engine.js?v=72200b50cd';
-import {STAGES} from './campaign.js?v=72200b50cd';
+import * as E from './engine.js?v=08314e7589';
+import {STAGES,hasPlayed} from './campaign.js?v=08314e7589';
 
 // Where a run ended, from the best ending to the worst. `quit` is a run given up or replaced before its end.
 export const OUTCOMES = ['champion','final','semis','quarters','groups','qualifier','quit'];
 export const OUTCOME_NAMES = {champion:'Campeão',final:'Final',semis:'Semifinal',quarters:'Quartas de final',groups:'Fase de Grupos',qualifier:'Classificatória',quit:'Abandonada'};
 // How many lines a list of the summary shows, and how many compositions of five agents are kept.
 export const TOP = 8;
+// How many cards the list of the best of the confrontations has.
+export const BEST = 5;
 export const COMPS_MAX = 40;
 const TIES = ['overall','perk','coin'];
 const pair = ()=>({n:0,w:0});
@@ -103,8 +105,10 @@ export function outcomeOf(run) {
   if(run.status!=='over'||run.result!=='eliminated')return 'quit';
   return run.stage===0?'qualifier':run.stage===1?'groups':['quarters','semis','final'][Math.min(2,run.record[2].w)];
 }
-// A run that came to its end, whatever the end: where it stopped, and the bonuses its staff held.
+// A run that came to its end, whatever the end: where it stopped, and the bonuses its staff held. A run that never
+// played a match (given up in the draft, or before its first game) was not a run: it leaves nothing here.
 export function recordRun(stats,run) {
+  if(!hasPlayed(run))return stats;
   const book=stats.runs[run.daily?'daily':'free'],outcome=outcomeOf(run);
   book[outcome]=(book[outcome]||0)+1;
   for(const key of run.perks||[]){const each=stats.perks[key]??={n:0,t:0};each.n++;if(outcome==='champion')each.t++;}
@@ -144,7 +148,8 @@ export function overview(stats,{album,career,db}) {
     outcomes:OUTCOMES.map(key=>({key,name:OUTCOME_NAMES[key],n:(stats.runs.free[key]||0)+(stats.runs.daily[key]||0)})),
     stages:STAGES.map((stage,i)=>({name:stage.name,...stats.matches[i]})),
     rounds:{...stats.rounds},overtime:{...stats.overtime},
-    cards,teams,rivals:ranked(stats.rivals,'team').slice(0,TOP),
+    // (every rival, the most met first: the screen shows the first of them, and all of them when asked)
+    cards,teams,rivals:ranked(stats.rivals,'team'),
     formations:ranked(stats.formations,'key').map(each=>({...each,name:E.FORMATIONS.find(f=>f.key===each.key).name})),
     agents:ranked(stats.agents,'agent').slice(0,TOP),
     comps:ranked(stats.comps,'key').slice(0,3).map(({key,...each})=>({agents:key.split('|'),...each})),
@@ -153,6 +158,6 @@ export function overview(stats,{album,career,db}) {
       types:Object.keys(E.EVENT_TYPES).map(key=>({key,label:E.EVENT_TYPES[key].label,...(stats.duels.types[key]||pair())})),
       attributes:{n:all.n-sum(ties,'n'),w:all.w-sum(ties,'w')},
       overall:{n:stats.duels.ties.overall.n+stats.duels.ties.perk.n,w:stats.duels.ties.overall.w+stats.duels.ties.perk.w},
-      coin:{...stats.duels.ties.coin},best:duelists[0]||null}
+      coin:{...stats.duels.ties.coin},top:duelists.slice(0,BEST)}
   };
 }

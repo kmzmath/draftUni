@@ -1,15 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=72200b50cd';
-import * as C from './campaign.js?v=72200b50cd';
-import {previewChange} from './impact.js?v=72200b50cd';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=72200b50cd';
-import {albumSummary,cardStatus} from './album.js?v=72200b50cd';
-import * as A from './achievements.js?v=72200b50cd';
-import * as ST from './stats.js?v=72200b50cd';
-import * as B from './abilities.js?v=72200b50cd';
-import * as K from './crest.js?v=72200b50cd';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=72200b50cd';
+import * as E from './engine.js?v=08314e7589';
+import * as C from './campaign.js?v=08314e7589';
+import {previewChange} from './impact.js?v=08314e7589';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=08314e7589';
+import {albumSummary,cardStatus} from './album.js?v=08314e7589';
+import * as A from './achievements.js?v=08314e7589';
+import * as ST from './stats.js?v=08314e7589';
+import * as B from './abilities.js?v=08314e7589';
+import * as K from './crest.js?v=08314e7589';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=08314e7589';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -27,6 +27,12 @@ const mark = (key,name,alt='')=>brandArt(key)?`<img class="${name}" src="${esc(b
 const crest = ()=>mark('crest','crest');
 // The mark of the player's team: the crest it has put together, or the one of the tournament while it has none.
 const ourCrest = ctx=>K.crestSvg(ctx.crest,{name:ctx.team||''})||crest();
+// The way back from a screen opened on the home. The brand on the top bar goes there too, but not everybody guesses
+// that: this one says it.
+// `beside` is what a screen puts at the other end of that line (the switch of the sound, on the conquests).
+const backHome = (beside='')=>`<div class="back-line"><nav aria-label="Voltar"><button class="btn back" data-action="home"><span aria-hidden="true">←</span>Voltar ao início</button></nav>${beside}</div>`;
+// The sound of a conquest that comes out: on until the player turns it off.
+const soundSwitch = ctx=>`<button class="btn sound" data-action="sound" aria-pressed="${!ctx.prefs?.mute}">Som ${ctx.prefs?.mute?'desligado':'ligado'}</button>`;
 // The cream banner used by the tournament: lime ticker on top, purple headline.
 const band = (kicker,title,note='',kind='')=>`<header class="band ${kind}">${ticker()}<div class="band-body"><div><p class="band-kicker">${kicker}</p><h1>${title}</h1></div>${note?`<p class="band-note">${note}</p>`:''}</div></header>`;
 // How an eliminated run reads, by where it stopped.
@@ -163,12 +169,23 @@ function starter(slot,i,lineup,ctx) {
     <span class="slot-team${eff.chemistry?' linked':''}" role="img" aria-label="${esc(p.team)}${eff.chemistry?`: sinergia +${eff.chemistry}`:''}" data-tip="${esc(p.team)}">${teamLogo(p.team)}${eff.chemistry?`<b>+${eff.chemistry}</b>`:''}</span>
   </div>`;
 }
+// The formation as a strip, for the screens where the panel of the side column is not at hand (a phone, where that
+// column has a tab of its own): its name, the points of each side, the confrontations it draws and the roles missing.
+// A touch opens the guide.
+function formationStrip(ctx,lineup) {
+  const comp=E.composition(lineup);
+  const side=name=>{const value=E.compositionBonus(lineup,name,ctx.run.perks);return `<i class="${value>0?'good':value<0?'bad':''}"><b>${signed(value)}</b> ${name.toLowerCase()}</i>`;};
+  return `<button class="formation-strip ${formationTone(comp.key)}" data-action="formations" aria-label="Sua formação: ${comp.name}. Abrir o guia de formações">
+    <span class="strip-name">${formationIcon(comp.key)}<b>${comp.name}</b></span><span class="strip-sides">${side('Ataque')}${side('Defesa')}</span>
+    <span class="tags">${comp.strong.map(key=>`<span>${eventName(key)}</span>`).join('')}${comp.missing.map(role=>`<span class="bad">sem ${role.toLowerCase()}</span>`).join('')}</span></button>`;
+}
 function lineupTab(ctx) {
   const {db,run,ui}=ctx,lineup=C.lineupSlots(run,db),bench=run.bench.map(id=>db.byId.get(id));
   const picked=ui.selected&&db.byId.get(ui.selected);
   return `<div class="stage tray">
       <div class="stage-row">${lineup.map((slot,i)=>starter(slot,i,lineup,ctx)).join('')}${Array.from({length:5-lineup.length},()=>'<div class="slot empty"><span>Vaga</span></div>').join('')}</div>
     </div>
+    ${formationStrip(ctx,lineup)}
     ${picked?`<div class="selection" aria-live="polite"><p><b>${esc(picked.name)}</b> selecionado</p>
         <div><button class="btn small" data-action="detail" data-id="${picked.id}">Ver carta</button>
         <button class="btn small" data-action="sell" data-id="${picked.id}">Vender ${coin(C.sellValue(picked,run))}</button>
@@ -189,7 +206,7 @@ function marketCard(offer,ctx) {
     <button class="market-art" data-action="detail" data-id="${p.id}" aria-label="Ver carta de ${esc(p.name)}">${cardArt(p)}</button>
     ${teamLine(p.team)}
     ${facts(p,run.pool,roster)}
-    ${run.lineup.length?`<button class="btn small" data-action="compare" data-id="${p.id}">Comparar com titular</button>`:''}
+    ${run.lineup.length?`<button class="btn small" data-action="compare" data-id="${p.id}">Comparar<span class="wide"> com titular</span></button>`:''}
     <button class="btn ${blocked?'':'primary'}" data-action="buy-player" data-id="${p.id}" ${blocked?'disabled':''}>${buyLabel('Comprar',price,blocked)}</button>
   </article>`;
 }
@@ -198,28 +215,33 @@ function marketCard(offer,ctx) {
 const roleName = role=>C.packName({role}).replace('Pacote de ','');
 const roleOrder = now=>`<span class="role-order" role="img" aria-label="Ordem dos pacotes de função: ${C.ROLE_ORDER.map(roleName).join(', ')}. Agora: ${roleName(now)}">${
   C.ROLE_ORDER.map(role=>`<b class="role-step role-${roleKey(role)}${role===now?' on':''}">${roleIcon(role)}</b>`).join('<em aria-hidden="true">→</em>')}</span>`;
+// On a phone the shop is three views, each one a screen: the packs (with the advantage pack), the market and the
+// contracts. Every block says which view it belongs to; a wider screen shows them all and has no such choice.
+const SHOP_VIEWS = {packs:'Pacotes',market:'Mercado',agents:'Contratos'};
 function shopTab(ctx) {
   const {db,run}=ctx,roster=C.rosterIds(run).map(id=>db.byId.get(id)),full=roster.length>=C.rosterMax(run);
+  const view=Object.hasOwn(SHOP_VIEWS,ctx.ui.shop)?ctx.ui.shop:'packs';
   // The three packs by overall, and the role pack of this shop: one role, in the colour and with the symbol of that role.
   const packs=[...C.packsOf(run),C.rolePack(run)].filter(Boolean),reroll=C.rerollCost(run),perkCost=C.perkPackCost(run);
-  return `<div class="shop">
-    <section class="shop-block"><h2>Pacotes</h2>
+  return `<div class="shop at-${view}">
+    <div class="album-filters shop-nav" role="group" aria-label="Parte da loja">${Object.entries(SHOP_VIEWS).map(([key,label])=>`<button data-action="shop-view" data-id="${key}" aria-pressed="${key===view}">${label}</button>`).join('')}</div>
+    <section class="shop-block in-packs"><h2>Pacotes</h2>
       <div class="packs">${packs.map((pack,i)=>{const blocked=full?'Elenco cheio':run.coins<pack.cost?'Faltam moedas':'';
         return `<button class="pack pack-${pack.key} ${pack.role?'role-'+roleKey(pack.role):''}" style="--i:${i}" data-action="open-pack" data-id="${pack.key}" ${blocked?'disabled':''}>
           <span class="pack-art" aria-hidden="true">${pack.role?roleIcon(pack.role):crest()}</span><b>${pack.role?pack.name.replace('Pacote de ',''):pack.name}</b><small>${pack.role?'Pacote de função · ':'Overall '}${pack.range[0]} a ${pack.range[1]}</small><span class="price">${buyLabel('',pack.cost,blocked)}</span>${pack.role?roleOrder(pack.role):''}</button>`;}).join('')}</div></section>
-    ${perkCost===null?'':`<section class="shop-block"><h2>Vantagens</h2>
+    ${perkCost===null?'':`<section class="shop-block in-packs"><h2>Vantagens</h2>
       <button class="perk-pack" data-action="open-perk-pack" ${run.coins<perkCost?'disabled':''}>
         <span class="pack-art" aria-hidden="true">${crest()}</span>
         <span class="perk-pack-info"><b>Pacote de vantagens</b><small>1 de 3 bônus da comissão técnica · você tem ${run.perks.length}</small></span>
         <span class="price">${buyLabel('',perkCost,run.coins<perkCost?'Faltam moedas':'')}</span></button></section>`}
-    <section class="shop-block"><h2>Mercado</h2>
+    <section class="shop-block in-market"><h2>Mercado</h2>
       <div class="market ${run.shop.market.length>4?'wide':''}">${run.shop.market.map(offer=>marketCard(offer,ctx)).join('')}</div></section>
-    <section class="shop-block"><h2>Contratos de agente</h2>
+    <section class="shop-block in-agents"><h2>Contratos de agente</h2>
       <div class="agent-offers">${run.shop.agents.map(offer=>{const fans=roster.filter(p=>p.comfort===offer.agent),price=C.agentPrice(run),blocked=offer.sold?'Contratado':run.coins<price?'Faltam moedas':'';
         return `<article class="agent-offer role-${roleKey(E.AGENTS[offer.agent])} ${offer.sold?'sold':''}">${agentIcon(offer.agent)}
           <div><b>${offer.agent}</b><small>${roleIcon(E.AGENTS[offer.agent])}${E.AGENTS[offer.agent]}</small>${fans.length?`<p class="good">Conforto de ${names(fans)}</p>`:''}</div>
           <button class="btn ${blocked?'':'primary'}" data-action="buy-agent" data-id="${offer.agent}" ${blocked?'disabled':''}>${buyLabel('Contratar',price,blocked)}</button></article>`;}).join('')}</div></section>
-    <footer class="shop-foot"><button class="btn" data-action="reroll" ${run.coins<reroll?'disabled':''}>Trocar ofertas ${reroll?coin(reroll):'<b class="good">grátis</b>'}</button></footer>
+    <footer class="shop-foot in-market in-agents"><button class="btn" data-action="reroll" ${run.coins<reroll?'disabled':''}>Trocar ofertas ${reroll?coin(reroll):'<b class="good">grátis</b>'}</button></footer>
   </div>`;
 }
 // The two teams of the next match and what stands in its way. Fewer than five starters can't play: the only way
@@ -291,7 +313,7 @@ function statsTab(ctx) {
   return `<div class="stats-wrap tray"><table class="stats-table">
     <thead><tr class="groups"><td colspan="3"></td><th scope="colgroup" colspan="2">Overall</th><th scope="colgroup" colspan="6">Atributos</th><th scope="colgroup" colspan="4">Nesta run</th></tr>
       <tr><th scope="col">Jogador</th><th scope="col">Função</th><th scope="col">Agente</th>
-      ${head('ovr','Carta','Overall da carta')}${head('eff','Efetivo','Overall com conforto, equipe, comissão e função')}
+      ${head('ovr','Carta','Overall da carta')}${head('eff','Efetivo','Overall com conforto, equipe, comissão, treino e função')}
       ${STAT_COLS.map(key=>head(key,statLabel(key),STAT_HELP[key])).join('')}
       ${head('games','J','Partidas como titular nesta run')}${head('k','K','Abates nesta run')}${head('d','D','Mortes nesta run')}${head('a','A','Assistências nesta run')}</tr></thead>
     <tbody>${rows.map(r=>{const p=r.p;
@@ -303,15 +325,18 @@ function statsTab(ctx) {
         ${STAT_COLS.map(key=>`<td class="num ${tierOf(key,p.stats[key])}">${statText(key,p.stats[key])}</td>`).join('')}
         <td class="num run">${done(r,'m')}</td><td class="num">${done(r,'k')}</td><td class="num">${done(r,'d')}</td><td class="num">${done(r,'a')}</td></tr>`;}).join('')}</tbody></table></div>`;
 }
+// The fourth tab, Rival, is for a phone: there the side column (the next rival) is shown under it instead of under
+// every other tab. Behind it lies the lineup, which is what a wider screen shows with it.
 export function hub(ctx) {
-  const tab=ctx.ui.tab,run=ctx.run,stage=C.stagesOf(run)[run.stage],record=run.record[run.stage];
+  const tab=['shop','stats','rival'].includes(ctx.ui.tab)?ctx.ui.tab:'lineup',run=ctx.run,stage=C.stagesOf(run)[run.stage],record=run.record[run.stage];
   return `${band(stage.name,C.nextMatchLabel(run),`${record.w} V · ${record.l} D`,'compact')}
-  <div class="hub ${tab==='stats'?'wide':''}">
+  <div class="hub tab-${tab} ${tab==='stats'?'wide':''}">
     <section class="hub-main">
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="${tab==='lineup'}" data-action="tab" data-id="lineup">Escalação</button>
         <button role="tab" aria-selected="${tab==='shop'}" data-action="tab" data-id="shop">Loja</button>
         <button role="tab" aria-selected="${tab==='stats'}" data-action="tab" data-id="stats">Stats</button>
+        <button role="tab" class="tab-rival" aria-selected="${tab==='rival'}" data-action="tab" data-id="rival">Rival</button>
       </div>
       ${tab==='shop'?shopTab(ctx):tab==='stats'?statsTab(ctx):lineupTab(ctx)}
     </section>
@@ -632,7 +657,7 @@ const ALBUM_FILTERS = {all:['Todas',()=>true],have:['Tenho',status=>status!=='mi
 export function album(ctx) {
   const summary=albumSummary(ctx.album,ctx.db.players),filter=ALBUM_FILTERS[ctx.ui.albumFilter]?ctx.ui.albumFilter:'all',keep=ALBUM_FILTERS[filter][1];
   const teams=summary.teams.map(team=>({...team,shown:team.cards.filter(p=>keep(cardStatus(ctx.album,p.id)))})).filter(team=>team.shown.length);
-  return `${band('Álbum de cartinhas',`${summary.have} de ${summary.total}`,`${summary.champions} ★ · ${summary.complete} de ${summary.teams.length} equipes`,'compact')}
+  return `${backHome()}${band('Álbum de cartinhas',`${summary.have} de ${summary.total}`,`${summary.champions} ★ · ${summary.complete} de ${summary.teams.length} equipes`,'compact')}
   <div class="album-filters" role="group" aria-label="Mostrar">${Object.entries(ALBUM_FILTERS).map(([key,[label]])=>`<button data-action="album-filter" data-id="${key}" aria-pressed="${key===filter}">${label}</button>`).join('')}</div>
   <div class="album">${teams.map(team=>`<section class="album-team ${team.complete?'complete':''}" style="--team:${teamColor(team.team)}">
       <header>${teamLogo(team.team)}<h2>${esc(team.team)}</h2>${teamFlag(team.team)}<span>${team.have} / ${team.total}</span></header>
@@ -646,7 +671,7 @@ export function album(ctx) {
 // ones still to come are there, dimmed, and the ones already won carry the day they came out.
 export function feats(ctx) {
   const got=ctx.feats?.got||{},{have,total}=A.count(ctx.feats);
-  return `${band('Conquistas',`${have} de ${total}`,'','compact')}
+  return `${backHome(soundSwitch(ctx))}${band('Conquistas',`${have} de ${total}`,'','compact')}
   <div class="feats">${A.GROUPS.map(group=>{const list=A.ACHIEVEMENTS.filter(a=>a.group===group);
     return `<section class="feat-group"><h2>${group}<span>${list.filter(a=>got[a.id]).length} / ${list.length}</span></h2>
       <ul class="feat-list">${list.map(a=>`<li class="feat${got[a.id]?' got':''}">${achievementIcon(a.id)}<div><b>${a.name}</b><span>${a.text}</span>${
@@ -656,20 +681,21 @@ export function feats(ctx) {
 // The workshop of the crest: the mark in use and the name on one side, the pieces on the other. Every choice counts at
 // once. Each piece is drawn on the crest as it is, so what is chosen is what is seen; a team with no crest yet sees
 // the pieces on the starting design, and the first one it picks makes the crest.
-const CREST_TABS = {shape:'Formato',pattern:'Padrão',colors:'Cores',sign:'Adorno'};
+const CREST_TABS = {shape:'Formato',pattern:'Padrão',sign:'Adorno',colors:'Cores'};
 const CREST_PARTS = {shape:K.SHAPES,pattern:K.PATTERNS,sign:K.SIGNS};
+// The colours that go with the pieces of each tab: the outline and the field with the shape, the colour of the pattern
+// with the patterns, the one of the sign with the signs. The last tab has the four places, to see every colour at once.
+const CREST_COLORS = {shape:['edge','base'],pattern:['mark'],sign:['ink'],colors:K.SLOTS.map(([key])=>key)};
+const SLOT_NAMES = Object.fromEntries(K.SLOTS);
 export function team(ctx) {
   const mine=K.cleanCrest(ctx.crest),draft=mine||K.DEFAULT_CREST,name=ctx.team||'';
-  const tab=Object.hasOwn(CREST_TABS,ctx.ui.crestTab)?ctx.ui.crestTab:'shape',slot=K.SLOTS.some(([key])=>key===ctx.ui.crestSlot)?ctx.ui.crestSlot:'base';
+  const tab=Object.hasOwn(CREST_TABS,ctx.ui.crestTab)?ctx.ui.crestTab:'shape';
   const pressed=(part,key)=>!!mine&&mine[part]===key;
-  const pieces=()=>`<div class="crest-options">${Object.entries(CREST_PARTS[tab]).map(([key,each])=>
-    `<button class="crest-option" data-action="crest-set" data-id="${tab}:${key}" aria-pressed="${pressed(tab,key)}" aria-label="${CREST_TABS[tab]}: ${each.name}" data-tip="${each.name}">${K.crestSvg({...draft,[tab]:key},{name})}</button>`).join('')}</div>`;
-  const colors=()=>{
-    const place=K.SLOTS.find(([key])=>key===slot)[1];
-    return `<div class="crest-slots" role="group" aria-label="Onde vai a cor">${K.SLOTS.map(([key,text])=>`<button class="crest-slot" data-action="crest-slot" data-id="${key}" aria-pressed="${key===slot}" style="--c:${K.COLORS[draft[key]].hex}">${text}</button>`).join('')}</div>
-      <div class="crest-swatches">${Object.entries(K.COLORS).map(([key,each])=>`<button class="crest-swatch" data-action="crest-set" data-id="${slot}:${key}" aria-pressed="${pressed(slot,key)}" aria-label="${place}: ${each.name}" data-tip="${each.name}" style="--c:${each.hex}"></button>`).join('')}</div>`;
-  };
-  return `${band('Seu time','Escudo','','compact')}
+  const pieces=CREST_PARTS[tab]?`<div class="crest-options">${Object.entries(CREST_PARTS[tab]).map(([key,each])=>
+    `<button class="crest-option" data-action="crest-set" data-id="${tab}:${key}" aria-pressed="${pressed(tab,key)}" aria-label="${CREST_TABS[tab]}: ${each.name}" data-tip="${each.name}">${K.crestSvg({...draft,[tab]:key},{name})}</button>`).join('')}</div>`:'';
+  const colors=CREST_COLORS[tab].map(slot=>`<div class="crest-color"><p class="label">Cor do ${SLOT_NAMES[slot].toLowerCase()}</p><div class="crest-swatches">${Object.entries(K.COLORS).map(([key,each])=>
+    `<button class="crest-swatch" data-action="crest-set" data-id="${slot}:${key}" aria-pressed="${pressed(slot,key)}" aria-label="${SLOT_NAMES[slot]}: ${each.name}" data-tip="${each.name}" style="--c:${each.hex}"></button>`).join('')}</div></div>`).join('');
+  return `${backHome()}${band('Seu time','Escudo','','compact')}
   <div class="workshop">
     <section class="crest-stage">
       <div class="crest-view">${ourCrest(ctx)}</div>
@@ -678,29 +704,38 @@ export function team(ctx) {
     </section>
     <section class="crest-parts">
       <div class="album-filters crest-tabs" role="group" aria-label="Peças do escudo">${Object.entries(CREST_TABS).map(([key,label])=>`<button data-action="crest-tab" data-id="${key}" aria-pressed="${key===tab}">${label}</button>`).join('')}</div>
-      ${tab==='colors'?colors():pieces()}
+      ${pieces}${colors}
     </section>
   </div>`;
 }
 export const featBanner = id=>`${achievementIcon(id)}<span><small>Conquista</small><b>${A.BY_ID[id].name}</b></span>`;
 
 // ---------- Estatísticas ----------
-// What the team did over all its runs, in four tabs. Every list is a table with named columns, so that a number is
-// never read for another: how much a thing was used (a bar and the part it is of the total), how many times, and
-// the part of those won. The cards and the teams come from the album, which has counted them since always; the rest
-// is counted from the day the statistics arrived on (the screen doesn't say which).
+// What the team did over all its runs, in four tabs. Every list is a table, so that a number is never read for
+// another. A table of use has named columns: how much a thing was used (a bar and the part it is of the total), how
+// many times, and the part of those won. In the campaign the bars say what they count themselves (the count is
+// written inside the bar, the part beside it) and the table needs no names. The cards and the teams come from the
+// album, which has counted them since always; the rest is counted from the day the statistics arrived on (the screen
+// doesn't say which).
 const STATS_TABS = {run:'Campanha',squad:'Elenco',rivals:'Rivais',duels:'Confrontos'};
 const percent = value=>value===null?'-':value+'%';
 const share = each=>percent(ST.rate(each));
 const barCell = value=>`<td class="stat-meter"><span class="stat-bar" style="--v:${value??0}%"><i></i></span><b>${percent(value)}</b></td>`;
 const nameCell = (label,lead='')=>`<th scope="row"><span class="stat-name">${lead}<span>${label}</span></span></th>`;
-const statTable = (heads,rows,kind='')=>rows.length?`<table class="stat-table${kind?' '+kind:''}"><thead><tr><th></th>${heads.map(head=>`<th scope="col"><span>${head}</span></th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`
+// (a table of two bars a line is laid out as a grid, so it says it is a table: see duoRow)
+const statTable = (heads,rows,kind='')=>rows.length?`<table class="stat-table${kind?' '+kind:''}"${kind==='duo'?' role="table"':''}>${heads.length?`<thead><tr><th></th>${heads.map(head=>`<th scope="col"><span>${head}</span></th>`).join('')}</tr></thead>`:''}<tbody${kind==='duo'?' role="rowgroup"':''}>${rows.join('')}</tbody></table>`
   :'<p class="stat-none">Nada por aqui ainda</p>';
 // A line of a table of use: the name, the part of the total it is (with the bar), how many times, and the last
 // column, which is the part won unless the table says otherwise.
 const useRow = (label,n,total,last,lead='')=>`<tr>${nameCell(label,lead)}${barCell(ST.share(n,total))}<td class="num">${num(n)}</td><td class="num">${last}</td></tr>`;
-// A line of a table of results: the name, how many times, and the part won (with the bar).
-const winRow = (label,each)=>`<tr>${nameCell(label)}<td class="num">${num(each.n)}</td>${barCell(ST.rate(each))}</tr>`;
+// A bar that says what it counts: the filling is the part, the count is written inside it, and the part comes after.
+const counted = (n,one,more)=>`${num(n)} ${n===1?one:more}`;
+const toldCell = (value,label,role='')=>`<td class="stat-meter"${role}><span class="stat-bar told" style="--v:${value??0}%"><i></i><small>${label}</small></span><b>${percent(value)}</b></td>`;
+// A line of a table of results, with two of those bars: the part of the total this is (how many, inside) and the
+// part of it that was won (the wins, inside). The line is a grid (the bars side by side, or under the name in a narrow
+// panel), and a grid is no longer a table for a screen reader unless its roles say so.
+const duoRow = (label,each,total,[one,more],[won,wins])=>`<tr role="row"><th scope="row" role="rowheader"><span class="stat-name"><span>${label}</span></span></th>${
+  toldCell(ST.share(each.n,total),counted(each.n,one,more),' role="cell"')}${toldCell(ST.rate(each),counted(each.w,won,wins),' role="cell"')}</tr>`;
 const statPanel = (title,body,kind='')=>`<section class="panel stat-panel${kind?' '+kind:''}"><h2 class="eyebrow">${title}</h2>${body}</section>`;
 const kpis = list=>`<dl class="career stat-kpis">${list.map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`;
 const statCard = (each,line,detail)=>`<button class="stat-card" data-action="detail" data-id="${each.player.id}" aria-label="${esc(each.player.name)}: ${line}"><img src="${each.player.image}" alt="" width="450" height="720" loading="lazy" decoding="async" draggable="false">${detail}</button>`;
@@ -711,9 +746,9 @@ export function career(ctx) {
   const used=(list,name,lead=()=>'')=>list.map(each=>useRow(name(each),each.n,matches,share(each),lead(each)));
   const body={
     run:()=>kpis([['Runs',num(view.totals.runs)],['Títulos',num(view.totals.titles)],['Melhor campanha',esc(ctx.career.best||'-')]])
-      +statPanel('Onde as runs acabaram',statTable(['Parte','Runs'],view.outcomes.filter(each=>each.n>0).map(each=>`<tr>${nameCell(each.name)}${barCell(ST.share(each.n,runs))}<td class="num">${num(each.n)}</td></tr>`)))
-      +statPanel('Partidas',statTable(['Partidas','Vitórias'],[...view.stages,{name:'Na prorrogação',...view.overtime}].filter(each=>each.n>0).map(each=>winRow(each.name,each)),'wins'))
-      +statPanel('Rounds',statTable(['Rounds','Vitórias'],[['Ataque',view.rounds.atk],['Defesa',view.rounds.def],['Pistola',view.rounds.pistol]].filter(([,each])=>each.n>0).map(([name,each])=>winRow(name,each)),'wins'))
+      +statPanel('Onde as runs acabaram',statTable([],view.outcomes.filter(each=>each.n>0).map(each=>`<tr>${nameCell(each.name)}${toldCell(ST.share(each.n,runs),counted(each.n,'run','runs'))}</tr>`),'told'))
+      +statPanel('Partidas',statTable([],[...view.stages,{name:'Na prorrogação',...view.overtime}].filter(each=>each.n>0).map(each=>duoRow(each.name,each,matches,['partida','partidas'],['vitória','vitórias'])),'duo'))
+      +statPanel('Rounds',statTable([],[['Ataque',view.rounds.atk],['Defesa',view.rounds.def],['Pistola',view.rounds.pistol]].filter(([,each])=>each.n>0).map(([name,each])=>duoRow(name,each,view.rounds.atk.n+view.rounds.def.n,['round','rounds'],['vencido','vencidos'])),'duo'))
       +statPanel('Comissão técnica',statTable(['Uso','Runs','Títulos'],view.perks.slice(0,5).map(each=>useRow(esc(each.name),each.n,runs,num(each.t)))))
       +statPanel('Recordes',`<dl class="stat-records">${[['Maior sequência de vitórias',records.streak?`${records.streak} ${records.streak===1?'partida':'partidas'}`:'-'],
           ...[['Round mais difícil vencido',records.won],['Round mais fácil perdido',records.lost]].map(([label,chance])=>[label,chance===null?'-':`${chance}% de chance`]),
@@ -724,19 +759,24 @@ export function career(ctx) {
       +statPanel('Formações',statTable(USE,used(view.formations,each=>each.name,each=>formationIcon(each.key))))
       +statPanel('Agentes mais usados',statTable(USE,used(view.agents,each=>esc(each.agent),each=>agentIcon(each.agent))))
       +statPanel('Composições',statTable(USE,view.comps.map(each=>`<tr><th scope="row"><span class="stat-five" role="img" aria-label="${each.agents.map(esc).join(', ')}">${each.agents.map(agentIcon).join('')}</span></th>${barCell(ST.share(each.n,matches))}<td class="num">${num(each.n)}</td><td class="num">${share(each)}</td></tr>`))),
-    rivals:()=>statPanel('Rivais mais enfrentados',statTable(['Frequência','Partidas','Vitórias'],used(view.rivals,each=>esc(each.team),each=>teamLogo(each.team))),'wide'),
+    // The rivals: the most met, and at the end of the table the button that shows every one of them.
+    rivals:()=>{
+      const whole=!!ctx.ui.rivalsAll,list=whole?view.rivals:view.rivals.slice(0,ST.TOP);
+      return statPanel('Rivais mais enfrentados',statTable(['Frequência','Partidas','Vitórias'],used(list,each=>esc(each.team),each=>teamLogo(each.team)))
+        +(view.rivals.length>ST.TOP?`<div class="stat-more"><button class="btn small" data-action="rivals-all" aria-expanded="${whole}">${whole?'Mostrar menos':'Mostrar todas'}</button></div>`:''),'wide');
+    },
     duels:()=>{
       const part=list=>list.filter(([,each])=>each.n>0).map(([name,each])=>useRow(name,each.n,d.all.n,share(each)));
       return kpis([['Confrontos',num(d.all.n)],['Vencidos',share(d.all)]])
         +statPanel('De quem era a jogada',statTable(['Parte','Confrontos','Vitórias'],part([['Suas jogadas',d.mine],['Jogadas do rival',d.theirs]])))
         +statPanel('Como foram decididos',statTable(['Parte','Confrontos','Vitórias'],part([['Nos atributos',d.attributes],['No overall',d.overall],['Na moeda',d.coin]])))
         +statPanel('Por tipo de confronto',statTable(['Frequência','Confrontos','Vitórias'],part(d.types.map(each=>[each.label,each]))))
-        +statPanel('Melhor nos confrontos',d.best?`<div class="stat-cards one">${statCard(d.best,`${d.best.dw} confrontos vencidos de ${d.best.dn}`,`<b>${d.best.dw}</b><small>de ${d.best.dn} confrontos</small>`)}<p class="stat-best">${esc(d.best.player.name)}</p></div>`:statTable([],[]));
+        +statPanel('Melhores nos confrontos',d.top.length?`<div class="stat-cards five">${d.top.map(each=>statCard(each,`${each.dw} confrontos vencidos de ${each.dn}`,`<b>${each.dw}</b><small>de ${each.dn}</small>`)).join('')}</div>`:statTable([],[]));
     }
   }[tab]();
-  return `${band('Estatísticas',`${num(all.n)} ${all.n===1?'partida':'partidas'}`,all.n?`${share(all)} de vitórias`:'','compact')}
+  return `${backHome()}${band('Estatísticas',`${num(all.n)} ${all.n===1?'partida':'partidas'}`,all.n?`${share(all)} de vitórias`:'','compact')}
   <div class="album-filters stats-tabs" role="group" aria-label="Estatísticas de">${Object.entries(STATS_TABS).map(([key,label])=>`<button data-action="career-tab" data-id="${key}" aria-pressed="${key===tab}">${label}</button>`).join('')}</div>
-  <div class="stats stats-${tab}">${body}</div>`;
+  <div class="stats stat-wall stats-${tab}">${body}</div>`;
 }
 
 // ---------- Diálogos ----------

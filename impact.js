@@ -1,6 +1,6 @@
 // Read-only previews use the same campaign operations as the final action.
-import * as C from './campaign.js?v=72200b50cd';
-import * as E from './engine.js?v=72200b50cd';
+import * as C from './campaign.js?v=08314e7589';
+import * as E from './engine.js?v=08314e7589';
 
 export function teamSnapshot(run,db){
   const lineup=C.lineupSlots(run,db),composition=E.composition(lineup);
@@ -11,8 +11,10 @@ export function teamSnapshot(run,db){
     defense:E.teamStrength(lineup,'Defesa',{perks:run.perks}).total,
     formationAttack:E.compositionBonus(lineup,'Ataque',run.perks),formationDefense:E.compositionBonus(lineup,'Defesa',run.perks)};
 }
+// The change is made on a copy of the run, whole: a run is plain JSON (see campaign.js), and an operation may touch
+// any part of it (a sale also takes the training of the card and its mark of a card just out of a pack).
 export function previewChange(run,db,change){
-  const next={...run,lineup:run.lineup.map(s=>({...s})),bench:[...run.bench],pool:[...run.pool]};
+  const next=JSON.parse(JSON.stringify(run));
   if(change.type==='agent')C.setAgent(next,db,change.id,change.agent);
   else if(change.type==='swap')C.swapPlayers(next,db,change.id,change.other);
   else if(change.type==='sell')C.sellPlayer(next,db,change.id);
