@@ -1,5 +1,5 @@
 // Regras puras do jogo: draft, sinergia, formação e simulação da partida. Sem DOM.
-import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=acbfe278b2';
+import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=283c6931a1';
 export const ROLES = ['Duelista','Iniciador','Controlador','Sentinela'];
 export const AGENTS = Object.fromEntries(Object.entries({
   Duelista:['Jett','Phoenix','Raze','Neon','Reyna','Yoru','Iso','Waylay'],
@@ -137,7 +137,9 @@ export function effective(player,agent,lineup,perks=[]) {
   const captain=perks.includes('capitao')&&lineup.reduce((best,s)=>s.player.ovr>best.player.ovr?s:best,lineup[0])?.player.id===player.id;
   const young=perks.includes('base')&&[...lineup].sort((a,b)=>a.player.ovr-b.player.ovr).slice(0,PV.baseCount).some(s=>s.player.id===player.id);
   const staff=(captain?PV.capitao:0)+(young?PV.base:0);
-  return {value:player.ovr+chemistry+comfort+staff+f.penalty,base:player.ovr,chemistry,comfort,staff,penalty:f.penalty,label:f.label};
+  // What the player trained in this run (the individual training of the campaign), carried by his place in the lineup.
+  const trained=lineup.find(s=>s.player.id===player.id)?.trained||0;
+  return {value:player.ovr+chemistry+comfort+staff+trained+f.penalty,base:player.ovr,chemistry,comfort,staff,trained,penalty:f.penalty,label:f.label};
 }
 
 // ---------- Formação ----------
@@ -442,7 +444,9 @@ function buyPhase(match,t){
 
 // ---------- Partida ----------
 // decisive: an elimination game (see mustWin in campaign.js), which is where the Psicólogo acts.
-export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS,decisive=false}){
+// `train` and `studied` are what the team prepared for this match alone (see the campaign): points of chance in every
+// round, and the rival's Jogadas de Efeito falling on the confrontations of the team's formation.
+export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS,decisive=false,train=0,studied=false}){
   const error=validLineup(lineup)||validLineup(opponent.lineup);if(error)throw new Error(error);
   const random=rng(seed);
   // likes: the weapons this player prefers, most liked first. Everyone has a rifle; some are AWPers, a few have a quirk.
@@ -458,7 +462,7 @@ export function createMatch({lineup,opponent,seed,perks=[],ownPlays=PLAYS,decisi
   const team=(name,slots)=>({name,lineup:slots.map(s=>({...s})),players:slots.map(row),lossStreak:0,wonLast:false});
   // plays: what each team still has, [yours, the rival's]; playsMax: what each started the match with.
   const mine=ownPlays+(perks.includes('quarta_jogada')?PV.quarta_jogada:0);
-  const match={teams:[team('Seu elenco',lineup),team(opponent.name,opponent.lineup)],perks,decisive,random,seed,
+  const match={teams:[team('Seu elenco',lineup),team(opponent.name,opponent.lineup)],perks,decisive,train,studied,random,seed,
     score:[0,0],round:1,startSide:sample(['Ataque','Defesa'],random),plays:[mine,PLAYS],playsMax:[mine,PLAYS],
     used:[],enemyUsed:[],log:[],pending:null,prepared:null,over:false,eventsResolved:0,eventsWon:0};
   // gap: how far the rival's effective overall is above yours (0 when it isn't), which is what the Time de guerreiros
@@ -480,7 +484,7 @@ function prepareRound(match){
   // itself, your chance in it. 65% of the equipment is 15 points above an even round; the cards move it from there.
   const share=loadoutShare(match.teams.map(team=>team.players)),edge=(share-50)/2;
   const has=key=>match.perks.includes(key);
-  const bonus=(pistol&&has('pistoleiros')?PV.pistoleiros:0)+(match.score[1]-match.score[0]>=PV.viradaGap&&has('virada')?PV.virada:0)+(match.decisive&&has('psicologo')?PV.psicologo:0)
+  const bonus=(match.train||0)+(pistol&&has('pistoleiros')?PV.pistoleiros:0)+(match.score[1]-match.score[0]>=PV.viradaGap&&has('virada')?PV.virada:0)+(match.decisive&&has('psicologo')?PV.psicologo:0)
     +(has('guerreiros')?Math.min(PV.guerreiros,PV.guerreirosRate*match.gap):0);
   const ours=teamStrength(match.teams[0].lineup,side,{gear:edge,perks:match.perks,bonus});
   const theirs=teamStrength(match.teams[1].lineup,opposite(side),{gear:-edge});
@@ -497,7 +501,7 @@ function openPlay(match,by){
   const fits=Object.keys(EVENT_TYPES).filter(key=>!EVENT_TYPES[key].when||EVENT_TYPES[key].when===side);
   // Your own plays only draw among the confrontations of your formation, when the side has one. With the Jogada
   // ensaiada the rival's plays do too; without it they draw among all, the ones of your formation at twice the weight.
-  const rehearsed=by===0||match.perks.includes('jogada_ensaiada')?fits.filter(key=>strong.includes(key)):[];
+  const rehearsed=by===0||match.studied||match.perks.includes('jogada_ensaiada')?fits.filter(key=>strong.includes(key)):[];
   const options=rehearsed.length?rehearsed:fits;
   const type=weightedSample(options,match.random,key=>(key==='clutch'?.7:1)*(strong.includes(key)?2:1));
   match.plays[by]--;

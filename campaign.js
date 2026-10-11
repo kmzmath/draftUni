@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=acbfe278b2';
+import * as E from './engine.js?v=283c6931a1';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -156,7 +156,7 @@ export function cleanRivals(raw,db) {
   const teams=new Set(db.players.map(p=>p.team));
   return raw.filter(name=>typeof name==='string'&&teams.has(name)).reduce((list,name)=>metRival(list,name),[]);
 }
-export const lineupSlots = (run,db)=>run.lineup.map(s=>({player:db.byId.get(s.id),agent:s.agent}));
+export const lineupSlots = (run,db)=>run.lineup.map(s=>({player:db.byId.get(s.id),agent:s.agent,...(run.trained?.[s.id]?{trained:run.trained[s.id]}:{})}));
 export const opponentLineup = (run,db)=>run.opponent.ids.map((id,i)=>({player:db.byId.get(id),agent:run.opponent.agents[i]}));
 export const lineupError = (run,db)=>E.validLineup(lineupSlots(run,db),run.pool);
 // Any card can be sold, so the team may be left with fewer than five starters. It can't play like that: see forfeitMatch.
@@ -247,6 +247,45 @@ export function choosePerk(run,db,key) {
   delete run.perkBought;run.perkOffer=null;run.status='hub';
 }
 
+// ---------- Preparação da partida ----------
+// What coins still buy when the roster has nothing left to buy. Three things count in the next match and only in it:
+// points of chance in every round (three, each dearer than the one before), one more Jogada de Efeito, and the study
+// of the rival, which makes its Jogadas de Efeito fall on the confrontations of the team's formation (what the Jogada
+// ensaiada does for a whole run). The fourth stays for the run: the individual training, +1 of overall for one card,
+// dearer at every purchase of the run and up to drillMax for the same card.
+export const PREP = {train:[100,150,200],play:150,study:120,drill:150,drillStep:100,drillMax:3};
+export const prepOf = run=>({train:0,play:false,study:false,...(run.prep||{})});
+// What the next point of training for the match costs (null when there is none left to buy).
+export const trainCost = run=>PREP.train[prepOf(run).train]??null;
+export function buyPrep(run,key) {
+  idle(run);
+  if(run.status!=='hub')throw new Error('Nenhuma partida preparada');
+  const prep=prepOf(run);
+  if(key==='train'){
+    const cost=trainCost(run);
+    if(cost===null)throw new Error('O treino para a partida já está no máximo');
+    pay(run,cost);prep.train++;
+  }else if(key==='play'){
+    if(prep.play)throw new Error('A jogada extra já foi comprada');
+    pay(run,PREP.play);prep.play=true;
+  }else if(key==='study'){
+    if(run.perks.includes('jogada_ensaiada'))throw new Error('A comissão técnica já faz isso');
+    if(prep.study)throw new Error('O rival já foi estudado');
+    pay(run,PREP.study);prep.study=true;
+  }else throw new Error('Preparação desconhecida');
+  run.prep=prep;
+}
+// The individual training. Its price counts every one bought in the run (run.drills), also those of cards since sold.
+export const trainedOf = (run,id)=>run.trained?.[id]||0;
+export const drillCost = run=>PREP.drill+PREP.drillStep*(run.drills||0);
+export function drill(run,db,id) {
+  idle(run);
+  if(!rosterIds(run).includes(id))throw new Error('Este jogador não está no seu elenco');
+  if(trainedOf(run,id)>=PREP.drillMax)throw new Error('Este jogador já treinou o máximo');
+  pay(run,drillCost(run));
+  (run.trained??={})[id]=trainedOf(run,id)+1;run.drills=(run.drills||0)+1;
+}
+
 // ---------- Próximo jogo e loja ----------
 function prepareHub(run,db) {
   const target=rivalTarget(run);
@@ -303,6 +342,7 @@ export function sellPlayer(run,db,id) {
   else run.lineup.splice(run.lineup.indexOf(slot),1);
   run.coins+=sellValue(db.byId.get(id),run);
   if(run.packed)run.packed=run.packed.filter(each=>each!==id);
+  if(run.trained)delete run.trained[id];
 }
 // The role pack on this shop's shelf, or null when the shop has none (a run saved before role packs existed).
 export function rolePack(run) {
@@ -373,7 +413,7 @@ export function beginMatch(run,db) {
   // its seed and those decisions, so replaying them rebuilds it exactly. That is what makes a reload pointless: the same
   // match comes back, with the same plays already spent and the same choices already made.
   run.live??={calls:[],picks:[],rounds:0,rules:MATCH_RULES};
-  const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:on(run,'plays')?V.plays:undefined,decisive:mustWin(run)});
+  const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:(on(run,'plays')?V.plays:E.PLAYS)+(prepOf(run).play?1:0),decisive:mustWin(run),train:prepOf(run).train,studied:prepOf(run).study});
   let used=0;
   while(!match.over){
     if(!match.pending&&run.live.calls.includes(match.round))E.callPlay(match);
@@ -409,7 +449,7 @@ export function recordMatch(run,db,match) {
   if(run.status!=='hub')throw new Error('Nenhuma partida preparada');
   const won=match.score[0]>match.score[1],stage=stagesOf(run)[run.stage],record=run.record[run.stage],forfeit=!!match.forfeit;
   const label=matchLabel(run.stage,record.w+record.l,run);
-  run.packed=[];
+  run.packed=[];run.prep=null;
   if(won)record.w++;else record.l++;
   const played=forfeit?0:MATCH_PAY+(run.perks.includes('patrocinio')?PV.patrocinio:0);
   // Wins in a row, this one included. The sequence carries over from one stage to the next.

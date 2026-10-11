@@ -1,7 +1,7 @@
 // A imagem do resultado de uma run, para copiar e colar: o desafio, o time, até onde foi, os titulares e cada partida.
 // shareModel diz o que vai na imagem (texto e medidas); shareImage desenha isso num canvas e devolve o PNG.
-import * as C from './campaign.js?v=acbfe278b2';
-import {cleanCrest,paintCrest} from './crest.js?v=acbfe278b2';
+import * as C from './campaign.js?v=283c6931a1';
+import {cleanCrest,paintCrest} from './crest.js?v=283c6931a1';
 
 const WIDTH = 1200, MARGIN = 48, CARD = {w:200,h:320,gap:26}, ROW = 54;
 const TOP = 380, CARDS_AT = TOP+34, LIST_AT = CARDS_AT+CARD.h+86, FOOT = 112;
@@ -15,6 +15,8 @@ export function shareModel(run,team,db,crest=null) {
     // The período the run was played on goes on a seal of its own (a run of the Desafio do dia has none).
     kicker:`Univavá Draft · ${run.daily?C.modeLine(run):'Modo tradicional'}`,period:run.daily?'':C.periodName(run.ascension||0),
     title:line[0].toUpperCase()+line.slice(1),champion:run.result==='champion',team:team||'Seu time',crest:cleanCrest(crest),
+    // The coins left in the till of a title (see the records of the statistics).
+    cash:run.result==='champion'&&Number.isInteger(run.coins)?run.coins:null,
     totals:`${wins} V · ${run.history.length-wins} D · saldo de rounds ${diff>0?'+':''}${diff}`,
     cards:C.lineupSlots(run,db).map(s=>({image:s.player.image,name:s.player.name,agent:s.agent})),
     matches,width:WIDTH,height:LIST_AT+Math.ceil(matches.length/2)*ROW+FOOT
@@ -63,8 +65,9 @@ export async function shareImage(model) {
   // The line of the team, with its crest in front when it has one.
   const mark=model.crest?58:0;
   if(mark)paintCrest(c,model.crest,x+40,y+h-30-33,44,{name:model.team==='Seu time'?'':model.team});
-  spaced(c,0);c.textAlign='left';c.textBaseline='alphabetic';c.fillStyle=COLOR.text;fit(c,`${model.team} · ${model.totals}`,FONT.body,30,w-80-mark,600);
-  c.fillText(`${model.team} · ${model.totals}`,x+40+mark,y+h-30);
+  const line=`${model.team} · ${model.totals}${model.cash===null||model.cash===undefined?'':` · ${model.cash.toLocaleString('pt-BR')} moedas no caixa`}`;
+  spaced(c,0);c.textAlign='left';c.textBaseline='alphabetic';c.fillStyle=COLOR.text;fit(c,line,FONT.body,30,w-80-mark,600);
+  c.fillText(line,x+40+mark,y+h-30);
   // The starters, centred whatever their number, each with the agent under the card.
   const row=model.cards.length*CARD.w+(model.cards.length-1)*CARD.gap;
   model.cards.forEach((card,i)=>{

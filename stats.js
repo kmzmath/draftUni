@@ -4,8 +4,8 @@
 // vitórias por fase, rounds por lado, rivais, formações, agentes, confrontos, onde cada run acabou e os recordes de
 // round (o mais difícil vencido e o mais fácil perdido).
 // É JSON puro. Um par é {n, w}: quantas vezes, e quantas delas vencidas.
-import * as E from './engine.js?v=acbfe278b2';
-import {STAGES} from './campaign.js?v=acbfe278b2';
+import * as E from './engine.js?v=283c6931a1';
+import {STAGES} from './campaign.js?v=283c6931a1';
 
 // Where a run ended, from the best ending to the worst. `quit` is a run given up or replaced before its end.
 export const OUTCOMES = ['champion','final','semis','quarters','groups','qualifier','quit'];
@@ -23,7 +23,7 @@ export const share = (n,total)=>total?Math.round(100*n/total):null;
 
 const empty = today=>({v:1,since:today,runs:{free:{},daily:{}},matches:STAGES.map(pair),overtime:pair(),rounds:{atk:pair(),def:pair(),pistol:pair()},
   rivals:{},formations:{},agents:{},comps:{},duels:{mine:pair(),theirs:pair(),types:{},ties:Object.fromEntries(TIES.map(key=>[key,pair()]))},
-  cards:{},perks:{},streak:{now:0,best:0},records:{won:null,lost:null}});
+  cards:{},perks:{},streak:{now:0,best:0},records:{won:null,lost:null,cash:null}});
 
 // What is saved is only trusted where it makes sense: whole counts, wins that fit in the games, and only cards, agents,
 // formations, confrontations and bonuses that exist. Anything else is dropped, and a save of another shape starts over.
@@ -51,7 +51,7 @@ export function cleanStats(raw,{byId,today}) {
   }
   if(whole(raw.streak?.now)&&whole(raw.streak?.best)&&raw.streak.now<=raw.streak.best)stats.streak={now:raw.streak.now,best:raw.streak.best};
   const chance=value=>whole(value)&&value<=100?value:null;
-  if(raw.records&&typeof raw.records==='object')stats.records={won:chance(raw.records.won),lost:chance(raw.records.lost)};
+  if(raw.records&&typeof raw.records==='object')stats.records={won:chance(raw.records.won),lost:chance(raw.records.lost),cash:Number.isInteger(raw.records.cash)&&raw.records.cash>=0?raw.records.cash:null};
   return stats;
 }
 
@@ -108,6 +108,9 @@ export function recordRun(stats,run) {
   const book=stats.runs[run.daily?'daily':'free'],outcome=outcomeOf(run);
   book[outcome]=(book[outcome]||0)+1;
   for(const key of run.perks||[]){const each=stats.perks[key]??={n:0,t:0};each.n++;if(outcome==='champion')each.t++;}
+  // The coins left in the till of a title: the most ever. (Coins buy the preparation of the final; what a champion
+  // kept, it won without.)
+  if(outcome==='champion'&&Number.isInteger(run.coins)&&run.coins>=0)stats.records.cash=Math.max(stats.records.cash??0,run.coins);
   return stats;
 }
 

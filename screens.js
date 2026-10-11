@@ -1,15 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=acbfe278b2';
-import * as C from './campaign.js?v=acbfe278b2';
-import {previewChange} from './impact.js?v=acbfe278b2';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=acbfe278b2';
-import {albumSummary,cardStatus} from './album.js?v=acbfe278b2';
-import * as A from './achievements.js?v=acbfe278b2';
-import * as ST from './stats.js?v=acbfe278b2';
-import * as B from './abilities.js?v=acbfe278b2';
-import * as K from './crest.js?v=acbfe278b2';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=acbfe278b2';
+import * as E from './engine.js?v=283c6931a1';
+import * as C from './campaign.js?v=283c6931a1';
+import {previewChange} from './impact.js?v=283c6931a1';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=283c6931a1';
+import {albumSummary,cardStatus} from './album.js?v=283c6931a1';
+import * as A from './achievements.js?v=283c6931a1';
+import * as ST from './stats.js?v=283c6931a1';
+import * as B from './abilities.js?v=283c6931a1';
+import * as K from './crest.js?v=283c6931a1';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=283c6931a1';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -140,6 +140,11 @@ export function perk(ctx) {
 }
 
 // ---------- Elenco, loja e próximo jogo ----------
+// The way to the preparation of the next match, with what was already bought for it.
+function prepLine(run) {
+  const prep=C.prepOf(run),bought=[prep.train&&`Treino +${prep.train}`,prep.play&&'Jogada extra',prep.study&&'Rival estudado'].filter(Boolean);
+  return `<div class="prep-line"><button class="btn prep-open" data-action="prep">Preparação</button>${bought.map(text=>`<span class="prep-chip">${text}</span>`).join('')}</div>`;
+}
 // The line under the agent of a rival's card, and what it says to whoever rests on it: green for the one on his main,
 // red for the one playing out of his role (a stronger team sometimes comes like this; nothing else announces it).
 function rivalFit(slot) {
@@ -150,7 +155,7 @@ function rivalFit(slot) {
 // them gets under it.
 function starter(slot,i,lineup,ctx) {
   const p=slot.player,eff=E.effective(p,slot.agent,lineup,ctx.run.perks),selected=ctx.ui.selected===p.id;
-  const mods=[eff.comfort&&`<span class="good">Conforto +${eff.comfort}</span>`,eff.chemistry&&`<span class="good">Equipe +${eff.chemistry}</span>`,eff.staff&&`<span class="good">Comissão +${eff.staff}</span>`,eff.penalty&&`<span class="bad">${eff.label} ${signed(eff.penalty)}</span>`].filter(Boolean);
+  const mods=[eff.comfort&&`<span class="good">Conforto +${eff.comfort}</span>`,eff.chemistry&&`<span class="good">Equipe +${eff.chemistry}</span>`,eff.staff&&`<span class="good">Comissão +${eff.staff}</span>`,eff.trained&&`<span class="good">Treino +${eff.trained}</span>`,eff.penalty&&`<span class="bad">${eff.label} ${signed(eff.penalty)}</span>`].filter(Boolean);
   return `<div class="slot ${selected?'selected':''}" style="--i:${i};--team:${teamColor(p.team)}">
     <button class="slot-card" data-action="select" data-id="${p.id}" aria-pressed="${selected}" aria-label="${esc(p.name)}, titular, overall efetivo ${eff.value}">${cardArt(p,{effective:eff.value})}</button>
     <button class="agent-btn role-${roleKey(E.AGENTS[slot.agent])}" data-action="agent" data-id="${p.id}" aria-label="Agente de ${esc(p.name)}: ${slot.agent}. Trocar">${agentIcon(slot.agent)}<b>${slot.agent}</b><i aria-hidden="true">▾</i></button>
@@ -236,6 +241,7 @@ function nextMatch(ctx) {
     <p class="tags"><span class="formation-tag">${formationIcon(comp.key)}${comp.name}</span></p>
     <div class="rival-cards">${rival.map(s=>`<button data-action="detail" data-id="${s.player.id}" aria-label="Ver carta de ${esc(s.player.name)}, ${s.agent}">${cardArt(s.player,{effective:effectiveOf(s,rival)})}<span class="${rivalFit(s)[0]}role-${roleKey(E.AGENTS[s.agent])}"${rivalFit(s)[1]}>${agentIcon(s.agent)}</span></button>`).join('')}</div>
     ${error?`<p class="warn" role="alert">${esc(error)}</p>`:''}
+    ${short?'':prepLine(run)}
     ${short?'<button class="btn danger big" data-action="forfeit">Perder por W.O.</button>':`<button class="btn primary big" data-action="play" ${error?'disabled':''}>Jogar partida</button>`}
   </section>`;
 }
@@ -372,7 +378,7 @@ function chanceTip(prep) {
   const added=values=>values.map(tidy).map((value,i)=>i?`${value<0?'-':'+'} ${num(Math.abs(value),1)}`:num(value,1)).join(' ');
   const side=(name,strength,staff)=>`${name}: ${added([strength.roster,strength.formation,strength.gear,...(staff?[strength.bonus]:[])])} = ${one(strength.total)}`;
   const raw=50+prep.ours.total-prep.theirs.total,ours=tidy(prep.ours.total),theirs=tidy(prep.theirs.total);
-  return ['Chance = 50 + força do seu time - força do rival','Força = elenco + formação + equipamento + comissão','Equipamento = (parte do time nas compras - 50) / 2',
+  return ['Chance = 50 + força do seu time - força do rival','Força = elenco + formação + equipamento + bônus','Equipamento = (parte do time nas compras - 50) / 2',
     side('Seu time',prep.ours,true),side('Rival',prep.theirs,false),
     `50 ${ours<0?'-':'+'} ${num(Math.abs(ours),1)} ${theirs<0?'+':'-'} ${num(Math.abs(theirs),1)} = ${one(raw)} → ${Math.round(100*prep.odds)}%${raw<8?' (o mínimo)':raw>92?' (o máximo)':''}`].join('\n');
 }
@@ -700,7 +706,8 @@ export function career(ctx) {
       +statPanel('Rounds',statTable(['Rounds','Vitórias'],[['Ataque',view.rounds.atk],['Defesa',view.rounds.def],['Pistola',view.rounds.pistol]].filter(([,each])=>each.n>0).map(([name,each])=>winRow(name,each)),'wins'))
       +statPanel('Comissão técnica',statTable(['Uso','Runs','Títulos'],view.perks.slice(0,5).map(each=>useRow(esc(each.name),each.n,runs,num(each.t)))))
       +statPanel('Recordes',`<dl class="stat-records">${[['Maior sequência de vitórias',records.streak?`${records.streak} ${records.streak===1?'partida':'partidas'}`:'-'],
-          ...[['Round mais difícil vencido',records.won],['Round mais fácil perdido',records.lost]].map(([label,chance])=>[label,chance===null?'-':`${chance}% de chance`])].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`),
+          ...[['Round mais difícil vencido',records.won],['Round mais fácil perdido',records.lost]].map(([label,chance])=>[label,chance===null?'-':`${chance}% de chance`]),
+          ['Maior caixa num título',records.cash===null||records.cash===undefined?'-':`${num(records.cash)} moedas`]].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`),
     squad:()=>statPanel('Cartas mais usadas',view.cards.length?`<div class="stat-cards">${view.cards.map(each=>{const use=percent(ST.share(each.m,all.n)),win=share({n:each.m,w:each.w});
           return statCard(each,`${each.m} partidas, ${use} de uso, ${win} de vitórias`,`<b>${each.m}</b><small>partidas</small><span><i>${use}</i> uso</span><span><i>${win}</i> vitórias</span>`);}).join('')}</div>`:statTable([],[]),'wide')
       +statPanel('Equipes mais usadas',statTable(['Uso','Vezes','Vitórias'],view.teams.map(each=>useRow(esc(each.team),each.m,5*all.n,share({n:each.m,w:each.w}),teamLogo(each.team)))))
@@ -823,6 +830,29 @@ export function compareDialog(ctx,id,targetId=null){
     <div class="card-comparison"><figure>${cardArt(target.player)}<figcaption>Seu titular · ${esc(target.player.name)}</figcaption></figure><table class="impact-table"><thead><tr><th>Atributo</th><th>Seu titular</th><th>Oferta</th></tr></thead><tbody>${statsRows}</tbody></table><figure>${cardArt(candidate)}<figcaption>Oferta · ${esc(candidate.name)}</figcaption></figure></div>
     ${impactPanel(impact)}
     <div class="dialog-actions"><button class="btn primary" data-action="buy-player" data-id="${id}" ${blocked?'disabled':''}>${buyLabel('Comprar',price,blocked)}</button><button class="btn" data-action="close">Fechar</button></div>`;
+}
+// The preparation of the next match: what the coins still buy when the roster has nothing left to buy. Three things
+// for this match alone, each with its price or with what was already bought; and the individual training, which stays
+// for the run: one click on a card of the roster gives it one more of overall, at the price shown.
+export function prepDialog(ctx) {
+  const {db,run}=ctx,prep=C.prepOf(run),next=C.trainCost(run),staffed=run.perks.includes('jogada_ensaiada'),price=C.drillCost(run),lineup=C.lineupSlots(run,db);
+  const buy=(key,name,cost)=>`<button class="btn" data-action="prep-buy" data-id="${key}"${cost>run.coins?' disabled':''} aria-label="${name}: ${num(cost)} moedas">${coin(cost)}</button>`;
+  const item=(name,text,state,action)=>`<li class="prep-item${state&&state!=='A comissão já faz'?' on':''}"><div><b>${name}</b><span>${text}</span></div><p class="prep-side">${state?`<em>${state}</em>`:''}${action}</p></li>`;
+  const card=p=>{
+    const got=C.trainedOf(run,p.id),full=got>=C.PREP.drillMax,slot=lineup.find(s=>s.player.id===p.id);
+    return `<button class="prep-card" data-action="drill" data-id="${p.id}"${full||price>run.coins?' disabled':''} aria-label="${full?`${esc(p.name)} já treinou o máximo: +${got} de overall`:`Treinar ${esc(p.name)}: +1 de overall por ${num(price)} moedas`}">${cardArt(p,{effective:slot?effectiveOf(slot,lineup,run.perks):p.ovr+got})}${got?`<b class="prep-plus">+${got}</b>`:''}</button>`;
+  };
+  return `${dialogHead(`Próxima partida · ${esc(run.opponent.team)}`,'Preparação')}
+    <div class="prep">
+      <p class="prep-coins">${coin(run.coins)}</p>
+      <ul class="prep-list">
+        ${item('Treino para a partida',`+1 ponto de chance em todos os rounds desta partida, até +${C.PREP.train.length}`,prep.train?`+${prep.train}`:'',next===null?'':buy('train','Treino para a partida',next))}
+        ${item('Jogada de Efeito extra','+1 Jogada de Efeito nesta partida',prep.play?'Comprada':'',prep.play?'':buy('play','Jogada de Efeito extra',C.PREP.play))}
+        ${item('Estudo do rival','Nesta partida, as Jogadas de Efeito do rival caem nos confrontos da sua formação',prep.study?'Feito':staffed?'A comissão já faz':'',prep.study||staffed?'':buy('study','Estudo do rival',C.PREP.study))}
+      </ul>
+      <p class="label">Treino individual<span>+1 de overall pelo resto da run · ${coin(price)}</span></p>
+      <div class="prep-roster">${C.rosterIds(run).map(id=>card(db.byId.get(id))).join('')}</div>
+    </div>`;
 }
 export function cardDetail(ctx,id) {
   const {db,run}=ctx,p=db.byId.get(id),mine=run&&C.rosterIds(run).includes(id),canSell=mine&&ctx.screen==='hub',kept=ctx.album[id];

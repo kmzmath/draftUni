@@ -1,19 +1,19 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=acbfe278b2';
-import * as C from './campaign.js?v=acbfe278b2';
-import * as S from './screens.js?v=acbfe278b2';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=acbfe278b2';
-import {startTour,closeTour,tourOpen} from './tour.js?v=acbfe278b2';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=acbfe278b2';
-import {stamp,cleanAlbum} from './album.js?v=acbfe278b2';
-import {initTips,refreshTips} from './tip.js?v=acbfe278b2';
-import {shareModel,copyShareImage} from './share.js?v=acbfe278b2';
-import {staleSave,stampSave} from './save.js?v=acbfe278b2';
-import * as A from './achievements.js?v=acbfe278b2';
-import * as ST from './stats.js?v=acbfe278b2';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=acbfe278b2';
-import {playChime} from './sound.js?v=acbfe278b2';
-import * as K from './crest.js?v=acbfe278b2';
+import * as E from './engine.js?v=283c6931a1';
+import * as C from './campaign.js?v=283c6931a1';
+import * as S from './screens.js?v=283c6931a1';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=283c6931a1';
+import {startTour,closeTour,tourOpen} from './tour.js?v=283c6931a1';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=283c6931a1';
+import {stamp,cleanAlbum} from './album.js?v=283c6931a1';
+import {initTips,refreshTips} from './tip.js?v=283c6931a1';
+import {shareModel,copyShareImage} from './share.js?v=283c6931a1';
+import {staleSave,stampSave} from './save.js?v=283c6931a1';
+import * as A from './achievements.js?v=283c6931a1';
+import * as ST from './stats.js?v=283c6931a1';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=283c6931a1';
+import {playChime} from './sound.js?v=283c6931a1';
+import * as K from './crest.js?v=283c6931a1';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats',RIVALS_KEY='univava:rivals';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
@@ -482,6 +482,10 @@ const actions={
     earn(sale);
   },
   agent(id){openDialog(S.agentPicker(ctx,id),{kind:'wide'});return false;},
+  // The preparation of the next match: each purchase counts at once and the dialog stays open, drawn again.
+  prep(){openDialog(S.prepDialog(ctx),{kind:'wide'});return false;},
+  'prep-buy'(id){C.buyPrep(ctx.run,id);openDialog(S.prepDialog(ctx),{kind:'wide'});},
+  drill(id){C.drill(ctx.run,ctx.db,id);openDialog(S.prepDialog(ctx),{kind:'wide'});},
   formations(){openDialog(S.formationGuide(ctx),{kind:'wide'});return false;},
   'preview-agent'(id,el){openDialog(S.agentPicker(ctx,id,el.dataset.agent),{kind:'wide'});return false;},
   compare(id){openDialog(S.compareDialog(ctx,id),{kind:'wide'});return false;},
@@ -634,7 +638,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=acbfe278b2');
+    const response=await fetch('players.json?v=283c6931a1');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -645,7 +649,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=acbfe278b2');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=283c6931a1');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
