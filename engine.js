@@ -1,5 +1,5 @@
 // Regras puras do jogo: draft, sinergia, formação e simulação da partida. Sem DOM.
-import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=08314e7589';
+import {ABILITIES,buyAbilities,utilityCost,ultValue} from './abilities.js?v=8a39250486';
 export const ROLES = ['Duelista','Iniciador','Controlador','Sentinela'];
 export const AGENTS = Object.fromEntries(Object.entries({
   Duelista:['Jett','Phoenix','Raze','Neon','Reyna','Yoru','Iso','Waylay'],
@@ -453,14 +453,15 @@ function purchase(team,plan){
 // The orders the coach can give for the purchase of a round, in the freezetime. Automatic is the team's own call.
 export const BUY_PLANS={auto:'Automático',eco:'Eco',half:'Meia-compra',full:'Compra total'};
 // Whether the purchase of the round about to start can be chosen: not in a pistol round (everybody has the same 800
-// credits), not in overtime (everybody has the same 5000), and not once a Jogada de Efeito is on the table: a play is
-// called on the purchases as they stand (an order given before the call holds: see callPlay), and from then on they
-// don't change.
-export const canBuy=match=>!match.over&&!match.pending&&match.round!==1&&match.round!==13&&!isOvertime(match.round);
+// credits), not in overtime (everybody has the same 5000), and not once a Jogada de Efeito of your own is on the table:
+// a play is called on the purchases as they stand (an order given before the call holds: see callPlay), and from then
+// on they don't change. A play of the rival's is on the round from its start: the purchase can be ordered until your
+// player is sent to the confrontation.
+export const canBuy=match=>!match.over&&match.pending?.by!==0&&match.round!==1&&match.round!==13&&!isOvertime(match.round);
 export function setBuy(match,plan){
   if(!Object.hasOwn(BUY_PLANS,plan))throw new Error('Compra desconhecida');
   if(match.over)throw new Error('A partida já foi encerrada');
-  if(match.pending)throw new Error('Com a Jogada de Efeito na mesa a compra do round não muda');
+  if(match.pending?.by===0)throw new Error('Com a Jogada de Efeito na mesa a compra do round não muda');
   if(!canBuy(match))throw new Error(isOvertime(match.round)?'Na prorrogação não há compra para escolher':'No round de pistola não há compra para escolher');
   return rebuy(match,plan);
 }

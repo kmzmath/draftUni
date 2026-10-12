@@ -1,15 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=08314e7589';
-import * as C from './campaign.js?v=08314e7589';
-import {previewChange} from './impact.js?v=08314e7589';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=08314e7589';
-import {albumSummary,cardStatus} from './album.js?v=08314e7589';
-import * as A from './achievements.js?v=08314e7589';
-import * as ST from './stats.js?v=08314e7589';
-import * as B from './abilities.js?v=08314e7589';
-import * as K from './crest.js?v=08314e7589';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=08314e7589';
+import * as E from './engine.js?v=8a39250486';
+import * as C from './campaign.js?v=8a39250486';
+import {previewChange} from './impact.js?v=8a39250486';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=8a39250486';
+import {albumSummary,cardStatus} from './album.js?v=8a39250486';
+import * as A from './achievements.js?v=8a39250486';
+import * as ST from './stats.js?v=8a39250486';
+import * as B from './abilities.js?v=8a39250486';
+import * as K from './crest.js?v=8a39250486';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=8a39250486';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -398,14 +398,14 @@ function timeline(view) {
 // How the chance of a round is worked out, for whoever rests the pointer (or a finger) on its bar: the account with
 // its variables first, then with the numbers of this round. `prep` is the round as it was prepared (or as it was
 // played): the strength of each side, part by part, and the chance it started with.
+// It is a table, the two teams side by side: what the cards, the formation, the equipment and the bonus give each
+// one, the strength they add up to, and the chance. (`rows` is what the tip draws; `text`, the same thing in lines.)
 function chanceTip(prep) {
-  const tidy=value=>Math.abs(value)<.05?0:value,one=value=>num(tidy(value),1);
-  const added=values=>values.map(tidy).map((value,i)=>i?`${value<0?'-':'+'} ${num(Math.abs(value),1)}`:num(value,1)).join(' ');
-  const side=(name,strength,staff)=>`${name}: ${added([strength.roster,strength.formation,strength.gear,...(staff?[strength.bonus]:[])])} = ${one(strength.total)}`;
-  const raw=50+prep.ours.total-prep.theirs.total,ours=tidy(prep.ours.total),theirs=tidy(prep.theirs.total);
-  return ['Chance = 50 + força do seu time - força do rival','Força = elenco + formação + equipamento + bônus','Equipamento = (parte do time nas compras - 50) / 2',
-    side('Seu time',prep.ours,true),side('Rival',prep.theirs,false),
-    `50 ${ours<0?'-':'+'} ${num(Math.abs(ours),1)} ${theirs<0?'+':'-'} ${num(Math.abs(theirs),1)} = ${one(raw)} → ${Math.round(100*prep.odds)}%${raw<8?' (o mínimo)':raw>92?' (o máximo)':''}`].join('\n');
+  const points=value=>{const tidy=Math.abs(value)<.05?0:value;return tidy?`${tidy>0?'+':'-'}${num(Math.abs(tidy),1)}`:'0';};
+  const shown=Math.round(100*prep.odds),ours=prep.ours,theirs=prep.theirs;
+  const rows=[['Elenco',points(ours.roster),points(theirs.roster)],['Formação',points(ours.formation),points(theirs.formation)],['Equipamento',points(ours.gear),points(theirs.gear)],
+    ['Bônus',points(ours.bonus),'-'],['Força',points(ours.total),points(theirs.total)],['Chance',`${shown}%`,`${100-shown}%`]];
+  return {text:rows.map(row=>`${row[0]}: ${row[1]} x ${row[2]}`).join('\n'),rows:{head:['','Seu time','Rival'],rows}};
 }
 // The order for the purchase of the round about to start, in the freezetime: the team's own call or one of the three
 // the coach can give. It is only there while there is something to choose (see canBuy in the engine).
@@ -419,7 +419,8 @@ function buyPlan(ctx,view) {
 function buyBar(ctx,view) {
   if(!view.gear)return '';
   // (the explanation belongs to the whole bar: a finger does not have to find one of its two sides)
-  const prep=view.playing?view.record:ctx.match.prepared,why=prep?.ours&&prep.theirs&&Number.isFinite(prep.odds)?` data-tip="${esc(chanceTip(prep))}"`:'';
+  const prep=view.playing?view.record:ctx.match.prepared,tip=prep?.ours&&prep.theirs&&Number.isFinite(prep.odds)?chanceTip(prep):null;
+  const why=tip?` data-tip="${esc(tip.text)}" data-tip-rows="${esc(JSON.stringify(tip.rows))}"`:'';
   const odds=(view.playing?view.record.odds:ctx.match.prepared?.odds)??E.loadoutShare(view.teams)/100;
   const ours=Math.round(100*odds),[mine,rival]=view.gear,them=esc(ctx.match.teams[1].name);
   const carried=view.teams.map(players=>{
@@ -470,17 +471,20 @@ function feed(view) {
 // pulses), one button that starts the round or pauses it, the speed, and the freezetime settings behind Ajustes.
 function controls(ctx,view) {
   const ui=ctx.ui,prefs=ctx.prefs,m=ctx.match,left=view.plays[0],freeze=ui.freeze,between=!view.playing&&!m.pending;
+  // (a play of the rival's on the round about to start: there is none of yours to call on it, and the place says so)
+  const theirs=!view.playing&&m.pending?.by===1&&!ui.showEvent;
   const layered=!!(ui.duel||m.pending&&ui.showEvent&&!ui.play);
   if(view.over)return `<section class="controls over"><button class="btn primary big" data-action="see-result">Ver resultado</button></section>`;
   return `<section class="controls ${freeze?'freezing':''}" style="--phase:-${Date.now()%1000}ms" aria-label="Controles da partida">
-    ${left?`<button class="btn play-call" data-action="play-call" ${between?'':'disabled'}><span>Jogada de Efeito</span>${playPips(left,m.playsMax[0])}</button>`
-      :`<p class="plays-out" role="status">Todas as Jogadas de Efeito já utilizadas${prefs.freezeAll?'':', freezetime desabilitado'}</p>`}
+    ${theirs?'<p class="plays-out rival" role="status">Jogada de Efeito do rival</p>'
+      :left?`<button class="btn play-call" data-action="play-call" ${between?'':'disabled'}><span>Jogada de Efeito</span>${playPips(left,m.playsMax[0])}</button>`
+      :'<p class="plays-out" role="status">Todas as Jogadas de Efeito já utilizadas</p>'}
     <button class="btn flow ${freeze?'start':ui.paused?'primary':''}" data-action="${freeze?'start-round':'pause'}" ${layered?'disabled':''}>${freeze?'<span>Começar<span class="wide"> round</span></span>':ui.paused?'Retomar':'Pausar'}</button>
     <div class="speed" role="group" aria-label="Velocidade">${[1,2,4].map(s=>`<button data-action="speed" data-id="${s}" aria-pressed="${ui.speed===s}">${s}x</button>`).join('')}</div>
     <div class="settings"><button class="btn gear" data-action="settings" aria-expanded="${!!ui.settings}">Ajustes</button>
       ${ui.settings?`<div class="settings-pop" role="group" aria-label="Freezetime antes de cada round"><p class="label">Freezetime</p>
         <button class="auto" data-action="freeze-auto" aria-pressed="${prefs.freezeAuto}">Automático</button>
-        <div class="speed">${FREEZE_OPTIONS.map(s=>`<button data-action="freeze-time" data-id="${s}" aria-pressed="${prefs.freeze===s}" ${prefs.freezeAuto?'':'disabled'}>${s}s</button>`).join('')}</div>
+        <div class="speed">${FREEZE_OPTIONS.map(s=>`<button data-action="freeze-time" data-id="${s}" aria-pressed="${prefs.freeze===s}">${s}s</button>`).join('')}</div>
         <button class="auto" data-action="freeze-all" aria-pressed="${!!prefs.freezeAll}">Em todo round</button></div>`:''}</div>
   </section>`;
 }
@@ -560,12 +564,20 @@ function momentResult(ctx) {
 // The match screen keeps one layout from the first round to the last: header, rounds, controls, and the scoreboard
 // with the kill feed. The confrontation of a Jogada de Efeito opens over the scoreboard, in the same place, instead
 // of taking the whole screen; the scoreboard waits dimmed underneath.
+// The rival's Jogada de Efeito, said before the freezetime of its round starts: a strip that crosses the scoreboard,
+// with whose play it is and how many of them the rival has left. `--at` is how far into its time the strip is, so a
+// screen drawn again in the middle of it goes on from there (see schedule in app.js for when it is on).
+function rivalCall(ctx) {
+  const m=ctx.match,name=m.teams[1].name,at=Math.max(0,Math.round(Date.now()-ctx.ui.announce.start));
+  return `<div class="rival-call" role="status" style="--at:-${at}ms"><span class="rival-call-team">${teamLogo(name)}<b>${esc(name)}</b></span><strong>Adversário usou Jogada de Efeito!</strong>${playPips(m.plays[1],m.playsMax[1])}</div>`;
+}
 export function match(ctx) {
   const {match:m,ui}=ctx,view=matchView(ctx),layered=!!(ui.duel||m.pending&&ui.showEvent&&!ui.play);
+  const called=ui.announce&&m.pending?.by===1&&!ui.showEvent&&!ui.play?rivalCall(ctx):'';
   return `<div class="match">${scorebug(ctx,view)}${timeline(view)}${controls(ctx,view)}
     <div class="match-stack ${layered?'layered':''}">
       <div class="match-body" ${layered?'inert':''}><section class="board tray">${buyBar(ctx,view)}${buyPlan(ctx,view)}${teamTable(ctx,view,0)}${teamTable(ctx,view,1)}</section><aside class="match-side">${feed(view)}</aside></div>
-      ${layered?`<div class="play-layer">${ui.duel?momentResult(ctx):moment(ctx)}</div>`:''}
+      ${layered?`<div class="play-layer">${ui.duel?momentResult(ctx):moment(ctx)}</div>`:''}${called}
     </div>
   </div>`;
 }

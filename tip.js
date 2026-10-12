@@ -26,6 +26,24 @@ function build() {
   return box;
 }
 const open = ()=>!!box&&(TOP_LAYER?box.matches(':popover-open'):box.classList.contains('on'));
+// A tip that compares things is a table: `head` names its columns and each of `rows` starts with the name of the line.
+// It is built cell by cell, as text.
+function table({head,rows}) {
+  const make=(tag,text,scope)=>{const cell=document.createElement(tag);cell.textContent=text;if(scope)cell.scope=scope;return cell;};
+  const line=cells=>{const row=document.createElement('tr');row.append(...cells);return row;};
+  const node=document.createElement('table'),top=document.createElement('thead'),body=document.createElement('tbody');
+  top.append(line(head.map(text=>make('th',text,'col'))));
+  body.append(...rows.map(cells=>line(cells.map((text,i)=>make(i?'td':'th',text,i?'':'row')))));
+  node.append(top,body);
+  return node;
+}
+// What the box says for an element: its table when it has one that can be read, its text otherwise.
+function fill(place,el) {
+  let rows=null;
+  try{rows=el.dataset.tipRows?JSON.parse(el.dataset.tipRows):null;}catch{/* the text says it */}
+  if(rows?.head&&Array.isArray(rows.rows))place.replaceChildren(table(rows));else place.textContent=el.dataset.tip;
+  return !!rows;
+}
 function show(el) {
   clearTimeout(showTimer);clearTimeout(hideTimer);
   const text=el.dataset.tip;
@@ -33,7 +51,7 @@ function show(el) {
   const node=box||build(),host=el.closest('dialog[open]')||document.body;
   // Moving the box to another host closes it, which is what puts it back on top when it opens again.
   if(node.parentNode!==host)host.append(node);
-  node.firstChild.textContent=text;
+  node.classList.toggle('compare',fill(node.firstChild,el));
   if(owner!==el){owner?.removeAttribute('aria-describedby');owner=el;el.setAttribute('aria-describedby','tip');}
   if(!open()){if(TOP_LAYER)node.showPopover();else node.classList.add('on');}
   const place=tipPlace(el.getBoundingClientRect(),{width:node.offsetWidth,height:node.offsetHeight},{width:innerWidth,height:innerHeight});

@@ -1,19 +1,19 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=08314e7589';
-import * as C from './campaign.js?v=08314e7589';
-import * as S from './screens.js?v=08314e7589';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=08314e7589';
-import {startTour,closeTour,tourOpen} from './tour.js?v=08314e7589';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,freezeClock,openingKills} from './pace.js?v=08314e7589';
-import {stamp,cleanAlbum} from './album.js?v=08314e7589';
-import {initTips,refreshTips} from './tip.js?v=08314e7589';
-import {shareModel,copyShareImage} from './share.js?v=08314e7589';
-import {staleSave,stampSave} from './save.js?v=08314e7589';
-import * as A from './achievements.js?v=08314e7589';
-import * as ST from './stats.js?v=08314e7589';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=08314e7589';
-import {playChime} from './sound.js?v=08314e7589';
-import * as K from './crest.js?v=08314e7589';
+import * as E from './engine.js?v=8a39250486';
+import * as C from './campaign.js?v=8a39250486';
+import * as S from './screens.js?v=8a39250486';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=8a39250486';
+import {startTour,closeTour,tourOpen} from './tour.js?v=8a39250486';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,callBeat,freezeClock,openingKills} from './pace.js?v=8a39250486';
+import {stamp,cleanAlbum} from './album.js?v=8a39250486';
+import {initTips,refreshTips} from './tip.js?v=8a39250486';
+import {shareModel,copyShareImage} from './share.js?v=8a39250486';
+import {staleSave,stampSave} from './save.js?v=8a39250486';
+import * as A from './achievements.js?v=8a39250486';
+import * as ST from './stats.js?v=8a39250486';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=8a39250486';
+import {playChime} from './sound.js?v=8a39250486';
+import * as K from './crest.js?v=8a39250486';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats',RIVALS_KEY='univava:rivals';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
@@ -255,7 +255,7 @@ function route(){
 function enterMatch(){
   ctx.match=C.beginMatch(ctx.run,ctx.db);ctx.screen='match';
   clearTimeout(duelTimer);
-  Object.assign(ctx.ui,{paused:false,showEvent:false,play:null,duel:null,selected:null,freeze:null,settings:false});
+  Object.assign(ctx.ui,{paused:false,showEvent:false,play:null,duel:null,selected:null,freeze:null,settings:false,announce:null,announced:0});
   schedule();
 }
 function recordCareer(run){
@@ -319,6 +319,8 @@ const arrival = id=>ctx.run.lineup.some(s=>s.id===id)?'entrou como titular':'ent
 // round waits for a click, null the rest of the time. schedule() sets it, so it runs before every render that follows.
 const snapshot = m=>({score:[...m.score],plays:[...m.plays],teams:m.teams.map(team=>team.players.map(p=>({...p})))});
 const betweenRounds = ()=>{const m=ctx.match,ui=ctx.ui;return !!m&&!m.over&&!m.pending&&!ui.play&&!ui.duel;};
+// The freezetime of a round, a play of the rival's on it or not: the round has not started, and no confrontation is open.
+const waiting = ()=>{const m=ctx.match,ui=ctx.ui;return !!m&&!m.over&&!ui.play&&!ui.duel&&!ui.announce&&!(m.pending&&ui.showEvent);};
 function schedule(){
   clearTimeout(timer);timer=null;
   const m=ctx.match,ui=ctx.ui,play=ui.play;
@@ -328,7 +330,16 @@ function schedule(){
   // starts over when the tutorial closes.
   const held=tourOpen();
   if(play){if(!held)timer=setTimeout(step,playbackBeat(play.shown,play.record.kills.length,ui.speed));return;}
-  const {wait,freeze}=beforeRound({pending:m.pending,plays:m.plays[0],auto:prefs.freezeAuto,seconds:prefs.freeze,speed:ui.speed,always:prefs.freezeAll,buyable:E.canBuy(m)});
+  // A play of the rival's on the round is said first: the strip crosses the scoreboard, and only then does the
+  // freezetime of the round start. Once for each round; a tutorial on screen puts it off.
+  if(m.pending?.by===1&&ui.announced!==m.round){
+    if(held){ui.announce=null;return;}
+    if(ui.announce?.round!==m.round){ui.announce={round:m.round,start:Date.now()};announce('O adversário usou uma Jogada de Efeito neste round.');}
+    timer=setTimeout(()=>{ui.announced=m.round;ui.announce=null;schedule();render();},Math.max(0,callBeat(ui.speed)-(Date.now()-ui.announce.start)));
+    return;
+  }
+  ui.announce=null;
+  const {wait,freeze}=beforeRound({pending:m.pending,plays:m.plays[0],auto:prefs.freezeAuto,seconds:prefs.freeze,speed:ui.speed,always:prefs.freezeAll,buyable:E.canBuy(m),plan:m.prepared?.plan});
   if(freeze)ui.freeze=wait===null||held?{manual:true}:{start:Date.now(),total:wait};
   if(wait!==null&&!held)timer=setTimeout(step,wait);
 }
@@ -528,20 +539,22 @@ const actions={
   // The Jogada de Efeito goes to the round about to start. With a round running there is nothing to call it on.
   'play-call'(){
     const m=ctx.match,ui=ctx.ui;
-    if(!betweenRounds()||m.plays[0]<=0)return false;
+    if(!betweenRounds()||ui.announce||m.plays[0]<=0)return false;
     clearTimeout(timer);
     const event=C.callPlay(ctx.run,m);
     Object.assign(ui,{freeze:null,showEvent:true});
     announce(`Jogada de Efeito: ${event.label}. Escolha quem vai.`);
   },
   // Ends the freezetime: the round starts now, without a play.
-  'start-round'(){if(betweenRounds()&&!ctx.ui.paused){clearTimeout(timer);step();}return false;},
+  // (on a round the rival called a play on, starting it opens the confrontation)
+  'start-round'(){if(waiting()&&!ctx.ui.paused){clearTimeout(timer);step();}return false;},
   settings(){ctx.ui.settings=!ctx.ui.settings;},
   'freeze-auto'(){prefs.freezeAuto=!prefs.freezeAuto;prefs.freezeSet=true;store(PREFS_KEY,prefs);schedule();},
   // A freezetime in every round, to command the purchase all match long (and not only while a play is in hand).
   'freeze-all'(){prefs.freezeAll=!prefs.freezeAll;store(PREFS_KEY,prefs);schedule();},
   // The order for the purchase of the round about to start: it counts at once, and is kept with the match.
-  'buy-plan'(id){if(!betweenRounds()||!ctx.ui.freeze)return false;C.setBuy(ctx.run,ctx.match,id);},
+  // (an order other than the team's own holds the round, and going back to the team's own lets the count run again)
+  'buy-plan'(id){if(!waiting()||!ctx.ui.freeze)return false;C.setBuy(ctx.run,ctx.match,id);schedule();},
   'freeze-time'(id){prefs.freeze=cleanFreeze(Number(id));store(PREFS_KEY,prefs);schedule();},
   // The speed is about what happens inside a round. A freezetime that is counting keeps counting from where it is.
   speed(id){ctx.ui.speed=prefs.speed=Number(id);store(PREFS_KEY,prefs);if(ctx.ui.play)schedule();},
@@ -681,7 +694,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=08314e7589');
+    const response=await fetch('players.json?v=8a39250486');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -692,7 +705,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=08314e7589');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=8a39250486');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};

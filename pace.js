@@ -1,8 +1,10 @@
 // O ritmo da partida na tela: quanto dura cada batida e quanto se espera antes de cada round.
 
 // How long each beat of a match stays on screen at normal speed, in milliseconds, and how each speed scales it.
-// buy is the time between two rounds when there is nothing to decide; start, kill and end are the beats of a round.
-export const BEAT = {buy:900,start:700,kill:620,end:1150};
+// buy is the time between two rounds when there is nothing to decide; start, kill and end are the beats of a round;
+// call is how long the rival's Jogada de Efeito is announced for, before the freezetime of its round (the strip of
+// .rival-call in styles.css lasts the same).
+export const BEAT = {buy:900,start:700,kill:620,end:1150,call:1900};
 export const PACE = {1:1,2:.55,4:.28};
 // The freezetime the player can pick, in seconds.
 export const FREEZE_OPTIONS = [1,2,3,5,10];
@@ -18,16 +20,22 @@ export function freezeClock(elapsed,total) {
   return `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
 }
 
-// The wait before a round starts. With a Jogada de Efeito still in hand and no play of the rival's on the round, the
-// player gets the freezetime to decide: a fixed number of real seconds in automatic mode (match speed doesn't shorten
-// it), or as long as it takes in manual mode (wait is null: the round only starts on a click). With nothing to decide
-// the round simply follows the last one.
-// `always` is the player's choice of a freezetime in every round, to command the purchase all match long: the round
-// then also waits when the purchase is the only thing to decide (`buyable`: see canBuy in the engine).
-export function beforeRound({pending,plays,auto,seconds,speed,always=false,buyable=false}) {
-  if(pending||(plays<=0&&!(always&&buyable)))return {wait:BEAT.buy*PACE[speed],freeze:false};
-  return {wait:auto?seconds*1000:null,freeze:true};
+// The wait before a round starts. There is a freezetime whenever there is something to decide: a Jogada de Efeito to
+// call (one in hand, and none on the round yet) or the purchase of the round to order (`buyable`: see canBuy in the
+// engine; it is so on a round the rival called a play on, too). With nothing to decide the round simply follows the
+// last one.
+// The freezetime waits for a click (wait is null) while there is a play in hand, unless the player chose the automatic
+// one; with no play left it counts down by itself, a fixed number of real seconds (match speed doesn't shorten it),
+// unless the player asked for the freezetime in every round (`always`), which keeps it as it is with a play in hand.
+// And an order for the purchase other than the team's own (`plan`) holds the round whatever the rest: the coach is
+// deciding, and the count only runs while the purchase is left to the team.
+export function beforeRound({pending,plays,auto,seconds,speed,always=false,buyable=false,plan='auto'}) {
+  if(!(plays>0&&!pending)&&!buyable)return {wait:BEAT.buy*PACE[speed],freeze:false};
+  const waits=plan!=='auto'||(!auto&&(plays>0||always));
+  return {wait:waits?null:seconds*1000,freeze:true};
 }
+// The announcement of the rival's play is a thing to read: the speed of the match doesn't shorten it.
+export const callBeat = ()=>BEAT.call;
 // How many kills are on screen when a round starts. The freezetime already showed the buys, so the round opens on its
 // first kill instead of showing them once more.
 export const openingKills = kills=>Math.min(1,kills);

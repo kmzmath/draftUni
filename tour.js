@@ -5,6 +5,8 @@
 const PERIOD_OPENED = {el:'.period-opened',title:'Período liberado',text:'O título abriu um período novo: uma run com a regra mostrada aqui, somada às dos anteriores. Na próxima run você escolhe em qual jogar'};
 // One balloon for each thing worth explaining, and none for what the screen already shows. A balloon is long only when
 // it is about a rule of the game the player has to understand.
+// Where the overall is on a card, as parts of the card: left, top, width, height (the patch of .card-ovr in styles.css).
+const OVERALL = [.084,.122,.2,.117];
 export const TOURS = {
   home:[
     {el:'.hero-title',title:'Univavá Draft',text:'Você é um bom técnico? Tente montar seu time dos sonhos com as cartinhas de todo mundo que jogou o Univavá, e leve seu time à glória! Passando pelo caminho completo: classificatória, fase de grupos e Playoffs!'},
@@ -27,10 +29,10 @@ export const TOURS = {
     {el:'.perk-row',title:'Comissão técnica',text:'Escolha 1 de 3 bônus, que vale até o fim da run. Você ganha um depois do draft e outro a cada fase vencida, e pode comprar mais na loja. Os raros aparecem bem menos'}
   ],
   'hub:lineup':[
-    {el:'.band',title:'A fase',text:'Os losangos são as vitórias que faltam para avançar; os círculos, as derrotas que ainda cabem'},
+    {el:'.path-stage.now',title:'A fase',text:'Os losangos são as vitórias que faltam para avançar; os círculos, as derrotas que ainda cabem'},
     {el:'.period-tag',title:'Período',text:'Nesta run valem as regras deste período e de todos os anteriores. Clique para ver a lista'},
     {el:'.stage',title:'Titulares',text:'Clique em um jogador e depois em outro para trocar. Com o banco no meio, você vê o overall efetivo do time antes e depois, e confirma'},
-    {el:'.slot .card',title:'Overall efetivo',text:'A nota muda com a escalação: verde quando o jogador rende mais que o overall da carta, vermelho quando rende menos'},
+    {el:'.slot .card:has(.card-ovr), .stage:not(:has(.card-ovr)) .slot .card',part:OVERALL,title:'Overall efetivo',text:'A nota muda com a escalação: verde quando o jogador rende mais que o overall da carta, vermelho quando rende menos'},
     {el:'.agent-btn',title:'Agente',text:'Troque o agente do titular. Antes de confirmar, a prévia mostra o overall efetivo do time e a formação, antes e depois'},
     {el:'.slot-team.linked',title:'Sinergia',text:'Escudo aceso: titulares da mesma equipe. O número é o bônus de cada um'},
     {el:'.staff',title:'Comissão técnica',text:'Os bônus desta run e o que cada um faz'},
@@ -54,17 +56,16 @@ export const TOURS = {
     {el:'[data-action="reroll"]',title:'Trocar ofertas',text:'Paga para sortear novas ofertas de mercado e de contratos agora'}
   ],
   // Steps marked `more` are detail: the tutorial that opens by itself skips them, the Ajuda button shows them all.
-  // The scoreboard, the squares of the rounds, the abilities and the feed of the round have no step: they speak for
-  // themselves.
+  // The scoreboard, the two teams, the squares of the rounds, the abilities and the feed of the round have no step: they
+  // speak for themselves.
   'match:board':[
     {el:'.play-call',title:'Jogada de Efeito',text:'São 3 por partida. Usada no freezetime, ela troca o round por um confronto entre um jogador seu e um do rival: quem vence o confronto leva o round. Guarde para um round que parece perdido ou para um que não pode escapar. O rival também tem as dele'},
-    {el:'.buys',title:'Chance do round',text:'A chance de cada time no round que vai começar. Ela parte do equipamento que cada um leva; as cartas, a formação e os bônus somam ou tiram pontos, e ela fica sempre entre 8% e 92%. Deixe o ponteiro na barra, ou toque nela, para ver a conta'},
-    {el:'.buy-plan',more:true,title:'Compra do round',text:'No freezetime você pode mandar na compra: Eco guarda os créditos, Meia gasta até metade e Total gasta tudo. Auto deixa o time decidir. A ordem vale também no round em que você chama uma Jogada de Efeito. Em round de pistola e na prorrogação não há o que escolher'},
-    {el:'.squad.us',title:'Seu time',text:'O que cada jogador fez e o que leva para o round. O losango ao lado do nome mostra quem ainda pode ir a um confronto'},
+    {el:'.buys',title:'Chance do round',text:'A chance de cada time no round que vai começar. Ela parte do equipamento que cada um leva; as cartas, a formação e os bônus somam ou tiram pontos. Deixe o ponteiro na barra, ou toque nela, para comparar os dois times'},
+    {el:'.buy-plan',more:true,title:'Compra do round',text:'No freezetime você pode mandar na compra: Eco guarda os créditos, Meia gasta até metade e Total gasta tudo. Auto deixa o time decidir. A ordem vale também num round com Jogada de Efeito, sua ou do rival. Em round de pistola e na prorrogação não há o que escolher'},
     {el:'.controls',title:'Ritmo',text:'Começar round inicia o round; durante ele, o mesmo botão pausa. Ao lado fica a velocidade'},
     {el:'.squad.us .cr',more:true,title:'Créditos',text:'Cada jogador paga a própria arma, colete e habilidades. O round rende 3.000 na vitória e de 1.900 a 2.900 na derrota, mais 200 por abate. Quem sobrevive mantém a arma'},
     {el:'.buys p',more:true,title:'Os tipos de compra',text:'Completa: pelo menos quatro com rifle. Forçado: gastou tudo sem conseguir se armar. Parcial e Eco: o time guardou créditos para o round seguinte'},
-    {el:'.settings',more:true,title:'Freezetime',text:'No automático o round começa sozinho depois da contagem. Sem Jogada de Efeito na mão a partida não espera, a não ser com Em todo round ligado, que mantém o freezetime até o fim para você mandar na compra'}
+    {el:'.settings',more:true,title:'Freezetime',text:'No automático o round começa sozinho depois da contagem. Sem Jogada de Efeito na mão ele também passa a começar sozinho, a não ser com Em todo round ligado. Escolher uma compra diferente de Auto segura o round até você começar'}
   ],
   'match:moment':[
     {el:'.moment .band',title:'Jogada de Efeito',text:'Este round será decidido num confronto. Você escolhe o seu jogador sem ver quem vem do outro lado'},
@@ -103,7 +104,9 @@ const visible = el=>el&&el.getClientRects().length>0;
 function place() {
   if(!state)return;
   const step=state.steps[state.index],target=document.querySelector(step.el),hole=state.root.querySelector('.tour-hole'),card=state.root.querySelector('.tour-card');
-  const pad=8,r=target.getBoundingClientRect();
+  // (a step may point at a part of its element: the overall on a card)
+  const pad=8,whole=target.getBoundingClientRect(),[x,y,w,h]=step.part||[0,0,1,1];
+  const r={left:whole.left+whole.width*x,top:whole.top+whole.height*y,right:whole.left+whole.width*(x+w),bottom:whole.top+whole.height*(y+h)};
   const box={left:Math.max(4,r.left-pad),top:Math.max(4,r.top-pad),right:Math.min(innerWidth-4,r.right+pad),bottom:Math.min(innerHeight-4,r.bottom+pad)};
   Object.assign(hole.style,{left:box.left+'px',top:box.top+'px',width:box.right-box.left+'px',height:box.bottom-box.top+'px'});
   // The card goes under the element when there is room, above it otherwise, and never leaves the viewport.
@@ -112,6 +115,11 @@ function place() {
   const left=Math.min(Math.max(12,(box.left+box.right)/2-width/2),innerWidth-width-12);
   Object.assign(card.style,{left:left+'px',top:top+'px'});
 }
+// The balloon slides to the next step, and its buttons slide with it under the pointer. A click or an arrow key that
+// comes while it is still arriving is the rest of the gesture that brought the step (a double click, a finger that
+// bounced, a key held down): it would skip a step nobody saw, or close the help. Such a gesture is let go by.
+const SAME_GESTURE = 350;
+const early = ()=>Date.now()<state.guard;
 function show() {
   const {steps,index,root}=state,step=steps[index];
   root.querySelector('.tour-card').innerHTML=`<p class="tour-count">${index+1} / ${steps.length}</p><h2 id="tour-title">${step.title}</h2><p>${step.text}</p>
@@ -127,14 +135,18 @@ export function closeTour() {
   removeEventListener('resize',place);removeEventListener('scroll',place,true);document.removeEventListener('keydown',keys,true);
   onClose?.();
 }
+// One step on, or back. A step whose element is no longer on the screen leaves the walk, so the count never carries a
+// number that nobody gets to see.
 function move(delta) {
-  if(state.index+delta>=state.steps.length)return closeTour();
-  state.index=Math.max(0,state.index+delta);show();
+  let index=state.index+delta;
+  while(index>=0&&index<state.steps.length&&!visible(document.querySelector(state.steps[index].el))){state.steps.splice(index,1);if(delta<0)index--;}
+  if(index>=state.steps.length)return closeTour();
+  state.index=Math.max(0,index);show();
+  state.guard=Date.now()+SAME_GESTURE;
 }
 function keys(event) {
   if(event.key==='Escape'){event.preventDefault();closeTour();}
-  else if(event.key==='ArrowRight'){event.preventDefault();move(1);}
-  else if(event.key==='ArrowLeft'){event.preventDefault();move(-1);}
+  else if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();if(!early())move(event.key==='ArrowRight'?1:-1);}
 }
 // Starts the walkthrough for a screen: the short one when `brief` is set, the whole one otherwise. Returns false when
 // nothing on the screen can be explained.
@@ -147,10 +159,12 @@ export function startTour(key,{onClose,onOff,brief=false}={}) {
   root.innerHTML='<div class="tour-hole"></div><div class="tour-card"></div>';
   root.addEventListener('click',event=>{
     const action=event.target.closest('[data-tour]')?.dataset.tour;
-    if(action==='next')move(1);else if(action==='back')move(-1);else if(action==='off'){onOff?.();closeTour();}
+    if(!action||early())return;
+    if(action==='off'){onOff?.();closeTour();}
+    else move(action==='next'?1:-1);
   });
   document.body.append(root);
-  state={steps,index:0,root,onClose};
+  state={steps,index:0,root,onClose,guard:0};
   addEventListener('resize',place);addEventListener('scroll',place,true);document.addEventListener('keydown',keys,true);
   show();
   return true;
