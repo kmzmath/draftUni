@@ -61,11 +61,10 @@ export const TOURS = {
   'match:board':[
     {el:'.play-call',title:'Jogada de Efeito',text:'São 3 por partida. Usada no freezetime, ela troca o round por um confronto entre um jogador seu e um do rival: quem vence o confronto leva o round. Guarde para um round que parece perdido ou para um que não pode escapar. O rival também tem as dele'},
     {el:'.buys',title:'Chance do round',text:'A chance de cada time no round que vai começar. Ela parte do equipamento que cada um leva; as cartas, a formação e os bônus somam ou tiram pontos. Deixe o ponteiro na barra, ou toque nela, para comparar os dois times'},
-    {el:'.buy-plan',more:true,title:'Compra do round',text:'No freezetime você pode mandar na compra: Eco guarda os créditos, Meia gasta até metade e Total gasta tudo. Auto deixa o time decidir. A ordem vale também num round com Jogada de Efeito, sua ou do rival. Em round de pistola e na prorrogação não há o que escolher'},
     {el:'.controls',title:'Ritmo',text:'Começar round inicia o round; durante ele, o mesmo botão pausa. Ao lado fica a velocidade'},
     {el:'.squad.us .cr',more:true,title:'Créditos',text:'Cada jogador paga a própria arma, colete e habilidades. O round rende 3.000 na vitória e de 1.900 a 2.900 na derrota, mais 200 por abate. Quem sobrevive mantém a arma'},
-    {el:'.buys p',more:true,title:'Os tipos de compra',text:'Completa: pelo menos quatro com rifle. Forçado: gastou tudo sem conseguir se armar. Parcial e Eco: o time guardou créditos para o round seguinte'},
-    {el:'.settings',more:true,title:'Freezetime',text:'No automático o round começa sozinho depois da contagem. Sem Jogada de Efeito na mão ele também passa a começar sozinho, a não ser com Em todo round ligado. Escolher uma compra diferente de Auto segura o round até você começar'}
+    {el:'.buys p',more:true,title:'Os tipos de compra',text:'Cada time decide a própria compra: guarda os créditos num round que parece perdido e compra tudo quando isso vira o round. Completa: pelo menos quatro com rifle. Forçado: gastou tudo sem conseguir se armar. Parcial e Eco: o time guardou créditos para o round seguinte'},
+    {el:'.settings',more:true,title:'Freezetime',text:'No automático o round começa sozinho depois da contagem. Sem Jogada de Efeito na mão, ou quando a jogada do round é do rival, a partida não espera'}
   ],
   'match:moment':[
     {el:'.moment .band',title:'Jogada de Efeito',text:'Este round será decidido num confronto. Você escolhe o seu jogador sem ver quem vem do outro lado'},

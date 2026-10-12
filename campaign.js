@@ -1,6 +1,6 @@
 // A run do Univavá: fases, moedas, loja, contratos de agente e comissão técnica.
 // O estado da run é JSON puro (ids e números), para poder ser salvo e retomado.
-import * as E from './engine.js?v=8a39250486';
+import * as E from './engine.js?v=341fd28fd4';
 
 export const START_COINS = 200;
 export const MATCH_PAY = 100;
@@ -23,7 +23,7 @@ export const PERK_PACK_STEP = 100;
 export const STAGES = [
   {key:'qualifier',name:'Classificatória',wins:4,losses:2,targets:[81.5,82.2,82.8,83.4,84],market:[79,85]},
   {key:'groups',name:'Fase de Grupos',wins:3,losses:3,targets:[85,85.6,86.2,86.8,87.4],market:[81,87]},
-  {key:'playoffs',name:'Playoffs',wins:3,losses:1,targets:[88.1,89.1,90.5],market:[83,90],labels:['Quartas de final','Semifinal','Final']}
+  {key:'playoffs',name:'Playoffs',wins:3,losses:1,targets:[88.5,89.5,90.9],market:[83,90],labels:['Quartas de final','Semifinal','Final']}
 ];
 export const PACKS = [
   {key:'calouro',name:'Pacote Calouro',cost:160,range:[77,83]},
@@ -413,8 +413,8 @@ export function swapPlayers(run,db,a,b) {
 // at the side swap, and no ultimates in overtime, with 3) would give another match with the same choices, so such a
 // match is not continued. It starts over. The numbers of the staff bonuses, when they were rebalanced, came with 4.
 // With 6, a Jogada de Efeito is played on the purchases as they stood when it was called (before, each team went back
-// to its own call).
-export const MATCH_RULES = 6;
+// to its own call). With 7, both teams read the round before buying, and the coach gives no orders for the purchase.
+export const MATCH_RULES = 7;
 export const sameRules = live=>live?.rules===MATCH_RULES;
 export function beginMatch(run,db) {
   const error=run.status!=='hub'?'Nenhuma partida preparada':lineupError(run,db);
@@ -428,9 +428,6 @@ export function beginMatch(run,db) {
   const match=E.createMatch({lineup:lineupSlots(run,db),opponent:{name:run.opponent.team,lineup:opponentLineup(run,db)},seed:run.matchSeed,perks:run.perks,ownPlays:(on(run,'plays')?V.plays:E.PLAYS)+(prepOf(run).play?1:0),decisive:mustWin(run),train:prepOf(run).train,studied:prepOf(run).study});
   let used=0;
   while(!match.over){
-    // (the order given for the purchase of a round comes back with it, before the round is played again)
-    const order=run.live.buys?.[match.round];
-    if(order&&E.canBuy(match)&&match.prepared.plan!==order)E.setBuy(match,order);
     if(!match.pending&&run.live.calls.includes(match.round))E.callPlay(match);
     if(match.pending){if(used<run.live.picks.length)E.resolveEvent(match,run.live.picks[used++]);else break;}
     else if(match.log.length<run.live.rounds)E.advanceRound(match);
@@ -441,18 +438,9 @@ export function beginMatch(run,db) {
 // Your Jogada de Efeito on the round about to be played. It is recorded at once: once the confrontation is on the
 // table, closing the page neither gives the play back nor draws another one.
 export function callPlay(run,match) {
-  // (the order given for the purchase of the round stays in run.live.buys: the play was called on it)
   const event=E.callPlay(match);
   run.live.calls.push(event.round);
   return event;
-}
-// The order for the purchase of the round about to start (see E.setBuy). Kept with the match, round by round, so that
-// a match that is loaded again is rebuilt with the purchases it had; the automatic one needs no keeping.
-export function setBuy(run,match,plan) {
-  E.setBuy(match,plan);
-  const buys=run.live.buys??={};
-  if(plan==='auto')delete buys[match.round];else buys[match.round]=plan;
-  return match.prepared;
 }
 // The player sent to a confrontation. Recorded at once too, so it stands even if the page is closed before the round ends.
 export function pickActor(run,match,id) {

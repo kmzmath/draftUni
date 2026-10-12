@@ -20,19 +20,13 @@ export function freezeClock(elapsed,total) {
   return `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
 }
 
-// The wait before a round starts. There is a freezetime whenever there is something to decide: a Jogada de Efeito to
-// call (one in hand, and none on the round yet) or the purchase of the round to order (`buyable`: see canBuy in the
-// engine; it is so on a round the rival called a play on, too). With nothing to decide the round simply follows the
-// last one.
-// The freezetime waits for a click (wait is null) while there is a play in hand, unless the player chose the automatic
-// one; with no play left it counts down by itself, a fixed number of real seconds (match speed doesn't shorten it),
-// unless the player asked for the freezetime in every round (`always`), which keeps it as it is with a play in hand.
-// And an order for the purchase other than the team's own (`plan`) holds the round whatever the rest: the coach is
-// deciding, and the count only runs while the purchase is left to the team.
-export function beforeRound({pending,plays,auto,seconds,speed,always=false,buyable=false,plan='auto'}) {
-  if(!(plays>0&&!pending)&&!buyable)return {wait:BEAT.buy*PACE[speed],freeze:false};
-  const waits=plan!=='auto'||(!auto&&(plays>0||always));
-  return {wait:waits?null:seconds*1000,freeze:true};
+// The wait before a round starts. With a Jogada de Efeito still in hand and no play of the rival's on the round, the
+// player gets the freezetime to decide: a fixed number of real seconds in automatic mode (match speed doesn't shorten
+// it), or as long as it takes in manual mode (wait is null: the round only starts on a click). With nothing to decide
+// the round simply follows the last one: the purchases are each team's own, and nobody orders them.
+export function beforeRound({pending,plays,auto,seconds,speed}) {
+  if(pending||plays<=0)return {wait:BEAT.buy*PACE[speed],freeze:false};
+  return {wait:auto?seconds*1000:null,freeze:true};
 }
 // The announcement of the rival's play is a thing to read: the speed of the match doesn't shorten it.
 export const callBeat = ()=>BEAT.call;

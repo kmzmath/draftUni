@@ -1,15 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=8a39250486';
-import * as C from './campaign.js?v=8a39250486';
-import {previewChange} from './impact.js?v=8a39250486';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=8a39250486';
-import {albumSummary,cardStatus} from './album.js?v=8a39250486';
-import * as A from './achievements.js?v=8a39250486';
-import * as ST from './stats.js?v=8a39250486';
-import * as B from './abilities.js?v=8a39250486';
-import * as K from './crest.js?v=8a39250486';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=8a39250486';
+import * as E from './engine.js?v=341fd28fd4';
+import * as C from './campaign.js?v=341fd28fd4';
+import {previewChange} from './impact.js?v=341fd28fd4';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=341fd28fd4';
+import {albumSummary,cardStatus} from './album.js?v=341fd28fd4';
+import * as A from './achievements.js?v=341fd28fd4';
+import * as ST from './stats.js?v=341fd28fd4';
+import * as B from './abilities.js?v=341fd28fd4';
+import * as K from './crest.js?v=341fd28fd4';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=341fd28fd4';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');
@@ -407,15 +407,6 @@ function chanceTip(prep) {
     ['Bônus',points(ours.bonus),'-'],['Força',points(ours.total),points(theirs.total)],['Chance',`${shown}%`,`${100-shown}%`]];
   return {text:rows.map(row=>`${row[0]}: ${row[1]} x ${row[2]}`).join('\n'),rows:{head:['','Seu time','Rival'],rows}};
 }
-// The order for the purchase of the round about to start, in the freezetime: the team's own call or one of the three
-// the coach can give. It is only there while there is something to choose (see canBuy in the engine).
-const BUY_ORDERS = {auto:['Auto','O time decide a compra'],eco:['Eco','Ninguém compra: o time guarda os créditos'],half:['Meia','Cada jogador gasta até metade dos créditos'],full:['Total','Cada jogador gasta tudo o que tem']};
-function buyPlan(ctx,view) {
-  const m=ctx.match;
-  if(!ctx.ui.freeze||view.playing||view.over||!E.canBuy(m))return '';
-  return `<div class="buy-plan" role="group" aria-label="Compra do round">${Object.entries(BUY_ORDERS).map(([key,[label,tip]])=>
-    `<button data-action="buy-plan" data-id="${key}" aria-pressed="${m.prepared.plan===key}" aria-label="${E.BUY_PLANS[key]}" data-tip="${tip}">${label}</button>`).join('')}</div>`;
-}
 function buyBar(ctx,view) {
   if(!view.gear)return '';
   // (the explanation belongs to the whole bar: a finger does not have to find one of its two sides)
@@ -478,14 +469,13 @@ function controls(ctx,view) {
   return `<section class="controls ${freeze?'freezing':''}" style="--phase:-${Date.now()%1000}ms" aria-label="Controles da partida">
     ${theirs?'<p class="plays-out rival" role="status">Jogada de Efeito do rival</p>'
       :left?`<button class="btn play-call" data-action="play-call" ${between?'':'disabled'}><span>Jogada de Efeito</span>${playPips(left,m.playsMax[0])}</button>`
-      :'<p class="plays-out" role="status">Todas as Jogadas de Efeito já utilizadas</p>'}
+      :'<p class="plays-out" role="status">Todas as Jogadas de Efeito já utilizadas, freezetime desabilitado</p>'}
     <button class="btn flow ${freeze?'start':ui.paused?'primary':''}" data-action="${freeze?'start-round':'pause'}" ${layered?'disabled':''}>${freeze?'<span>Começar<span class="wide"> round</span></span>':ui.paused?'Retomar':'Pausar'}</button>
     <div class="speed" role="group" aria-label="Velocidade">${[1,2,4].map(s=>`<button data-action="speed" data-id="${s}" aria-pressed="${ui.speed===s}">${s}x</button>`).join('')}</div>
     <div class="settings"><button class="btn gear" data-action="settings" aria-expanded="${!!ui.settings}">Ajustes</button>
       ${ui.settings?`<div class="settings-pop" role="group" aria-label="Freezetime antes de cada round"><p class="label">Freezetime</p>
         <button class="auto" data-action="freeze-auto" aria-pressed="${prefs.freezeAuto}">Automático</button>
-        <div class="speed">${FREEZE_OPTIONS.map(s=>`<button data-action="freeze-time" data-id="${s}" aria-pressed="${prefs.freeze===s}">${s}s</button>`).join('')}</div>
-        <button class="auto" data-action="freeze-all" aria-pressed="${!!prefs.freezeAll}">Em todo round</button></div>`:''}</div>
+        <div class="speed">${FREEZE_OPTIONS.map(s=>`<button data-action="freeze-time" data-id="${s}" aria-pressed="${prefs.freeze===s}" ${prefs.freezeAuto?'':'disabled'}>${s}s</button>`).join('')}</div></div>`:''}</div>
   </section>`;
 }
 function moment(ctx) {
@@ -576,7 +566,7 @@ export function match(ctx) {
   const called=ui.announce&&m.pending?.by===1&&!ui.showEvent&&!ui.play?rivalCall(ctx):'';
   return `<div class="match">${scorebug(ctx,view)}${timeline(view)}${controls(ctx,view)}
     <div class="match-stack ${layered?'layered':''}">
-      <div class="match-body" ${layered?'inert':''}><section class="board tray">${buyBar(ctx,view)}${buyPlan(ctx,view)}${teamTable(ctx,view,0)}${teamTable(ctx,view,1)}</section><aside class="match-side">${feed(view)}</aside></div>
+      <div class="match-body" ${layered?'inert':''}><section class="board tray">${buyBar(ctx,view)}${teamTable(ctx,view,0)}${teamTable(ctx,view,1)}</section><aside class="match-side">${feed(view)}</aside></div>
       ${layered?`<div class="play-layer">${ui.duel?momentResult(ctx):moment(ctx)}</div>`:''}${called}
     </div>
   </div>`;

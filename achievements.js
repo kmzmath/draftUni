@@ -3,9 +3,9 @@
 // O que já saiu fica guardado entre as runs como {got:{id:dia}, formations:[...], tosses:n}: o dia em que cada
 // conquista saiu; para a Estrategista, as formações com que o time já venceu; e, para a Moeda viciada, quantos
 // sorteios seguidos o time venceu (ou perdeu, abaixo de zero).
-import * as E from './engine.js?v=8a39250486';
-import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=8a39250486';
-import {albumSummary} from './album.js?v=8a39250486';
+import * as E from './engine.js?v=341fd28fd4';
+import {lineupSlots,lineupError,PERIODS} from './campaign.js?v=341fd28fd4';
+import {albumSummary} from './album.js?v=341fd28fd4';
 
 export const GROUPS = ['Campanha','Partida','Jogada de Efeito','Elenco','Álbum'];
 export const ACHIEVEMENTS = [

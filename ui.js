@@ -1,6 +1,6 @@
 // Componentes de interface compartilhados pelas telas. Tudo aqui devolve HTML em texto.
-import * as E from './engine.js?v=8a39250486';
-import {abilityKey} from './abilities.js?v=8a39250486';
+import * as E from './engine.js?v=341fd28fd4';
+import {abilityKey} from './abilities.js?v=341fd28fd4';
 
 export const $ = selector=>document.querySelector(selector);
 export const esc = value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

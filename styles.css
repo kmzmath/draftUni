@@ -1814,15 +1814,6 @@ button.period[aria-pressed="true"]{background:rgba(209,243,80,.13);box-shadow:in
 .stat-five{display:flex;gap:.3rem}
 .stat-five .agent-icon,.stat-five .role-icon{width:2rem;height:2rem}
 @media (hover:hover){.stat-card:hover{transform:translateY(-4px)}}
-/* The order for the purchase of the round, under the bar of the chance, in the freezetime. */
-.buy-plan{grid-column:1/-1;display:flex;gap:2px;width:max-content;max-width:100%;border-radius:8px;overflow:hidden}
-.buy-plan button{min-height:2.4rem;padding:0 1rem;font:700 .72rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,.1);transition:background .2s,color .2s}
-.buy-plan button:hover{background:rgba(255,255,255,.18)}
-.buy-plan button[aria-pressed="true"]{color:var(--black);background:var(--lime)}
-@media (max-width:700px){
-  .buy-plan{width:100%}
-  .buy-plan button{flex:1;min-height:2.75rem;padding:0 .2rem}
-}
 /* ---------- Preparação da partida ---------- */
 .prep-line{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;margin-bottom:.6rem}
 .prep-open{min-height:2.6rem;padding:0 1rem;font-size:.74rem}
