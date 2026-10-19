@@ -1,19 +1,19 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=341fd28fd4';
-import * as C from './campaign.js?v=341fd28fd4';
-import * as S from './screens.js?v=341fd28fd4';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=341fd28fd4';
-import {startTour,closeTour,tourOpen} from './tour.js?v=341fd28fd4';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,callBeat,freezeClock,openingKills} from './pace.js?v=341fd28fd4';
-import {stamp,cleanAlbum} from './album.js?v=341fd28fd4';
-import {initTips,refreshTips} from './tip.js?v=341fd28fd4';
-import {shareModel,copyShareImage} from './share.js?v=341fd28fd4';
-import {staleSave,stampSave} from './save.js?v=341fd28fd4';
-import * as A from './achievements.js?v=341fd28fd4';
-import * as ST from './stats.js?v=341fd28fd4';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=341fd28fd4';
-import {playChime} from './sound.js?v=341fd28fd4';
-import * as K from './crest.js?v=341fd28fd4';
+import * as E from './engine.js?v=ccdcaccc4f';
+import * as C from './campaign.js?v=ccdcaccc4f';
+import * as S from './screens.js?v=ccdcaccc4f';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=ccdcaccc4f';
+import {startTour,closeTour,tourOpen} from './tour.js?v=ccdcaccc4f';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,callBeat,freezeClock,openingKills} from './pace.js?v=ccdcaccc4f';
+import {stamp,cleanAlbum} from './album.js?v=ccdcaccc4f';
+import {initTips,refreshTips} from './tip.js?v=ccdcaccc4f';
+import {shareModel,copyShareImage} from './share.js?v=ccdcaccc4f';
+import {staleSave,stampSave} from './save.js?v=ccdcaccc4f';
+import * as A from './achievements.js?v=ccdcaccc4f';
+import * as ST from './stats.js?v=ccdcaccc4f';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=ccdcaccc4f';
+import {playChime} from './sound.js?v=ccdcaccc4f';
+import * as K from './crest.js?v=ccdcaccc4f';
 
 const RUN_KEY='univava:run',DAILY_KEY='univava:daily',CAREER_KEY='univava:career',PREFS_KEY='univava:prefs',ALBUM_KEY='univava:album',FEATS_KEY='univava:feats',STATS_KEY='univava:stats',RIVALS_KEY='univava:rivals';
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY='univava:notice',SWITCH_KEY='univava:build',PLACE_KEY='univava:place';
@@ -686,7 +686,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=341fd28fd4');
+    const response=await fetch('players.json?v=ccdcaccc4f');
     if(!response.ok)throw new Error('O arquivo de jogadores não respondeu');
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -697,7 +697,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=341fd28fd4');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=ccdcaccc4f');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};

@@ -1,15 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=341fd28fd4';
-import * as C from './campaign.js?v=341fd28fd4';
-import {previewChange} from './impact.js?v=341fd28fd4';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=341fd28fd4';
-import {albumSummary,cardStatus} from './album.js?v=341fd28fd4';
-import * as A from './achievements.js?v=341fd28fd4';
-import * as ST from './stats.js?v=341fd28fd4';
-import * as B from './abilities.js?v=341fd28fd4';
-import * as K from './crest.js?v=341fd28fd4';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=341fd28fd4';
+import * as E from './engine.js?v=ccdcaccc4f';
+import * as C from './campaign.js?v=ccdcaccc4f';
+import {previewChange} from './impact.js?v=ccdcaccc4f';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=ccdcaccc4f';
+import {albumSummary,cardStatus} from './album.js?v=ccdcaccc4f';
+import * as A from './achievements.js?v=ccdcaccc4f';
+import * as ST from './stats.js?v=ccdcaccc4f';
+import * as B from './abilities.js?v=ccdcaccc4f';
+import * as K from './crest.js?v=ccdcaccc4f';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=ccdcaccc4f';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?' e ':', ');

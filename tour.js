@@ -6,7 +6,7 @@ const PERIOD_OPENED = {el:'.period-opened',title:'Período liberado',text:'O tí
 // One balloon for each thing worth explaining, and none for what the screen already shows. A balloon is long only when
 // it is about a rule of the game the player has to understand.
 // Where the overall is on a card, as parts of the card: left, top, width, height (the patch of .card-ovr in styles.css).
-const OVERALL = [.084,.122,.2,.117];
+const OVERALL = [.08,.182,.2,.09];
 export const TOURS = {
   home:[
     {el:'.hero-title',title:'Univavá Draft',text:'Você é um bom técnico? Tente montar seu time dos sonhos com as cartinhas de todo mundo que jogou o Univavá, e leve seu time à glória! Passando pelo caminho completo: classificatória, fase de grupos e Playoffs!'},
