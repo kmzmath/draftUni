@@ -1,0 +1,4402 @@
+[
+  {
+    "before": "Elenco polivalente",
+    "after": "Versatile Roster",
+    "file": "engine.js"
+  },
+  {
+    "before": "Seus jogadores não perdem mais overall por jogar em outra função ou com outros agentes",
+    "after": "Your players no longer lose overall for playing a different role or agent",
+    "file": "engine.js"
+  },
+  {
+    "before": "Entrosamento",
+    "after": "Team Chemistry",
+    "file": "engine.js"
+  },
+  {
+    "before": "A sinergia de equipe rende +1 a mais para cada jogador da equipe",
+    "after": "Team synergy gives an extra +1 to each player from that team",
+    "file": "engine.js"
+  },
+  {
+    "before": "Pistoleiros",
+    "after": "Gunslingers",
+    "file": "engine.js"
+  },
+  {
+    "before": "+12 pontos de chance nos rounds de pistola (1 e 13)",
+    "after": "+12 percentage points of win chance in pistol rounds (1 and 13)",
+    "file": "engine.js"
+  },
+  {
+    "before": "Sangue frio",
+    "after": "Cold-Blooded",
+    "file": "engine.js"
+  },
+  {
+    "before": "Nos confrontos empatados, +2 de overall só para o desempate",
+    "after": "In tied showdowns, +2 overall for the tiebreaker only",
+    "file": "engine.js"
+  },
+  {
+    "before": "Segundo fôlego",
+    "after": "Second Wind",
+    "file": "engine.js"
+  },
+  {
+    "before": "Os titulares voltam a ficar disponíveis depois de 3 usos, não 5",
+    "after": "Your starters become available again after 3 uses instead of 5",
+    "file": "engine.js"
+  },
+  {
+    "before": "Mentalidade de virada",
+    "after": "Comeback Mentality",
+    "file": "engine.js"
+  },
+  {
+    "before": "+8 pontos de chance enquanto estiver 2 ou mais rounds atrás",
+    "after": "+8 percentage points of win chance while 2 or more rounds behind",
+    "file": "engine.js"
+  },
+  {
+    "before": "Patrocínio da atlética",
+    "after": "Campus Sponsorship",
+    "file": "engine.js"
+  },
+  {
+    "before": "+30 moedas em cada partida disputada",
+    "after": "+30 coins for each match played",
+    "file": "engine.js"
+  },
+  {
+    "before": "Olheiro",
+    "after": "Scout",
+    "file": "engine.js"
+  },
+  {
+    "before": "Cada pacote revela 4 cartas em vez de 3",
+    "after": "Each pack reveals 4 cards instead of 3",
+    "file": "engine.js"
+  },
+  {
+    "before": "Negociador",
+    "after": "Negotiator",
+    "file": "engine.js"
+  },
+  {
+    "before": "Jogadores do mercado e contratos de agente custam 35% menos",
+    "after": "Market players and agent contracts cost 35% less",
+    "file": "engine.js"
+  },
+  {
+    "before": "Jogada ensaiada",
+    "after": "Set Play",
+    "file": "engine.js"
+  },
+  {
+    "before": "As Jogadas de Efeito do rival também sorteiam um confronto de afinidade da sua formação",
+    "after": "Your opponent's Power Plays also draw a showdown favored by your formation",
+    "file": "engine.js"
+  },
+  {
+    "before": "Armeiro",
+    "after": "Armorer",
+    "file": "engine.js"
+  },
+  {
+    "before": "Seus jogadores começam cada metade com 1.200 créditos e entram de colete nos rounds de pistola",
+    "after": "Your players start each half with 1,200 credits and wear shields in pistol rounds",
+    "file": "engine.js"
+  },
+  {
+    "before": "Caixa de emergência",
+    "after": "Emergency Fund",
+    "file": "engine.js"
+  },
+  {
+    "before": "Quando seu time perde um round, seus jogadores ganham +400 créditos bônus no próximo round",
+    "after": "When your team loses a round, your players get +400 bonus credits in the next round",
+    "file": "engine.js"
+  },
+  {
+    "before": "Capitão",
+    "after": "Captain",
+    "file": "engine.js"
+  },
+  {
+    "before": "O titular de maior overall rende +3",
+    "after": "Your highest-rated starter gains +3",
+    "file": "engine.js"
+  },
+  {
+    "before": "Reforço",
+    "after": "Reinforcements",
+    "file": "engine.js"
+  },
+  {
+    "before": "Seus 3 titulares de menor overall rendem +1",
+    "after": "Your 3 lowest-rated starters gain +1",
+    "file": "engine.js"
+  },
+  {
+    "before": "Especialistas",
+    "after": "Specialists",
+    "file": "engine.js"
+  },
+  {
+    "before": "No agente de conforto, o jogador rende +2 em vez de +1",
+    "after": "On their comfort agent, a player gains +2 instead of +1",
+    "file": "engine.js"
+  },
+  {
+    "before": "Vitrine",
+    "after": "Window Shopping",
+    "file": "engine.js"
+  },
+  {
+    "before": "O mercado mostra 8 cartas em vez de 4",
+    "after": "The market offers 8 cards instead of 4",
+    "file": "engine.js"
+  },
+  {
+    "before": "Contatos",
+    "after": "Connections",
+    "file": "engine.js"
+  },
+  {
+    "before": "As duas primeiras trocas de ofertas de cada loja são grátis",
+    "after": "The first two refreshes of each shop's offers are free",
+    "file": "engine.js"
+  },
+  {
+    "before": "Bicho",
+    "after": "Win Bonus",
+    "file": "screens.js"
+  },
+  {
+    "before": "+40 moedas por vitória",
+    "after": "+40 coins per win",
+    "file": "engine.js"
+  },
+  {
+    "before": "Psicólogo",
+    "after": "Sports Psychologist",
+    "file": "engine.js"
+  },
+  {
+    "before": "+2 pontos de chance nos jogos eliminatórios",
+    "after": "+2 percentage points of win chance in elimination matches",
+    "file": "engine.js"
+  },
+  {
+    "before": "Time de guerreiros",
+    "after": "Fighting Spirit",
+    "file": "engine.js"
+  },
+  {
+    "before": "+1 ponto de chance para cada ponto de overall efetivo que o rival tiver a mais que o seu time, até +2",
+    "after": "+1 point of win chance for each point of effective overall your opponent has over your team, up to +2",
+    "file": "engine.js"
+  },
+  {
+    "before": "Equilíbrio",
+    "after": "Balance",
+    "file": "engine.js"
+  },
+  {
+    "before": "Com as quatro funções entre os titulares, +2 pontos de chance no ataque e na defesa",
+    "after": "With all four roles in your lineup, +2 percentage points of win chance on attack and defense",
+    "file": "engine.js"
+  },
+  {
+    "before": "Quarta jogada",
+    "after": "Fourth Play",
+    "file": "engine.js"
+  },
+  {
+    "before": "4 Jogadas de Efeito por partida, em vez de 3",
+    "after": "4 Power Plays per match instead of 3",
+    "file": "engine.js"
+  },
+  {
+    "before": "Repescagem",
+    "after": "Second Chance",
+    "file": "engine.js"
+  },
+  {
+    "before": "A primeira derrota que eliminaria o time não conta. Vale uma vez na run. Não vale na final",
+    "after": "Your first elimination loss does not count. Once per run. Does not apply in the final",
+    "file": "engine.js"
+  },
+  {
+    "before": "Pacotes custam 10% a menos. Um jogador vendido na mesma rodada em que saiu de um pacote vale 10% a mais",
+    "after": "Packs cost 10% less. A player sold during the same shop visit in which they came from a pack sells for 10% more",
+    "file": "engine.js"
+  },
+  {
+    "before": "Classificado",
+    "after": "Qualified",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Chegar à Fase de Grupos",
+    "after": "Reach the Group Stage",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Mata-mata",
+    "after": "Knockout Time",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Chegar aos Playoffs",
+    "after": "Reach the Playoffs",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Finalista",
+    "after": "Finalist",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Chegar à final",
+    "after": "Reach the final",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Campeão do Univavá",
+    "after": "Univavá Champion",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ser campeão",
+    "after": "Win the championship",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Tricampeão",
+    "after": "Three-Time Champion",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ser campeão 3 vezes",
+    "after": "Win 3 championships",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Invicto",
+    "after": "Undefeated",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ser campeão sem perder nenhuma partida",
+    "after": "Win the championship without losing a match",
+    "file": "achievements.js"
+  },
+  {
+    "before": "No sufoco",
+    "after": "By the Skin of Your Teeth",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Avançar de fase no último jogo possível",
+    "after": "Advance to the next stage in the last possible match",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Campeão do dia",
+    "after": "Champion of the Day",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ser campeão no Desafio do dia",
+    "after": "Win the Daily Challenge",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Assíduo",
+    "after": "Regular",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Jogar o Desafio do dia em 7 dias",
+    "after": "Play the Daily Challenge on 7 different days",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Aprovado",
+    "after": "Accepted",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ser campeão no 1º período",
+    "after": "Win the championship in Semester 1",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Formado",
+    "after": "Graduate",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ser campeão no 10º período",
+    "after": "Win the championship in Semester 10",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Tão perto...",
+    "after": "So Close...",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Perder a final depois de vencer todos os outros jogos",
+    "after": "Lose the final after winning every other match",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Pipoqueiros",
+    "after": "Chokers",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Perder o primeiro jogo dos Playoffs depois de vencer todos os outros",
+    "after": "Lose your first Playoff match after winning every other match",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Leão de Classificatória",
+    "after": "Qualifier Kings",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Cair na Fase de Grupos sem vencer nenhum jogo, depois de vencer todos os da classificatória",
+    "after": "Lose every Group Stage match after winning every Qualifier match",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Atropelo",
+    "after": "Steamroller",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer uma partida por 13 a 0",
+    "after": "Win a match 13–0",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Dia para esquecer",
+    "after": "A Day to Forget",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Perder uma partida por 0 a 13",
+    "after": "Lose a match 0–13",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Prorrogação",
+    "after": "Overtime",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vencer uma partida na prorrogação",
+    "after": "Win a match in overtime",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Oso, Oso, Oso",
+    "after": "Comeback",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer depois de estar 6 rounds atrás",
+    "after": "Win after falling 6 rounds behind",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Embalado",
+    "after": "On a Roll",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer 5 partidas seguidas na mesma run",
+    "after": "Win 5 matches in a row in the same run",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Zebra",
+    "after": "Giant Slayer",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer um rival com efetivo 3 pontos ou mais acima do seu",
+    "after": "Beat an opponent whose effective overall is at least 3 points higher than yours",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Dor nas Costas",
+    "after": "My Back Hurts",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Um jogador seu termina a partida com 30 abates ou mais",
+    "after": "Have one of your players finish a match with at least 30 kills",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Um jogador seu faz os 5 abates de um round",
+    "after": "Have one of your players get all 5 kills in a round",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Eco milagroso",
+    "after": "Eco Miracle",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer um round de Eco contra uma compra Completa",
+    "after": "Win an Eco round against a Full buy",
+    "file": "achievements.js"
+  },
+  {
+    "before": "A casa sempre ganha",
+    "after": "The House Always Wins",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Perder, sem Jogada de Efeito, um round em que você tinha 85% de chance ou mais",
+    "after": "Lose a round with at least an 85% win chance without using a Power Play",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Coletivismo",
+    "after": "Teamwork Makes the Dream Work",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer uma partida sem usar nenhuma Jogada de Efeito",
+    "after": "Win a match without using a Power Play",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Mão quente",
+    "after": "Hot Hand",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer todos os confrontos de uma partida (pelo menos 3)",
+    "after": "Win every showdown in a match (at least 3)",
+    "file": "achievements.js"
+  },
+  {
+    "before": "No detalhe",
+    "after": "By a Hair",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer um confronto no desempate",
+    "after": "Win a showdown on a tiebreaker",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Eu confio nas minhas chances",
+    "after": "I Like My Odds",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Não usar Jogada de Efeito num round em que você tem 15% de chance ou menos",
+    "after": "Skip a Power Play in a round with a win chance of 15% or less",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Melhor prevenir...",
+    "after": "Better Safe than Sorry",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Usar uma Jogada de Efeito num round em que você tem 49% de chance",
+    "after": "Use a Power Play in a round with a 49% win chance",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Prefiro a Certeza",
+    "after": "I Prefer a Sure Thing",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Usar uma Jogada de Efeito num round em que você tem 80% de chance ou mais",
+    "after": "Use a Power Play in a round with at least an 80% win chance",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Time covarde",
+    "after": "Chickens",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Perder 4 confrontos seguidos na mesma partida",
+    "after": "Lose 4 showdowns in a row in the same match",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Moeda viciada",
+    "after": "Loaded Coin",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer ou perder 3 sorteios de desempate seguidos",
+    "after": "Win or lose 3 coin-flip tiebreakers in a row",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Time da casa",
+    "after": "Home Team",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Jogar uma partida com cinco titulares da mesma equipe",
+    "after": "Play a match with five starters from the same team",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Cada um no seu",
+    "after": "In Their Element",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Jogar uma partida com os cinco titulares no agente de conforto",
+    "after": "Play a match with all five starters on their comfort agents",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Seleção",
+    "after": "Dream Team",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ter um time com 90 de média efetiva",
+    "after": "Build a lineup with an average effective overall of 90",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Melhor do Mundo",
+    "after": "World's Best",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ter um jogador com 94 de overall efetivo no elenco",
+    "after": "Have a player with an effective overall of 94 on your roster",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Estrategista",
+    "after": "Strategist",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vencer com cada uma das cinco formações",
+    "after": "Win with each of the five formations",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Achado",
+    "after": "What a Find",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Ficar com uma carta de overall 90 ou mais num pacote",
+    "after": "Keep a card rated 90 overall or higher from a pack",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Cofre cheio",
+    "after": "Full Vault",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Juntar 1.000 moedas",
+    "after": "Save up 1,000 coins",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Quero meu reembolso",
+    "after": "I Want a Refund",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Vender um jogador na mesma rodada em que ele saiu de um pacote",
+    "after": "Sell a player during the same shop visit in which you got them from a pack",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Colecionador",
+    "after": "Collector",
+    "file": "achievements.js"
+  },
+  {
+    "before": "50 cartas no álbum",
+    "after": "Collect 50 cards in the album",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Álbum de respeito",
+    "after": "An Album to Be Proud Of",
+    "file": "achievements.js"
+  },
+  {
+    "before": "150 cartas no álbum",
+    "after": "Collect 150 cards in the album",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Álbum completo",
+    "after": "Complete Album",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Todas as cartas no álbum",
+    "after": "Collect every card in the album",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Equipe completa",
+    "after": "The Whole Squad",
+    "file": "achievements.js"
+  },
+  {
+    "before": "Completar uma equipe no álbum",
+    "after": "Collect every card from one team in the album",
+    "file": "achievements.js"
+  },
+  {
+    "before": "O mercado mostra 3 cartas em vez de 4",
+    "after": "The market offers 3 cards instead of 4",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A run começa com 150 moedas em vez de 200",
+    "after": "Your run starts with 150 coins instead of 200",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Vitórias seguidas pagam no máximo 50 moedas em vez de 60",
+    "after": "Win streaks pay at most 50 coins instead of 60",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Os rivais de cada jogo vêm mais fortes",
+    "after": "Opponents are stronger in every match",
+    "file": "campaign.js"
+  },
+  {
+    "before": "6 contratos de agente no começo em vez de 8",
+    "after": "6 agent contracts at the start instead of 8",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Fase vencida paga 170 moedas em vez de 200",
+    "after": "Advancing to the next stage pays 170 coins instead of 200",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Vitória paga 70 moedas em vez de 80",
+    "after": "Winning pays 70 coins instead of 80",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Pacotes, mercado e contratos custam 5% mais",
+    "after": "Packs, market players and contracts cost 5% more",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Elenco de no máximo 7 cartas em vez de 8",
+    "after": "Your roster is limited to 7 cards instead of 8",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A final é em dois jogos: é preciso vencer os dois",
+    "after": "The final has two matches: you must win both",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Vestibulando",
+    "after": "Applicant",
+    "file": "campaign.js"
+  },
+  {
+    "before": "1º período",
+    "after": "Semester 1",
+    "file": "campaign.js"
+  },
+  {
+    "before": "2º período",
+    "after": "Semester 2",
+    "file": "campaign.js"
+  },
+  {
+    "before": "3º período",
+    "after": "Semester 3",
+    "file": "campaign.js"
+  },
+  {
+    "before": "4º período",
+    "after": "Semester 4",
+    "file": "campaign.js"
+  },
+  {
+    "before": "5º período",
+    "after": "Semester 5",
+    "file": "campaign.js"
+  },
+  {
+    "before": "6º período",
+    "after": "Semester 6",
+    "file": "campaign.js"
+  },
+  {
+    "before": "7º período",
+    "after": "Semester 7",
+    "file": "campaign.js"
+  },
+  {
+    "before": "8º período",
+    "after": "Semester 8",
+    "file": "campaign.js"
+  },
+  {
+    "before": "9º período",
+    "after": "Semester 9",
+    "file": "campaign.js"
+  },
+  {
+    "before": "10º período",
+    "after": "Semester 10",
+    "file": "campaign.js"
+  },
+  {
+    "before": "PARTIDAS",
+    "after": "MATCHES",
+    "file": "cards"
+  },
+  {
+    "before": "MPR · Mortes por round",
+    "after": "DPR · Deaths per Round",
+    "file": "cards"
+  },
+  {
+    "before": "Valorant Universitário",
+    "after": "Collegiate Valorant",
+    "file": "screens.js"
+  },
+  {
+    "before": "Fase de Grupos",
+    "after": "Group Stage",
+    "file": "stats.js"
+  },
+  {
+    "before": "Embaralhando as cartinhas…",
+    "after": "Shuffling the cards…",
+    "file": "index.html"
+  },
+  {
+    "before": "Monte um elenco com as cartinhas reais do Valorant universitário e leve-o das classificatórias até a final do Univavá.",
+    "after": "Build a roster with real collegiate Valorant cards and lead your team from the Qualifier to the Univavá final.",
+    "file": "index.html"
+  },
+  {
+    "before": "Campanha",
+    "after": "Campaign",
+    "file": "screens.js"
+  },
+  {
+    "before": "Partida",
+    "after": "Match",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogada de Efeito",
+    "after": "Power Play",
+    "file": "tour.js"
+  },
+  {
+    "before": "Elenco",
+    "after": "Roster",
+    "file": "screens.js"
+  },
+  {
+    "before": "Álbum",
+    "after": "Album",
+    "file": "screens.js"
+  },
+  {
+    "before": "Completa",
+    "after": "Full",
+    "file": "engine.js"
+  },
+  {
+    "before": "Conquistas",
+    "after": "Achievements",
+    "file": "tour.js"
+  },
+  {
+    "before": "Conquista",
+    "after": "Achievement",
+    "file": "screens.js"
+  },
+  {
+    "before": "Campeão",
+    "after": "Champion",
+    "file": "stats.js"
+  },
+  {
+    "before": "Resultado copiado",
+    "after": "Result copied",
+    "file": "app.js"
+  },
+  {
+    "before": "entrou como titular",
+    "after": "joined the starting lineup",
+    "file": "app.js"
+  },
+  {
+    "before": "entrou no banco de reservas",
+    "after": "joined the bench",
+    "file": "app.js"
+  },
+  {
+    "before": "O adversário usou uma Jogada de Efeito neste round.",
+    "after": "Your opponent used a Power Play this round.",
+    "file": "app.js"
+  },
+  {
+    "before": "Fim de jogo:",
+    "after": "Full time:",
+    "file": "app.js"
+  },
+  {
+    "before": "do rival",
+    "after": "by your opponent",
+    "file": "screens.js"
+  },
+  {
+    "before": "do seu time",
+    "after": "by your team",
+    "file": "app.js"
+  },
+  {
+    "before": ". A partida espera a sua escolha.",
+    "after": ". The match is waiting for your choice.",
+    "file": "app.js"
+  },
+  {
+    "before": "entrou na comissão técnica",
+    "after": "joined the coaching staff",
+    "file": "app.js"
+  },
+  {
+    "before": "e",
+    "after": "and",
+    "file": "screens.js"
+  },
+  {
+    "before": "trocaram de lugar.",
+    "after": "swapped places.",
+    "file": "app.js"
+  },
+  {
+    "before": "Troca aplicada.",
+    "after": "Swap applied.",
+    "file": "app.js"
+  },
+  {
+    "before": "vendido por",
+    "after": "sold for",
+    "file": "app.js"
+  },
+  {
+    "before": "moedas",
+    "after": "coins",
+    "file": "ui.js"
+  },
+  {
+    "before": "contratado. Já pode ser escalado",
+    "after": "signed. You can now put them in your lineup",
+    "file": "app.js"
+  },
+  {
+    "before": "Partida iniciada. Você pode pausar quando quiser.",
+    "after": "Match started. You can pause at any time.",
+    "file": "app.js"
+  },
+  {
+    "before": "Derrota por W.O.",
+    "after": "Loss by forfeit",
+    "file": "app.js"
+  },
+  {
+    "before": "Jogada de Efeito:",
+    "after": "Power Play:",
+    "file": "app.js"
+  },
+  {
+    "before": ". Escolha quem vai.",
+    "after": ". Choose your player.",
+    "file": "app.js"
+  },
+  {
+    "before": "Confronto vencido",
+    "after": "Showdown won",
+    "file": "app.js"
+  },
+  {
+    "before": "Confronto perdido",
+    "after": "Showdown lost",
+    "file": "app.js"
+  },
+  {
+    "before": "Round vencido",
+    "after": "Round won",
+    "file": "screens.js"
+  },
+  {
+    "before": "Round perdido",
+    "after": "Round lost",
+    "file": "screens.js"
+  },
+  {
+    "before": "Imagem copiada",
+    "after": "Image copied",
+    "file": "app.js"
+  },
+  {
+    "before": "Imagem salva em arquivo: o navegador não deixou copiar",
+    "after": "Image saved to a file: your browser could not copy it",
+    "file": "app.js"
+  },
+  {
+    "before": "Não deu para gerar a imagem",
+    "after": "Could not generate the image",
+    "file": "app.js"
+  },
+  {
+    "before": "Algo deu errado. Recarregue a página e tente de novo",
+    "after": "Something went wrong. Reload the page and try again",
+    "file": "app.js"
+  },
+  {
+    "before": "O jogo não conseguiu abrir",
+    "after": "The game could not load",
+    "file": "app.js"
+  },
+  {
+    "before": "Uma run salva não pôde ser lida. O álbum, as conquistas e as estatísticas continuam guardados",
+    "after": "A saved run could not be read. Your album, achievements and statistics are still saved",
+    "file": "app.js"
+  },
+  {
+    "before": "Tentar de novo",
+    "after": "Try again",
+    "file": "app.js"
+  },
+  {
+    "before": "Descartar as runs em andamento",
+    "after": "Discard ongoing runs",
+    "file": "app.js"
+  },
+  {
+    "before": "O arquivo de jogadores não respondeu",
+    "after": "The player data file did not respond",
+    "file": "app.js"
+  },
+  {
+    "before": ". Abra o jogo pelo servidor local (Iniciar jogo.cmd) e tente de novo",
+    "after": ". Start the game with the local launcher (Iniciar jogo.cmd) and try again",
+    "file": "app.js"
+  },
+  {
+    "before": "As cartas não carregaram",
+    "after": "The cards did not load",
+    "file": "app.js"
+  },
+  {
+    "before": "Jogo atualizado",
+    "after": "Game updated",
+    "file": "app.js"
+  },
+  {
+    "before": "O jogo avançou em outra aba. Esta agora mostra o que foi salvo",
+    "after": "The game continued in another tab. This tab now shows the latest save",
+    "file": "app.js"
+  },
+  {
+    "before": "Classificatória",
+    "after": "Qualifier",
+    "file": "stats.js"
+  },
+  {
+    "before": "Quartas de final",
+    "after": "Quarterfinals",
+    "file": "stats.js"
+  },
+  {
+    "before": "Pacote Calouro",
+    "after": "Freshman Pack",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Pacote Veterano",
+    "after": "Senior Pack",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Pacote Lenda",
+    "after": "Legend Pack",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Duelistas",
+    "after": "Duelists",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Iniciadores",
+    "after": "Initiators",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Controladores",
+    "after": "Controllers",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Sentinelas",
+    "after": "Sentinels",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Duelista",
+    "after": "Duelist",
+    "file": "engine.js"
+  },
+  {
+    "before": "Sentinela",
+    "after": "Sentinel",
+    "file": "engine.js"
+  },
+  {
+    "before": "Iniciador",
+    "after": "Initiator",
+    "file": "engine.js"
+  },
+  {
+    "before": "Controlador",
+    "after": "Controller",
+    "file": "engine.js"
+  },
+  {
+    "before": "O mercado mostra",
+    "after": "The market offers",
+    "file": "engine.js"
+  },
+  {
+    "before": "cartas em vez de 4",
+    "after": "cards instead of 4",
+    "file": "engine.js"
+  },
+  {
+    "before": "A run começa com",
+    "after": "Your run starts with",
+    "file": "campaign.js"
+  },
+  {
+    "before": "moedas em vez de",
+    "after": "coins instead of",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Vitórias seguidas pagam no máximo",
+    "after": "Win streaks pay at most",
+    "file": "campaign.js"
+  },
+  {
+    "before": "contratos de agente no começo em vez de",
+    "after": "agent contracts at the start instead of",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Fase vencida paga",
+    "after": "Advancing to the next stage pays",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Vitória paga",
+    "after": "Winning pays",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Pacotes, mercado e contratos custam",
+    "after": "Packs, market players and contracts cost",
+    "file": "campaign.js"
+  },
+  {
+    "before": "% mais",
+    "after": "% more",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Elenco de no máximo",
+    "after": "Your roster is limited to",
+    "file": "campaign.js"
+  },
+  {
+    "before": "cartas em vez de",
+    "after": "cards instead of",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Você tem",
+    "after": "You have",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Jogadas de Efeito por partida em vez de",
+    "after": "Power Plays per match instead of",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Sem bônus depois do draft; o primeiro vem ao vencer a classificatória",
+    "after": "No bonus after the draft; your first comes after winning the Qualifier",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A Fase de Grupos cai com",
+    "after": "The Group Stage ends your run at",
+    "file": "campaign.js"
+  },
+  {
+    "before": "derrotas em vez de",
+    "after": "losses instead of",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Final · Jogo 1",
+    "after": "Final · Match 1",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Final · Jogo 2",
+    "after": "Final · Match 2",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Desafio #",
+    "after": "Challenge #",
+    "file": "screens.js"
+  },
+  {
+    "before": "Modo tradicional ·",
+    "after": "Classic Mode ·",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Modo tradicional",
+    "after": "Classic Mode",
+    "file": "tour.js"
+  },
+  {
+    "before": "Classificatória · Jogo",
+    "after": "Qualifier · Match",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Grupos · Jogo",
+    "after": "Groups · Match",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Há uma partida em andamento",
+    "after": "A match is already in progress",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Escolha uma carta do pacote que já está aberto",
+    "after": "Choose a card from the pack that is already open",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Moedas insuficientes",
+    "after": "Not enough coins",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Elenco cheio (",
+    "after": "Roster full (",
+    "file": "campaign.js"
+  },
+  {
+    "before": "). Libere uma vaga vendendo um jogador",
+    "after": "). Make room by selling a player",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Este degrau não existe",
+    "after": "This difficulty level does not exist",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Escolha uma das cartas oferecidas",
+    "after": "Choose one of the cards on offer",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Escolha um bônus oferecido",
+    "after": "Choose one of the bonuses on offer",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A loja está fechada",
+    "after": "The shop is closed",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Seu time já tem todos os bônus",
+    "after": "Your team already has every bonus",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Nenhuma partida preparada",
+    "after": "No match is ready",
+    "file": "campaign.js"
+  },
+  {
+    "before": "O treino para a partida já está no máximo",
+    "after": "Match training is already at its maximum",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A jogada extra já foi comprada",
+    "after": "The extra play has already been bought",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A comissão técnica já faz isso",
+    "after": "Your coaching staff already provides this",
+    "file": "campaign.js"
+  },
+  {
+    "before": "O rival já foi estudado",
+    "after": "Your opponent has already been scouted",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Preparação desconhecida",
+    "after": "Unknown preparation option",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Este jogador não está no seu elenco",
+    "after": "This player is not on your roster",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Este jogador já treinou o máximo",
+    "after": "This player has already reached the training limit",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Este contrato não está em oferta",
+    "after": "This contract is not on offer",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Este jogador não está em oferta",
+    "after": "This player is not on offer",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Pacote de",
+    "after": "Pack of",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pacote desconhecido",
+    "after": "Unknown pack",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Esta carta não está no pacote aberto",
+    "after": "This card is not in the open pack",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Só titulares usam agente",
+    "after": "Only starters can be assigned an agent",
+    "file": "campaign.js"
+  },
+  {
+    "before": "não tem contrato com a sua equipe",
+    "after": "does not have a contract with your team",
+    "file": "engine.js"
+  },
+  {
+    "before": "Jogador fora do elenco",
+    "after": "Player not on the roster",
+    "file": "campaign.js"
+  },
+  {
+    "before": "O time está completo: a partida precisa ser jogada",
+    "after": "Your team is complete: you must play the match",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A run já foi encerrada",
+    "after": "This run has already ended",
+    "file": "campaign.js"
+  },
+  {
+    "before": "A partida ainda não acabou",
+    "after": "The match is not over yet",
+    "file": "campaign.js"
+  },
+  {
+    "before": "campeão do Univavá",
+    "after": "Univavá champion",
+    "file": "campaign.js"
+  },
+  {
+    "before": "na classificatória",
+    "after": "in the Qualifier",
+    "file": "campaign.js"
+  },
+  {
+    "before": "na fase de grupos",
+    "after": "in the Group Stage",
+    "file": "campaign.js"
+  },
+  {
+    "before": "nos playoffs",
+    "after": "in the Playoffs",
+    "file": "campaign.js"
+  },
+  {
+    "before": "em andamento",
+    "after": "in progress",
+    "file": "campaign.js"
+  },
+  {
+    "before": "desistiu",
+    "after": "gave up",
+    "file": "campaign.js"
+  },
+  {
+    "before": "caiu",
+    "after": "eliminated",
+    "file": "campaign.js"
+  },
+  {
+    "before": "vice-campeão",
+    "after": "runner-up",
+    "file": "campaign.js"
+  },
+  {
+    "before": "caiu na semifinal",
+    "after": "eliminated in the semifinal",
+    "file": "campaign.js"
+  },
+  {
+    "before": "caiu nas quartas de final",
+    "after": "eliminated in the quarterfinals",
+    "file": "campaign.js"
+  },
+  {
+    "before": "Seu time",
+    "after": "Your team",
+    "file": "tour.js"
+  },
+  {
+    "before": "V ·",
+    "after": "W ·",
+    "file": "share.js"
+  },
+  {
+    "before": "D · saldo de rounds",
+    "after": "L · round difference",
+    "file": "share.js"
+  },
+  {
+    "before": "Clássico",
+    "after": "Classic",
+    "file": "crest.js"
+  },
+  {
+    "before": "Ponta",
+    "after": "Pointed",
+    "file": "crest.js"
+  },
+  {
+    "before": "Brasão",
+    "after": "Heraldic Shield",
+    "file": "crest.js"
+  },
+  {
+    "before": "Moderno",
+    "after": "Modern",
+    "file": "crest.js"
+  },
+  {
+    "before": "Hexágono",
+    "after": "Hexagon",
+    "file": "crest.js"
+  },
+  {
+    "before": "Redondo",
+    "after": "Round",
+    "file": "crest.js"
+  },
+  {
+    "before": "Losango",
+    "after": "Diamond",
+    "file": "crest.js"
+  },
+  {
+    "before": "Flâmula",
+    "after": "Pennant",
+    "file": "crest.js"
+  },
+  {
+    "before": "Liso",
+    "after": "Solid",
+    "file": "crest.js"
+  },
+  {
+    "before": "Listras em pé",
+    "after": "Vertical stripes",
+    "file": "crest.js"
+  },
+  {
+    "before": "Listras deitadas",
+    "after": "Horizontal stripes",
+    "file": "crest.js"
+  },
+  {
+    "before": "Listras inclinadas",
+    "after": "Diagonal stripes",
+    "file": "crest.js"
+  },
+  {
+    "before": "Faixa inclinada",
+    "after": "Diagonal band",
+    "file": "crest.js"
+  },
+  {
+    "before": "Faixa em pé",
+    "after": "Vertical band",
+    "file": "crest.js"
+  },
+  {
+    "before": "Faixa deitada",
+    "after": "Horizontal band",
+    "file": "crest.js"
+  },
+  {
+    "before": "Topo",
+    "after": "Top",
+    "file": "crest.js"
+  },
+  {
+    "before": "Metades",
+    "after": "Halves",
+    "file": "crest.js"
+  },
+  {
+    "before": "Corte",
+    "after": "Split",
+    "file": "crest.js"
+  },
+  {
+    "before": "Quartos",
+    "after": "Quarters",
+    "file": "crest.js"
+  },
+  {
+    "before": "Xadrez",
+    "after": "Checkerboard",
+    "file": "crest.js"
+  },
+  {
+    "before": "Cruz",
+    "after": "Cross",
+    "file": "crest.js"
+  },
+  {
+    "before": "Xis",
+    "after": "X",
+    "file": "crest.js"
+  },
+  {
+    "before": "Divisa",
+    "after": "Chevron",
+    "file": "crest.js"
+  },
+  {
+    "before": "Raios",
+    "after": "Rays",
+    "file": "crest.js"
+  },
+  {
+    "before": "Sem adorno",
+    "after": "No emblem",
+    "file": "crest.js"
+  },
+  {
+    "before": "Iniciais",
+    "after": "Initials",
+    "file": "crest.js"
+  },
+  {
+    "before": "Estrela",
+    "after": "Star",
+    "file": "crest.js"
+  },
+  {
+    "before": "Coroa",
+    "after": "Crown",
+    "file": "crest.js"
+  },
+  {
+    "before": "Raio",
+    "after": "Lightning bolt",
+    "file": "crest.js"
+  },
+  {
+    "before": "Chama",
+    "after": "Flame",
+    "file": "crest.js"
+  },
+  {
+    "before": "Capelo",
+    "after": "Graduation cap",
+    "file": "crest.js"
+  },
+  {
+    "before": "Mira",
+    "after": "Crosshair",
+    "file": "crest.js"
+  },
+  {
+    "before": "Espada",
+    "after": "Sword",
+    "file": "crest.js"
+  },
+  {
+    "before": "Troféu",
+    "after": "Trophy",
+    "file": "crest.js"
+  },
+  {
+    "before": "Coração",
+    "after": "Heart",
+    "file": "crest.js"
+  },
+  {
+    "before": "Livro",
+    "after": "Book",
+    "file": "crest.js"
+  },
+  {
+    "before": "Escudete",
+    "after": "Shield",
+    "file": "crest.js"
+  },
+  {
+    "before": "Pata",
+    "after": "Paw",
+    "file": "crest.js"
+  },
+  {
+    "before": "Anel",
+    "after": "Ring",
+    "file": "crest.js"
+  },
+  {
+    "before": "Roxo",
+    "after": "Purple",
+    "file": "crest.js"
+  },
+  {
+    "before": "Lima",
+    "after": "Lime",
+    "file": "crest.js"
+  },
+  {
+    "before": "Preto",
+    "after": "Black",
+    "file": "crest.js"
+  },
+  {
+    "before": "Creme",
+    "after": "Cream",
+    "file": "crest.js"
+  },
+  {
+    "before": "Ouro",
+    "after": "Gold",
+    "file": "crest.js"
+  },
+  {
+    "before": "Vermelho",
+    "after": "Red",
+    "file": "crest.js"
+  },
+  {
+    "before": "Laranja",
+    "after": "Orange",
+    "file": "crest.js"
+  },
+  {
+    "before": "Amarelo",
+    "after": "Yellow",
+    "file": "crest.js"
+  },
+  {
+    "before": "Verde",
+    "after": "Green",
+    "file": "crest.js"
+  },
+  {
+    "before": "Musgo",
+    "after": "Moss green",
+    "file": "crest.js"
+  },
+  {
+    "before": "Ciano",
+    "after": "Cyan",
+    "file": "crest.js"
+  },
+  {
+    "before": "Azul",
+    "after": "Blue",
+    "file": "crest.js"
+  },
+  {
+    "before": "Marinho",
+    "after": "Navy",
+    "file": "crest.js"
+  },
+  {
+    "before": "Rosa",
+    "after": "Pink",
+    "file": "crest.js"
+  },
+  {
+    "before": "Vinho",
+    "after": "Burgundy",
+    "file": "crest.js"
+  },
+  {
+    "before": "Fundo",
+    "after": "Background",
+    "file": "crest.js"
+  },
+  {
+    "before": "Padrão",
+    "after": "Pattern",
+    "file": "screens.js"
+  },
+  {
+    "before": "Contorno",
+    "after": "Outline",
+    "file": "crest.js"
+  },
+  {
+    "before": "Adorno",
+    "after": "Emblem",
+    "file": "screens.js"
+  },
+  {
+    "before": "Escudo de",
+    "after": "Crest of",
+    "file": "crest.js"
+  },
+  {
+    "before": "Escudo do time",
+    "after": "Team crest",
+    "file": "crest.js"
+  },
+  {
+    "before": "MPR",
+    "after": "DPR",
+    "file": "engine.js"
+  },
+  {
+    "before": "A primeira troca",
+    "after": "The first refresh",
+    "file": "engine.js"
+  },
+  {
+    "before": "As duas primeiras trocas",
+    "after": "The first two refreshes",
+    "file": "engine.js"
+  },
+  {
+    "before": "As três primeiras trocas",
+    "after": "The first three refreshes",
+    "file": "engine.js"
+  },
+  {
+    "before": "pontos",
+    "after": "points",
+    "file": "screens.js"
+  },
+  {
+    "before": "ponto",
+    "after": "point",
+    "file": "engine.js"
+  },
+  {
+    "before": "Penalidades de função caem",
+    "after": "Role penalties drop by",
+    "file": "engine.js"
+  },
+  {
+    "before": ": secundária deixa de custar, fora de função custa -",
+    "after": ": secondary roles have no penalty; off-role costs -",
+    "file": "engine.js"
+  },
+  {
+    "before": "A sinergia de equipe rende +",
+    "after": "Team synergy gives an extra +",
+    "file": "engine.js"
+  },
+  {
+    "before": "a mais para cada jogador da equipe",
+    "after": "to each player from that team",
+    "file": "engine.js"
+  },
+  {
+    "before": "pontos de chance nos rounds de pistola (1 e 13)",
+    "after": "percentage points of win chance in pistol rounds (1 and 13)",
+    "file": "engine.js"
+  },
+  {
+    "before": "Nos confrontos empatados, +",
+    "after": "In tied showdowns, +",
+    "file": "engine.js"
+  },
+  {
+    "before": "de overall só para o desempate",
+    "after": "overall for the tiebreaker only",
+    "file": "engine.js"
+  },
+  {
+    "before": "Os titulares voltam a ficar disponíveis depois de",
+    "after": "Your starters become available again after",
+    "file": "engine.js"
+  },
+  {
+    "before": "usos, não 5",
+    "after": "uses instead of 5",
+    "file": "engine.js"
+  },
+  {
+    "before": "pontos de chance enquanto estiver",
+    "after": "percentage points of win chance while",
+    "file": "engine.js"
+  },
+  {
+    "before": "ou mais rounds atrás",
+    "after": "or more rounds behind",
+    "file": "engine.js"
+  },
+  {
+    "before": "moedas em cada partida disputada",
+    "after": "coins for each match played",
+    "file": "engine.js"
+  },
+  {
+    "before": "Cada pacote revela",
+    "after": "Each pack reveals",
+    "file": "engine.js"
+  },
+  {
+    "before": "cartas em vez de 3",
+    "after": "cards instead of 3",
+    "file": "engine.js"
+  },
+  {
+    "before": "Jogadores do mercado e contratos de agente custam",
+    "after": "Market players and agent contracts cost",
+    "file": "engine.js"
+  },
+  {
+    "before": "% menos",
+    "after": "% less",
+    "file": "engine.js"
+  },
+  {
+    "before": "Seus jogadores começam cada metade com",
+    "after": "Your players start each half with",
+    "file": "engine.js"
+  },
+  {
+    "before": "créditos e entram de colete nos rounds de pistola",
+    "after": "credits and wear shields in pistol rounds",
+    "file": "engine.js"
+  },
+  {
+    "before": "Quando seu time perde um round, seus jogadores ganham +",
+    "after": "When your team loses a round, your players get +",
+    "file": "engine.js"
+  },
+  {
+    "before": "créditos bônus no próximo round",
+    "after": "bonus credits in the next round",
+    "file": "engine.js"
+  },
+  {
+    "before": "O titular de maior overall rende +",
+    "after": "Your highest-rated starter gains +",
+    "file": "engine.js"
+  },
+  {
+    "before": "Seus",
+    "after": "Your",
+    "file": "engine.js"
+  },
+  {
+    "before": "titulares de menor overall rendem +",
+    "after": "lowest-rated starters gain +",
+    "file": "engine.js"
+  },
+  {
+    "before": "No agente de conforto, o jogador rende +",
+    "after": "On their comfort agent, a player gains +",
+    "file": "engine.js"
+  },
+  {
+    "before": "em vez de +1",
+    "after": "instead of +1",
+    "file": "engine.js"
+  },
+  {
+    "before": "As",
+    "after": "The",
+    "file": "engine.js"
+  },
+  {
+    "before": "primeiras trocas",
+    "after": "first refreshes",
+    "file": "engine.js"
+  },
+  {
+    "before": "são",
+    "after": "are",
+    "file": "engine.js"
+  },
+  {
+    "before": "é",
+    "after": "is",
+    "file": "engine.js"
+  },
+  {
+    "before": "de ofertas de cada loja",
+    "after": "of each shop's offers",
+    "file": "engine.js"
+  },
+  {
+    "before": "grátis",
+    "after": "free",
+    "file": "screens.js"
+  },
+  {
+    "before": "moedas por vitória",
+    "after": "coins per win",
+    "file": "engine.js"
+  },
+  {
+    "before": "pontos de chance nos jogos eliminatórios",
+    "after": "percentage points of win chance in elimination matches",
+    "file": "engine.js"
+  },
+  {
+    "before": "de chance para cada ponto de overall efetivo que o rival tiver a mais que o seu time, até +",
+    "after": "of win chance for each point of effective overall your opponent has over your team, up to +",
+    "file": "engine.js"
+  },
+  {
+    "before": "Com as quatro funções entre os titulares, +",
+    "after": "With all four roles in your lineup, +",
+    "file": "engine.js"
+  },
+  {
+    "before": "pontos de chance no ataque e na defesa",
+    "after": "percentage points of win chance on attack and defense",
+    "file": "engine.js"
+  },
+  {
+    "before": "Jogadas de Efeito por partida, em vez de",
+    "after": "Power Plays per match instead of",
+    "file": "engine.js"
+  },
+  {
+    "before": "Pacotes custam",
+    "after": "Packs cost",
+    "file": "engine.js"
+  },
+  {
+    "before": "% a menos. Um jogador vendido na mesma rodada em que saiu de um pacote vale",
+    "after": "% less. A player sold during the same shop visit in which they came from a pack sells for",
+    "file": "engine.js"
+  },
+  {
+    "before": "% a mais",
+    "after": "% more",
+    "file": "engine.js"
+  },
+  {
+    "before": "Ataque",
+    "after": "Attack",
+    "file": "stats.js"
+  },
+  {
+    "before": "Defesa",
+    "after": "Defense",
+    "file": "screens.js"
+  },
+  {
+    "before": "Agente desconhecido",
+    "after": "Unknown agent",
+    "file": "engine.js"
+  },
+  {
+    "before": "Agente de conforto",
+    "after": "Comfort agent",
+    "file": "engine.js"
+  },
+  {
+    "before": "Função principal",
+    "after": "Primary role",
+    "file": "engine.js"
+  },
+  {
+    "before": "Função secundária",
+    "after": "Secondary role",
+    "file": "engine.js"
+  },
+  {
+    "before": "Fora da função",
+    "after": "Off-role",
+    "file": "engine.js"
+  },
+  {
+    "before": "Ponta de lança",
+    "after": "Spearhead",
+    "file": "engine.js"
+  },
+  {
+    "before": "Informação primeiro",
+    "after": "Intel First",
+    "file": "engine.js"
+  },
+  {
+    "before": "Domínio de mapa",
+    "after": "Map Control",
+    "file": "engine.js"
+  },
+  {
+    "before": "Dupla âncora",
+    "after": "Double Anchor",
+    "file": "engine.js"
+  },
+  {
+    "before": "Fortaleza",
+    "after": "Fortress",
+    "file": "engine.js"
+  },
+  {
+    "before": "Formação incompleta",
+    "after": "Incomplete Formation",
+    "file": "engine.js"
+  },
+  {
+    "before": "Escale exatamente cinco titulares",
+    "after": "Field exactly five starters",
+    "file": "engine.js"
+  },
+  {
+    "before": "Um jogador só pode ocupar uma vaga",
+    "after": "A player can only fill one slot",
+    "file": "engine.js"
+  },
+  {
+    "before": "Escolha um agente válido para cada titular",
+    "after": "Choose a valid agent for each starter",
+    "file": "engine.js"
+  },
+  {
+    "before": "Cada titular precisa de um agente diferente",
+    "after": "Each starter needs a different agent",
+    "file": "engine.js"
+  },
+  {
+    "before": "ENTRADA",
+    "after": "ENTRY",
+    "file": "engine.js"
+  },
+  {
+    "before": "Abra o bombsite",
+    "after": "Open up the site",
+    "file": "engine.js"
+  },
+  {
+    "before": "EXECUÇÃO",
+    "after": "EXECUTE",
+    "file": "engine.js"
+  },
+  {
+    "before": "Faça a execução encaixar",
+    "after": "Make the execute work",
+    "file": "engine.js"
+  },
+  {
+    "before": "PÓS-PLANT",
+    "after": "POST-PLANT",
+    "file": "engine.js"
+  },
+  {
+    "before": "A spike está no chão",
+    "after": "The spike is planted",
+    "file": "engine.js"
+  },
+  {
+    "before": "ÂNCORA",
+    "after": "ANCHOR",
+    "file": "engine.js"
+  },
+  {
+    "before": "Não entregue o bombsite",
+    "after": "Hold the site",
+    "file": "engine.js"
+  },
+  {
+    "before": "Ainda dá para retomar",
+    "after": "You can still retake it",
+    "file": "engine.js"
+  },
+  {
+    "before": "DUELO",
+    "after": "DUEL",
+    "file": "engine.js"
+  },
+  {
+    "before": "Um ângulo, dois jogadores",
+    "after": "One angle, two players",
+    "file": "engine.js"
+  },
+  {
+    "before": "CLUTCH 1 x 1",
+    "after": "1v1 CLUTCH",
+    "file": "engine.js"
+  },
+  {
+    "before": "Um jogador. Um round",
+    "after": "One player. One round",
+    "file": "engine.js"
+  },
+  {
+    "before": "Leve",
+    "after": "Light",
+    "file": "engine.js"
+  },
+  {
+    "before": "Pistola",
+    "after": "Pistol",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pesado",
+    "after": "Heavy",
+    "file": "engine.js"
+  },
+  {
+    "before": "Forçado",
+    "after": "Force Buy",
+    "file": "engine.js"
+  },
+  {
+    "before": "Parcial",
+    "after": "Partial",
+    "file": "engine.js"
+  },
+  {
+    "before": "Seu elenco",
+    "after": "Your roster",
+    "file": "engine.js"
+  },
+  {
+    "before": "A partida já foi encerrada",
+    "after": "The match has already ended",
+    "file": "engine.js"
+  },
+  {
+    "before": "Este round já tem uma Jogada de Efeito",
+    "after": "This round already has a Power Play",
+    "file": "engine.js"
+  },
+  {
+    "before": "Seu time não tem mais Jogadas de Efeito nesta partida",
+    "after": "Your team has no Power Plays left in this match",
+    "file": "engine.js"
+  },
+  {
+    "before": "Eliminação",
+    "after": "Elimination",
+    "file": "engine.js"
+  },
+  {
+    "before": "Spike detonada",
+    "after": "Spike detonated",
+    "file": "engine.js"
+  },
+  {
+    "before": "Spike desarmada",
+    "after": "Spike defused",
+    "file": "engine.js"
+  },
+  {
+    "before": "Tempo esgotado",
+    "after": "Time expired",
+    "file": "engine.js"
+  },
+  {
+    "before": "Nenhuma Jogada de Efeito aguarda decisão",
+    "after": "No Power Play is awaiting a decision",
+    "file": "engine.js"
+  },
+  {
+    "before": "Este jogador não está disponível agora",
+    "after": "This player is not available right now",
+    "file": "engine.js"
+  },
+  {
+    "before": "Carta desconhecida",
+    "after": "Unknown card",
+    "file": "impact.js"
+  },
+  {
+    "before": "Escolha um titular para comparar",
+    "after": "Choose a starter to compare",
+    "file": "impact.js"
+  },
+  {
+    "before": "A carta já está entre os titulares",
+    "after": "This card is already in your starting lineup",
+    "file": "impact.js"
+  },
+  {
+    "before": "Mudança desconhecida",
+    "after": "Unknown change",
+    "file": "impact.js"
+  },
+  {
+    "before": "Faltam moedas",
+    "after": "Not enough coins",
+    "file": "screens.js"
+  },
+  {
+    "before": "de",
+    "after": "of",
+    "file": "screens.js"
+  },
+  {
+    "before": "Voltar",
+    "after": "Back",
+    "file": "tour.js"
+  },
+  {
+    "before": "Voltar ao início",
+    "after": "Back to home",
+    "file": "screens.js"
+  },
+  {
+    "before": "desligado",
+    "after": "off",
+    "file": "screens.js"
+  },
+  {
+    "before": "ligado",
+    "after": "on",
+    "file": "screens.js"
+  },
+  {
+    "before": "Som",
+    "after": "Sound",
+    "file": "screens.js"
+  },
+  {
+    "before": "vitórias,",
+    "after": "wins,",
+    "file": "screens.js"
+  },
+  {
+    "before": "derrotas",
+    "after": "losses",
+    "file": "screens.js"
+  },
+  {
+    "before": ": regras desta run",
+    "after": ": rules for this run",
+    "file": "screens.js"
+  },
+  {
+    "before": "período",
+    "after": "semester",
+    "file": "screens.js"
+  },
+  {
+    "before": "Moedas da run",
+    "after": "Run coins",
+    "file": "screens.js"
+  },
+  {
+    "before": "Univavá Draft: tela inicial",
+    "after": "Univavá Draft: home screen",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ajuda: explica esta tela passo a passo",
+    "after": "Help: a step-by-step guide to this screen",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ajuda",
+    "after": "Help",
+    "file": "tour.js"
+  },
+  {
+    "before": "nenhuma run",
+    "after": "no runs yet",
+    "file": "screens.js"
+  },
+  {
+    "before": "Continuar run",
+    "after": "Continue run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Nova run",
+    "after": "New run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Começar run",
+    "after": "Start run",
+    "file": "screens.js"
+  },
+  {
+    "before": "ainda não jogado",
+    "after": "not played yet",
+    "file": "screens.js"
+  },
+  {
+    "before": "Continuar desafio",
+    "after": "Continue challenge",
+    "file": "screens.js"
+  },
+  {
+    "before": "Desistir",
+    "after": "Give up",
+    "file": "screens.js"
+  },
+  {
+    "before": "Copiar resultado",
+    "after": "Copy result",
+    "file": "tour.js"
+  },
+  {
+    "before": "Jogar desafio",
+    "after": "Play challenge",
+    "file": "screens.js"
+  },
+  {
+    "before": "Desafio do dia · #",
+    "after": "Daily Challenge · #",
+    "file": "screens.js"
+  },
+  {
+    "before": "Valorant universitário",
+    "after": "Collegiate Valorant",
+    "file": "screens.js"
+  },
+  {
+    "before": "partida",
+    "after": "match",
+    "file": "screens.js"
+  },
+  {
+    "before": "partidas",
+    "after": "matches",
+    "file": "screens.js"
+  },
+  {
+    "before": "Personalizar o escudo do time",
+    "after": "Customize your team crest",
+    "file": "screens.js"
+  },
+  {
+    "before": "Nome do time",
+    "after": "Team name",
+    "file": "screens.js"
+  },
+  {
+    "before": "Títulos",
+    "after": "Titles",
+    "file": "screens.js"
+  },
+  {
+    "before": "Melhor campanha",
+    "after": "Best run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Estatísticas",
+    "after": "Statistics",
+    "file": "tour.js"
+  },
+  {
+    "before": "Possui contrato!",
+    "after": "Contract signed!",
+    "file": "screens.js"
+  },
+  {
+    "before": "sem contrato",
+    "after": "no contract",
+    "file": "screens.js"
+  },
+  {
+    "before": "sem agente",
+    "after": "no agent",
+    "file": "screens.js"
+  },
+  {
+    "before": "Equipe de",
+    "after": "Teammate of",
+    "file": "screens.js"
+  },
+  {
+    "before": "Draft · escolha",
+    "after": "Draft · pick",
+    "file": "screens.js"
+  },
+  {
+    "before": "de 6",
+    "after": "of 6",
+    "file": "screens.js"
+  },
+  {
+    "before": "Seu elenco começa aqui",
+    "after": "Your roster starts here",
+    "file": "screens.js"
+  },
+  {
+    "before": "Falta o reserva",
+    "after": "Time for a substitute",
+    "file": "screens.js"
+  },
+  {
+    "before": "Quem completa o time?",
+    "after": "Who completes your team?",
+    "file": "screens.js"
+  },
+  {
+    "before": "Escolher",
+    "after": "Choose",
+    "file": "screens.js"
+  },
+  {
+    "before": "R",
+    "after": "B",
+    "file": "screens.js"
+  },
+  {
+    "before": "Reserva",
+    "after": "Substitute",
+    "file": "screens.js"
+  },
+  {
+    "before": "Titular",
+    "after": "Starter",
+    "file": "screens.js"
+  },
+  {
+    "before": "Seus contratos de agente",
+    "after": "Your agent contracts",
+    "file": "screens.js"
+  },
+  {
+    "before": "Elenco escolhido",
+    "after": "Drafted roster",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pacote de vantagens",
+    "after": "Perk Pack",
+    "file": "tour.js"
+  },
+  {
+    "before": "Comissão técnica",
+    "after": "Coaching Staff",
+    "file": "tour.js"
+  },
+  {
+    "before": "· bônus",
+    "after": "· bonus",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mais um reforço",
+    "after": "Another helping hand",
+    "file": "screens.js"
+  },
+  {
+    "before": "Classificados!",
+    "after": "Qualified!",
+    "file": "screens.js"
+  },
+  {
+    "before": "Um reforço fora das cartas",
+    "after": "An edge beyond your cards",
+    "file": "screens.js"
+  },
+  {
+    "before": "Raro",
+    "after": "Rare",
+    "file": "screens.js"
+  },
+  {
+    "before": "Treino +",
+    "after": "Training +",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogada extra",
+    "after": "Extra play",
+    "file": "screens.js"
+  },
+  {
+    "before": "Rival estudado",
+    "after": "Opponent scouted",
+    "file": "screens.js"
+  },
+  {
+    "before": "Preparação",
+    "after": "Preparation",
+    "file": "tour.js"
+  },
+  {
+    "before": "Conforto +",
+    "after": "Comfort +",
+    "file": "screens.js"
+  },
+  {
+    "before": "Equipe +",
+    "after": "Team +",
+    "file": "screens.js"
+  },
+  {
+    "before": "Comissão +",
+    "after": "Staff +",
+    "file": "screens.js"
+  },
+  {
+    "before": ": sinergia +",
+    "after": ": synergy +",
+    "file": "screens.js"
+  },
+  {
+    "before": ", titular, overall efetivo",
+    "after": ", starter, effective overall",
+    "file": "screens.js"
+  },
+  {
+    "before": "sem",
+    "after": "no",
+    "file": "screens.js"
+  },
+  {
+    "before": ". Abrir o guia de formações",
+    "after": ". Open the formation guide",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vaga",
+    "after": "Slot",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ver carta",
+    "after": "View card",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vender",
+    "after": "Sell",
+    "file": "screens.js"
+  },
+  {
+    "before": "Cancelar",
+    "after": "Cancel",
+    "file": "screens.js"
+  },
+  {
+    "before": "Reservas",
+    "after": "Bench",
+    "file": "screens.js"
+  },
+  {
+    "before": "Contratos de agente",
+    "after": "Agent contracts",
+    "file": "tour.js"
+  },
+  {
+    "before": "Comprado",
+    "after": "Purchased",
+    "file": "screens.js"
+  },
+  {
+    "before": "Elenco cheio",
+    "after": "Roster full",
+    "file": "screens.js"
+  },
+  {
+    "before": "Comparar",
+    "after": "Compare",
+    "file": "screens.js"
+  },
+  {
+    "before": "com titular",
+    "after": "with a starter",
+    "file": "screens.js"
+  },
+  {
+    "before": "Comprar",
+    "after": "Buy",
+    "file": "screens.js"
+  },
+  {
+    "before": ". Agora:",
+    "after": ". Now:",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pacotes",
+    "after": "Packs",
+    "file": "tour.js"
+  },
+  {
+    "before": "Mercado",
+    "after": "Market",
+    "file": "tour.js"
+  },
+  {
+    "before": "Contratos",
+    "after": "Contracts",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pacote de função ·",
+    "after": "Role pack ·",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vantagens",
+    "after": "Perks",
+    "file": "screens.js"
+  },
+  {
+    "before": "1 de 3 bônus da comissão técnica · você tem",
+    "after": "1 of 3 coaching staff bonuses · you have",
+    "file": "screens.js"
+  },
+  {
+    "before": "Contratado",
+    "after": "Signed",
+    "file": "screens.js"
+  },
+  {
+    "before": "Conforto de",
+    "after": "Comfort pick for",
+    "file": "screens.js"
+  },
+  {
+    "before": "Contratar",
+    "after": "Sign",
+    "file": "screens.js"
+  },
+  {
+    "before": "Parte da loja",
+    "after": "Shop section",
+    "file": "screens.js"
+  },
+  {
+    "before": "Trocar ofertas",
+    "after": "Refresh offers",
+    "file": "tour.js"
+  },
+  {
+    "before": "Falta 1 titular",
+    "after": "1 starter missing",
+    "file": "screens.js"
+  },
+  {
+    "before": "Faltam",
+    "after": "Missing",
+    "file": "screens.js"
+  },
+  {
+    "before": "titulares",
+    "after": "starters",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mapa",
+    "after": "Map",
+    "file": "screens.js"
+  },
+  {
+    "before": "Perder por W.O.",
+    "after": "Forfeit match",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogar partida",
+    "after": "Play match",
+    "file": "screens.js"
+  },
+  {
+    "before": "Próximo adversário",
+    "after": "Next opponent",
+    "file": "tour.js"
+  },
+  {
+    "before": "seu efetivo",
+    "after": "your effective overall",
+    "file": "screens.js"
+  },
+  {
+    "before": "efetivo deles",
+    "after": "their effective overall",
+    "file": "screens.js"
+  },
+  {
+    "before": "Sua formação",
+    "after": "Your formation",
+    "file": "screens.js"
+  },
+  {
+    "before": "Guia de formações",
+    "after": "Formation guide",
+    "file": "screens.js"
+  },
+  {
+    "before": "Carta",
+    "after": "Card",
+    "file": "screens.js"
+  },
+  {
+    "before": "Overall da carta",
+    "after": "Card overall",
+    "file": "screens.js"
+  },
+  {
+    "before": "Efetivo",
+    "after": "Effective",
+    "file": "screens.js"
+  },
+  {
+    "before": "Overall com conforto, equipe, comissão, treino e função",
+    "after": "Overall with comfort, team, staff, training and role adjustments",
+    "file": "screens.js"
+  },
+  {
+    "before": "J",
+    "after": "MP",
+    "file": "screens.js"
+  },
+  {
+    "before": "Partidas como titular nesta run",
+    "after": "Matches started in this run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Abates nesta run",
+    "after": "Kills in this run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mortes nesta run",
+    "after": "Deaths in this run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Assistências nesta run",
+    "after": "Assists in this run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Atributos",
+    "after": "Attributes",
+    "file": "tour.js"
+  },
+  {
+    "before": "Nesta run",
+    "after": "This run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogador",
+    "after": "Player",
+    "file": "screens.js"
+  },
+  {
+    "before": "Função",
+    "after": "Role",
+    "file": "screens.js"
+  },
+  {
+    "before": "Agente",
+    "after": "Agent",
+    "file": "tour.js"
+  },
+  {
+    "before": "Escalação",
+    "after": "Lineup",
+    "file": "screens.js"
+  },
+  {
+    "before": "Loja",
+    "after": "Shop",
+    "file": "tour.js"
+  },
+  {
+    "before": "Rival",
+    "after": "Opponent",
+    "file": "tour.js"
+  },
+  {
+    "before": "2ª metade",
+    "after": "2nd half",
+    "file": "screens.js"
+  },
+  {
+    "before": "1ª metade",
+    "after": "1st half",
+    "file": "screens.js"
+  },
+  {
+    "before": "Fim de jogo",
+    "after": "Full time",
+    "file": "screens.js"
+  },
+  {
+    "before": "ataca",
+    "after": "are attacking",
+    "file": "screens.js"
+  },
+  {
+    "before": "defende",
+    "after": "are defending",
+    "file": "screens.js"
+  },
+  {
+    "before": "Você",
+    "after": "You",
+    "file": "screens.js"
+  },
+  {
+    "before": ", rival",
+    "after": ", opponent",
+    "file": "screens.js"
+  },
+  {
+    "before": "vencido",
+    "after": "won",
+    "file": "screens.js"
+  },
+  {
+    "before": "perdido",
+    "after": "lost",
+    "file": "screens.js"
+  },
+  {
+    "before": "sua",
+    "after": "yours",
+    "file": "screens.js"
+  },
+  {
+    "before": "· Jogada de Efeito",
+    "after": "· Power Play",
+    "file": "screens.js"
+  },
+  {
+    "before": "Formação",
+    "after": "Formation",
+    "file": "tour.js"
+  },
+  {
+    "before": "Equipamento",
+    "after": "Equipment",
+    "file": "screens.js"
+  },
+  {
+    "before": "Bônus",
+    "after": "Bonus",
+    "file": "screens.js"
+  },
+  {
+    "before": "Força",
+    "after": "Strength",
+    "file": "screens.js"
+  },
+  {
+    "before": "em uso",
+    "after": "in use",
+    "file": "screens.js"
+  },
+  {
+    "before": "em armas, coletes e habilidades",
+    "after": "in weapons, shields and abilities",
+    "file": "screens.js"
+  },
+  {
+    "before": "%, compra",
+    "after": "%, buy",
+    "file": "screens.js"
+  },
+  {
+    "before": "carga",
+    "after": "charge",
+    "file": "screens.js"
+  },
+  {
+    "before": "cargas",
+    "after": "charges",
+    "file": "screens.js"
+  },
+  {
+    "before": "em uso neste round",
+    "after": "in use this round",
+    "file": "screens.js"
+  },
+  {
+    "before": "Já foi a um confronto",
+    "after": "Already used in a showdown",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pode ir a um confronto",
+    "after": "Available for a showdown",
+    "file": "screens.js"
+  },
+  {
+    "before": "Foto",
+    "after": "Photo",
+    "file": "screens.js"
+  },
+  {
+    "before": "Abates",
+    "after": "Kills",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mortes",
+    "after": "Deaths",
+    "file": "screens.js"
+  },
+  {
+    "before": "Assistências",
+    "after": "Assists",
+    "file": "screens.js"
+  },
+  {
+    "before": "Créditos",
+    "after": "Credits",
+    "file": "tour.js"
+  },
+  {
+    "before": "Habilidades",
+    "after": "Abilities",
+    "file": "screens.js"
+  },
+  {
+    "before": "Arma",
+    "after": "Weapon",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pistolas",
+    "after": "Pistols",
+    "file": "screens.js"
+  },
+  {
+    "before": "Em jogo",
+    "after": "Live",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ver resultado",
+    "after": "View result",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogada de Efeito do rival",
+    "after": "Opponent's Power Play",
+    "file": "screens.js"
+  },
+  {
+    "before": "Todas as Jogadas de Efeito já utilizadas, freezetime desabilitado",
+    "after": "All Power Plays used, freezetime disabled",
+    "file": "screens.js"
+  },
+  {
+    "before": "Começar",
+    "after": "Start",
+    "file": "screens.js"
+  },
+  {
+    "before": "Retomar",
+    "after": "Resume",
+    "file": "screens.js"
+  },
+  {
+    "before": "Pausar",
+    "after": "Pause",
+    "file": "screens.js"
+  },
+  {
+    "before": "Freezetime antes de cada round",
+    "after": "Freezetime before each round",
+    "file": "screens.js"
+  },
+  {
+    "before": "Automático",
+    "after": "Automatic",
+    "file": "screens.js"
+  },
+  {
+    "before": "Controles da partida",
+    "after": "Match controls",
+    "file": "screens.js"
+  },
+  {
+    "before": "Velocidade",
+    "after": "Speed",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ajustes",
+    "after": "Settings",
+    "file": "screens.js"
+  },
+  {
+    "before": "Sua Jogada de Efeito",
+    "after": "Your Power Play",
+    "file": "screens.js"
+  },
+  {
+    "before": ", já agiu",
+    "after": ", already used",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mandar",
+    "after": "Send in",
+    "file": "screens.js"
+  },
+  {
+    "before": "Já agiu",
+    "after": "Already used",
+    "file": "screens.js"
+  },
+  {
+    "before": "Overall + Sangue frio (+",
+    "after": "Overall + Cold-Blooded (+",
+    "file": "screens.js"
+  },
+  {
+    "before": "Overall efetivo",
+    "after": "Effective overall",
+    "file": "tour.js"
+  },
+  {
+    "before": "· empate",
+    "after": "· tied",
+    "file": "screens.js"
+  },
+  {
+    "before": "Sorteio",
+    "after": "Coin flip",
+    "file": "screens.js"
+  },
+  {
+    "before": "Adversário usou Jogada de Efeito!",
+    "after": "Opponent used a Power Play!",
+    "file": "screens.js"
+  },
+  {
+    "before": "Segunda vida",
+    "after": "Second life",
+    "file": "screens.js"
+  },
+  {
+    "before": "derrotas: esta não contou",
+    "after": "losses: this one did not count",
+    "file": "screens.js"
+  },
+  {
+    "before": "Saldo de abates e mortes",
+    "after": "Kill/death difference",
+    "file": "screens.js"
+  },
+  {
+    "before": "Primeiros abates: rounds em que fez o primeiro abate",
+    "after": "First kills: rounds in which this player got the opening kill",
+    "file": "screens.js"
+  },
+  {
+    "before": "Rounds com 2 abates",
+    "after": "Rounds with 2 kills",
+    "file": "screens.js"
+  },
+  {
+    "before": "Rounds com 3 abates",
+    "after": "Rounds with 3 kills",
+    "file": "screens.js"
+  },
+  {
+    "before": "Rounds com 4 abates",
+    "after": "Rounds with 4 kills",
+    "file": "screens.js"
+  },
+  {
+    "before": "Rounds com 5 abates",
+    "after": "Rounds with 5 kills",
+    "file": "screens.js"
+  },
+  {
+    "before": "JE",
+    "after": "PP",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogadas de Efeito: confrontos vencidos / disputados",
+    "after": "Power Plays: showdowns won / played",
+    "file": "screens.js"
+  },
+  {
+    "before": "Salvo pela Repescagem! Esta derrota não contou. Você perdeu \"Repescagem\" de sua comissão técnica",
+    "after": "Saved by Second Chance! This loss did not count. You lost \"Second Chance\" from your coaching staff",
+    "file": "screens.js"
+  },
+  {
+    "before": "Classificados para os Playoffs!",
+    "after": "Qualified for the Playoffs!",
+    "file": "screens.js"
+  },
+  {
+    "before": "Classificados para a Fase de Grupos!",
+    "after": "Qualified for the Group Stage!",
+    "file": "screens.js"
+  },
+  {
+    "before": "Voltar ao elenco",
+    "after": "Back to roster",
+    "file": "screens.js"
+  },
+  {
+    "before": "Escolher bônus",
+    "after": "Choose bonus",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ver resumo",
+    "after": "View summary",
+    "file": "screens.js"
+  },
+  {
+    "before": "Comemorar",
+    "after": "Celebrate",
+    "file": "screens.js"
+  },
+  {
+    "before": "Derrota",
+    "after": "Defeat",
+    "file": "screens.js"
+  },
+  {
+    "before": "W.O.",
+    "after": "FF",
+    "file": "tour.js"
+  },
+  {
+    "before": "Moedas",
+    "after": "Coins",
+    "file": "tour.js"
+  },
+  {
+    "before": "Partida não disputada",
+    "after": "Match not played",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vitória",
+    "after": "Victory",
+    "file": "screens.js"
+  },
+  {
+    "before": "vitórias seguidas",
+    "after": "wins in a row",
+    "file": "screens.js"
+  },
+  {
+    "before": "Patrocínio",
+    "after": "Sponsorship",
+    "file": "screens.js"
+  },
+  {
+    "before": "Fase vencida",
+    "after": "Stage cleared",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogos que sobraram",
+    "after": "Matches to spare",
+    "file": "screens.js"
+  },
+  {
+    "before": "Destaque",
+    "after": "MVP",
+    "file": "screens.js"
+  },
+  {
+    "before": "Confrontos",
+    "after": "Showdowns",
+    "file": "screens.js"
+  },
+  {
+    "before": "Run encerrada",
+    "after": "Run over",
+    "file": "screens.js"
+  },
+  {
+    "before": "V em",
+    "after": "W in",
+    "file": "screens.js"
+  },
+  {
+    "before": "Período liberado",
+    "after": "Semester unlocked",
+    "file": "tour.js"
+  },
+  {
+    "before": "Início",
+    "after": "Home",
+    "file": "screens.js"
+  },
+  {
+    "before": "Copiar imagem",
+    "after": "Copy image",
+    "file": "screens.js"
+  },
+  {
+    "before": "Todas",
+    "after": "All",
+    "file": "screens.js"
+  },
+  {
+    "before": "Tenho",
+    "after": "Owned",
+    "file": "screens.js"
+  },
+  {
+    "before": "Campeãs",
+    "after": "Champions",
+    "file": "screens.js"
+  },
+  {
+    "before": "Álbum de cartinhas",
+    "after": "Card album",
+    "file": "tour.js"
+  },
+  {
+    "before": "falta",
+    "after": "missing",
+    "file": "screens.js"
+  },
+  {
+    "before": "campeã",
+    "after": "champion",
+    "file": "screens.js"
+  },
+  {
+    "before": "no álbum",
+    "after": "in the album",
+    "file": "screens.js"
+  },
+  {
+    "before": "Nenhuma carta aqui ainda",
+    "after": "No cards here yet",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mostrar",
+    "after": "Show",
+    "file": "screens.js"
+  },
+  {
+    "before": "Conquistada em",
+    "after": "Unlocked on",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ainda não conquistada",
+    "after": "Not unlocked yet",
+    "file": "screens.js"
+  },
+  {
+    "before": "Formato",
+    "after": "Shape",
+    "file": "screens.js"
+  },
+  {
+    "before": "Cores",
+    "after": "Colors",
+    "file": "screens.js"
+  },
+  {
+    "before": "Cor do",
+    "after": "Color of",
+    "file": "screens.js"
+  },
+  {
+    "before": "Escudo",
+    "after": "Crest",
+    "file": "screens.js"
+  },
+  {
+    "before": "Sortear",
+    "after": "Randomize",
+    "file": "screens.js"
+  },
+  {
+    "before": "Marca da Univavá",
+    "after": "Univavá logo",
+    "file": "screens.js"
+  },
+  {
+    "before": "Peças do escudo",
+    "after": "Crest parts",
+    "file": "screens.js"
+  },
+  {
+    "before": "Rivais",
+    "after": "Opponents",
+    "file": "screens.js"
+  },
+  {
+    "before": "Nada por aqui ainda",
+    "after": "Nothing here yet",
+    "file": "screens.js"
+  },
+  {
+    "before": "Uso",
+    "after": "Usage",
+    "file": "screens.js"
+  },
+  {
+    "before": "Partidas",
+    "after": "Matches",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vitórias",
+    "after": "Wins",
+    "file": "screens.js"
+  },
+  {
+    "before": "Onde as runs acabaram",
+    "after": "Where your runs ended",
+    "file": "screens.js"
+  },
+  {
+    "before": "Na prorrogação",
+    "after": "In overtime",
+    "file": "screens.js"
+  },
+  {
+    "before": "vitória",
+    "after": "win",
+    "file": "screens.js"
+  },
+  {
+    "before": "vitórias",
+    "after": "wins",
+    "file": "screens.js"
+  },
+  {
+    "before": "vencidos",
+    "after": "won",
+    "file": "screens.js"
+  },
+  {
+    "before": "Recordes",
+    "after": "Records",
+    "file": "screens.js"
+  },
+  {
+    "before": "Maior sequência de vitórias",
+    "after": "Longest win streak",
+    "file": "screens.js"
+  },
+  {
+    "before": "Round mais difícil vencido",
+    "after": "Toughest round won",
+    "file": "screens.js"
+  },
+  {
+    "before": "Round mais fácil perdido",
+    "after": "Easiest round lost",
+    "file": "screens.js"
+  },
+  {
+    "before": "% de chance",
+    "after": "% win chance",
+    "file": "screens.js"
+  },
+  {
+    "before": "Maior caixa num título",
+    "after": "Most coins left after a title",
+    "file": "screens.js"
+  },
+  {
+    "before": "Cartas mais usadas",
+    "after": "Most-used cards",
+    "file": "screens.js"
+  },
+  {
+    "before": "partidas,",
+    "after": "matches,",
+    "file": "screens.js"
+  },
+  {
+    "before": "de uso,",
+    "after": "usage,",
+    "file": "screens.js"
+  },
+  {
+    "before": "de vitórias",
+    "after": "win rate",
+    "file": "screens.js"
+  },
+  {
+    "before": "Equipes mais usadas",
+    "after": "Most-used teams",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vezes",
+    "after": "Times",
+    "file": "screens.js"
+  },
+  {
+    "before": "Formações",
+    "after": "Formations",
+    "file": "screens.js"
+  },
+  {
+    "before": "Agentes mais usados",
+    "after": "Most-used agents",
+    "file": "screens.js"
+  },
+  {
+    "before": "Composições",
+    "after": "Compositions",
+    "file": "screens.js"
+  },
+  {
+    "before": "Rivais mais enfrentados",
+    "after": "Most frequent opponents",
+    "file": "screens.js"
+  },
+  {
+    "before": "Frequência",
+    "after": "Frequency",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mostrar menos",
+    "after": "Show less",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mostrar todas",
+    "after": "Show all",
+    "file": "screens.js"
+  },
+  {
+    "before": "Vencidos",
+    "after": "Won",
+    "file": "screens.js"
+  },
+  {
+    "before": "De quem era a jogada",
+    "after": "Who called the play",
+    "file": "screens.js"
+  },
+  {
+    "before": "Parte",
+    "after": "Share",
+    "file": "screens.js"
+  },
+  {
+    "before": "Suas jogadas",
+    "after": "Your plays",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogadas do rival",
+    "after": "Opponent's plays",
+    "file": "screens.js"
+  },
+  {
+    "before": "Como foram decididos",
+    "after": "How they were decided",
+    "file": "screens.js"
+  },
+  {
+    "before": "Nos atributos",
+    "after": "By attributes",
+    "file": "screens.js"
+  },
+  {
+    "before": "No overall",
+    "after": "By overall",
+    "file": "screens.js"
+  },
+  {
+    "before": "Na moeda",
+    "after": "By coin flip",
+    "file": "screens.js"
+  },
+  {
+    "before": "Por tipo de confronto",
+    "after": "By showdown type",
+    "file": "screens.js"
+  },
+  {
+    "before": "Melhores nos confrontos",
+    "after": "Top showdown players",
+    "file": "screens.js"
+  },
+  {
+    "before": "confrontos vencidos de",
+    "after": "showdowns won out of",
+    "file": "screens.js"
+  },
+  {
+    "before": "Estatísticas de",
+    "after": "Statistics for",
+    "file": "screens.js"
+  },
+  {
+    "before": "Fechar",
+    "after": "Close",
+    "file": "screens.js"
+  },
+  {
+    "before": "O que muda nos titulares",
+    "after": "Changes to your lineup",
+    "file": "screens.js"
+  },
+  {
+    "before": "Titulares",
+    "after": "Starters",
+    "file": "tour.js"
+  },
+  {
+    "before": "Escalado",
+    "after": "In the lineup",
+    "file": "screens.js"
+  },
+  {
+    "before": "Troca com",
+    "after": "Swap with",
+    "file": "screens.js"
+  },
+  {
+    "before": "Livre",
+    "after": "Available",
+    "file": "screens.js"
+  },
+  {
+    "before": "Agente de",
+    "after": "Agent for",
+    "file": "screens.js"
+  },
+  {
+    "before": "Escolha e compare",
+    "after": "Choose and compare",
+    "file": "screens.js"
+  },
+  {
+    "before": "Aplicar",
+    "after": "Apply",
+    "file": "screens.js"
+  },
+  {
+    "before": "Confirmar troca?",
+    "after": "Confirm swap?",
+    "file": "screens.js"
+  },
+  {
+    "before": "Sai",
+    "after": "Out",
+    "file": "screens.js"
+  },
+  {
+    "before": "Entra",
+    "after": "In",
+    "file": "screens.js"
+  },
+  {
+    "before": "Confirmar troca",
+    "after": "Confirm swap",
+    "file": "screens.js"
+  },
+  {
+    "before": "Venda de carta",
+    "after": "Sell card",
+    "file": "screens.js"
+  },
+  {
+    "before": "Saldo:",
+    "after": "Balance:",
+    "file": "screens.js"
+  },
+  {
+    "before": "duelistas",
+    "after": "duelists",
+    "file": "screens.js"
+  },
+  {
+    "before": "iniciadores",
+    "after": "initiators",
+    "file": "screens.js"
+  },
+  {
+    "before": "controladores",
+    "after": "controllers",
+    "file": "screens.js"
+  },
+  {
+    "before": "sentinelas",
+    "after": "sentinels",
+    "file": "screens.js"
+  },
+  {
+    "before": "ou mais",
+    "after": "or more",
+    "file": "screens.js"
+  },
+  {
+    "before": "Nenhuma função com dois agentes",
+    "after": "No role has two agents",
+    "file": "screens.js"
+  },
+  {
+    "before": "Só quando você ataca",
+    "after": "Only on attack",
+    "file": "screens.js"
+  },
+  {
+    "before": "Só quando você defende",
+    "after": "Only on defense",
+    "file": "screens.js"
+  },
+  {
+    "before": "No ataque e na defesa",
+    "after": "On attack and defense",
+    "file": "screens.js"
+  },
+  {
+    "before": "no ataque",
+    "after": "on attack",
+    "file": "screens.js"
+  },
+  {
+    "before": "na defesa",
+    "after": "on defense",
+    "file": "screens.js"
+  },
+  {
+    "before": "Guia",
+    "after": "Guide",
+    "file": "screens.js"
+  },
+  {
+    "before": "ataque",
+    "after": "attack",
+    "file": "screens.js"
+  },
+  {
+    "before": "defesa",
+    "after": "defense",
+    "file": "screens.js"
+  },
+  {
+    "before": "sem confronto de afinidade",
+    "after": "no favored showdown",
+    "file": "screens.js"
+  },
+  {
+    "before": "Sem",
+    "after": "No",
+    "file": "screens.js"
+  },
+  {
+    "before": "Equilíbrio, da sua comissão técnica: +",
+    "after": "Balance, from your coaching staff: +",
+    "file": "screens.js"
+  },
+  {
+    "before": "no ataque e na defesa enquanto as quatro funções estiverem entre os titulares",
+    "after": "on attack and defense while all four roles are in your lineup",
+    "file": "screens.js"
+  },
+  {
+    "before": "As funções dos cinco agentes escalados definem a formação. Ela soma ou tira pontos de chance em cada round, conforme o lado, e escolhe os confrontos de afinidade: são eles que as suas Jogadas de Efeito sorteiam",
+    "after": "Your five agents' roles determine your formation. It adds or removes percentage points of win chance each round depending on your side, and determines your favored showdowns: these are the ones your Power Plays draw from",
+    "file": "screens.js"
+  },
+  {
+    "before": "Função faltando",
+    "after": "Missing role",
+    "file": "screens.js"
+  },
+  {
+    "before": "Com duas funções empatadas, vale a primeira nesta ordem: duelista, iniciador, controlador, sentinela",
+    "after": "When two roles are tied, the first in this order takes priority: duelist, initiator, controller, sentinel",
+    "file": "screens.js"
+  },
+  {
+    "before": "Com três sentinelas ou mais, a formação é sempre Fortaleza",
+    "after": "With three or more sentinels, your formation is always Fortress",
+    "file": "screens.js"
+  },
+  {
+    "before": "Formação incompleta só acontece com menos de cinco titulares",
+    "after": "An Incomplete Formation only occurs with fewer than five starters",
+    "file": "screens.js"
+  },
+  {
+    "before": "Trocar o agente de um titular por outro de função diferente muda a formação",
+    "after": "Switching a starter to an agent with a different role changes your formation",
+    "file": "screens.js"
+  },
+  {
+    "before": "Perder por W.O.?",
+    "after": "Forfeit this match?",
+    "file": "screens.js"
+  },
+  {
+    "before": ". Sem cinco, a partida é uma derrota automática e não paga moedas",
+    "after": ". Without five starters, you automatically lose the match and earn no coins",
+    "file": "screens.js"
+  },
+  {
+    "before": "Confirmar W.O.",
+    "after": "Confirm forfeit",
+    "file": "screens.js"
+  },
+  {
+    "before": "Indisponível",
+    "after": "Unavailable",
+    "file": "screens.js"
+  },
+  {
+    "before": "Mercado · comparação",
+    "after": "Market · comparison",
+    "file": "screens.js"
+  },
+  {
+    "before": "Comparar no lugar de",
+    "after": "Compare in place of",
+    "file": "screens.js"
+  },
+  {
+    "before": "Titular para comparar",
+    "after": "Starter to compare",
+    "file": "screens.js"
+  },
+  {
+    "before": "Seu titular ·",
+    "after": "Your starter ·",
+    "file": "screens.js"
+  },
+  {
+    "before": "Atributo",
+    "after": "Attribute",
+    "file": "screens.js"
+  },
+  {
+    "before": "Seu titular",
+    "after": "Your starter",
+    "file": "screens.js"
+  },
+  {
+    "before": "Oferta",
+    "after": "Offer",
+    "file": "screens.js"
+  },
+  {
+    "before": "Oferta ·",
+    "after": "Offer ·",
+    "file": "screens.js"
+  },
+  {
+    "before": "A comissão já faz",
+    "after": "Staff already provides this",
+    "file": "screens.js"
+  },
+  {
+    "before": "já treinou o máximo: +",
+    "after": "has reached the training limit: +",
+    "file": "screens.js"
+  },
+  {
+    "before": "de overall",
+    "after": "overall",
+    "file": "screens.js"
+  },
+  {
+    "before": "Treinar",
+    "after": "Train",
+    "file": "screens.js"
+  },
+  {
+    "before": ": +1 de overall por",
+    "after": ": +1 overall for",
+    "file": "screens.js"
+  },
+  {
+    "before": "Próxima partida ·",
+    "after": "Next match ·",
+    "file": "screens.js"
+  },
+  {
+    "before": "Treino para a partida",
+    "after": "Match training",
+    "file": "screens.js"
+  },
+  {
+    "before": "+1 ponto de chance em todos os rounds desta partida, até +",
+    "after": "+1 percentage point of win chance in every round of this match, up to +",
+    "file": "screens.js"
+  },
+  {
+    "before": "Jogada de Efeito extra",
+    "after": "Extra Power Play",
+    "file": "screens.js"
+  },
+  {
+    "before": "+1 Jogada de Efeito nesta partida",
+    "after": "+1 Power Play in this match",
+    "file": "screens.js"
+  },
+  {
+    "before": "Comprada",
+    "after": "Purchased",
+    "file": "screens.js"
+  },
+  {
+    "before": "Estudo do rival",
+    "after": "Opponent scouting",
+    "file": "screens.js"
+  },
+  {
+    "before": "Nesta partida, as Jogadas de Efeito do rival caem nos confrontos da sua formação",
+    "after": "In this match, your opponent's Power Plays draw from your formation's favored showdowns",
+    "file": "screens.js"
+  },
+  {
+    "before": "Feito",
+    "after": "Done",
+    "file": "screens.js"
+  },
+  {
+    "before": "Treino individual",
+    "after": "Individual training",
+    "file": "screens.js"
+  },
+  {
+    "before": "+1 de overall pelo resto da run ·",
+    "after": "+1 overall for the rest of the run ·",
+    "file": "screens.js"
+  },
+  {
+    "before": "Neste jogo",
+    "after": "This match",
+    "file": "screens.js"
+  },
+  {
+    "before": "mapa",
+    "after": "map",
+    "file": "screens.js"
+  },
+  {
+    "before": "mapas",
+    "after": "maps",
+    "file": "screens.js"
+  },
+  {
+    "before": "título",
+    "after": "title",
+    "file": "screens.js"
+  },
+  {
+    "before": "títulos",
+    "after": "titles",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ainda não jogou pelo seu time",
+    "after": "Has not played for your team yet",
+    "file": "screens.js"
+  },
+  {
+    "before": "Funções",
+    "after": "Roles",
+    "file": "screens.js"
+  },
+  {
+    "before": "Agentes",
+    "after": "Agents",
+    "file": "screens.js"
+  },
+  {
+    "before": "Ficar com esta",
+    "after": "Keep this one",
+    "file": "screens.js"
+  },
+  {
+    "before": ". Clique para pular",
+    "after": ". Click to skip",
+    "file": "screens.js"
+  },
+  {
+    "before": "Fique com uma",
+    "after": "Keep one",
+    "file": "screens.js"
+  },
+  {
+    "before": "Desistir do desafio?",
+    "after": "Give up this challenge?",
+    "file": "screens.js"
+  },
+  {
+    "before": "O desafio deste dia termina onde está e não pode ser jogado de novo",
+    "after": "This day's challenge ends here and cannot be played again",
+    "file": "screens.js"
+  },
+  {
+    "before": "Continuar jogando",
+    "after": "Keep playing",
+    "file": "screens.js"
+  },
+  {
+    "before": ", bloqueado",
+    "after": ", locked",
+    "file": "screens.js"
+  },
+  {
+    "before": "Períodos",
+    "after": "Semesters",
+    "file": "tour.js"
+  },
+  {
+    "before": "A run atual será abandonada",
+    "after": "Your current run will be abandoned",
+    "file": "screens.js"
+  },
+  {
+    "before": "Começar no",
+    "after": "Start in",
+    "file": "screens.js"
+  },
+  {
+    "before": "Começar como",
+    "after": "Start as",
+    "file": "screens.js"
+  },
+  {
+    "before": "Continuar a atual",
+    "after": "Continue current run",
+    "file": "screens.js"
+  },
+  {
+    "before": "Período da run",
+    "after": "Run semester",
+    "file": "screens.js"
+  },
+  {
+    "before": "Run em andamento",
+    "after": "Run in progress",
+    "file": "screens.js"
+  },
+  {
+    "before": "Começar outra run?",
+    "after": "Start another run?",
+    "file": "screens.js"
+  },
+  {
+    "before": "Abandonar e começar outra",
+    "after": "Abandon and start another",
+    "file": "screens.js"
+  },
+  {
+    "before": "moedas no caixa",
+    "after": "coins left",
+    "file": "share.js"
+  },
+  {
+    "before": "A imagem não pôde ser gerada",
+    "after": "The image could not be generated",
+    "file": "share.js"
+  },
+  {
+    "before": "Abandonada",
+    "after": "Abandoned",
+    "file": "stats.js"
+  },
+  {
+    "before": "O título abriu um período novo: uma run com a regra mostrada aqui, somada às dos anteriores. Na próxima run você escolhe em qual jogar",
+    "after": "Your title unlocked a new semester: a run with the rule shown here, plus every previous rule. Choose your semester when you start your next run",
+    "file": "tour.js"
+  },
+  {
+    "before": "Você é um bom técnico? Tente montar seu time dos sonhos com as cartinhas de todo mundo que jogou o Univavá, e leve seu time à glória! Passando pelo caminho completo: classificatória, fase de grupos e Playoffs!",
+    "after": "Think you've got what it takes to coach? Build your dream team with cards of everyone who played Univavá, and lead them to glory! Go all the way through the Qualifier, Group Stage and Playoffs!",
+    "file": "tour.js"
+  },
+  {
+    "before": "Dê nome e escudo ao seu time. Clique no escudo para montar o seu",
+    "after": "Give your team a name and a crest. Click the crest to design your own",
+    "file": "tour.js"
+  },
+  {
+    "before": "Uma run só sua, quantas vezes quiser: começa num draft e vai até o título ou a eliminação",
+    "after": "A run of your own, as often as you like: start with a draft and play until you win the title or get eliminated",
+    "file": "tour.js"
+  },
+  {
+    "before": "Cada título abre um período: uma run com uma regra a mais, somada às anteriores. São 10, e você escolhe em qual jogar entre os que já abriu",
+    "after": "Each title unlocks a semester: a run with one more rule added to the previous ones. There are 10, and you can choose any semester you have unlocked",
+    "file": "tour.js"
+  },
+  {
+    "before": "Desafio do dia",
+    "after": "Daily Challenge",
+    "file": "tour.js"
+  },
+  {
+    "before": "Uma run por dia, igual para todo mundo e jogada uma vez só. No fim, copie o resultado e compare com os amigos. Vira à meia-noite de Brasília",
+    "after": "One run a day, the same for everyone, with only one attempt. Copy your result at the end and compare with friends. Resets at midnight Brasília time (UTC−3)",
+    "file": "tour.js"
+  },
+  {
+    "before": "Toda carta que joga uma partida pelo seu time entra no álbum. Acha que consegue colecionar todo mundo?",
+    "after": "Every card that plays a match for your team joins the album. Think you can collect them all?",
+    "file": "tour.js"
+  },
+  {
+    "before": "Os feitos do seu time ficam marcados aqui, do 13 a 0 ao título. Consegue completar todas?",
+    "after": "Your team's achievements are recorded here, from a 13–0 win to a championship title. Can you unlock them all?",
+    "file": "tour.js"
+  },
+  {
+    "before": "Tudo o que o seu time já fez, somando todas as runs",
+    "after": "Everything your team has done across all your runs",
+    "file": "tour.js"
+  },
+  {
+    "before": "Este botão explica a tela em que você estiver, passo a passo. Sempre que precisar de uma ajudinha é só clicar!",
+    "after": "This button explains the current screen step by step. Click it whenever you need a hand!",
+    "file": "tour.js"
+  },
+  {
+    "before": "O draft",
+    "after": "The draft",
+    "file": "tour.js"
+  },
+  {
+    "before": "São 6 escolhas: 5 titulares e 1 reserva. Em cada uma você fica com 1 de 3 cartas, sempre de funções diferentes. Cada função aparece pelo menos 2 vezes ao longo do draft",
+    "after": "Make 6 picks: 5 starters and 1 substitute. Each time, keep 1 of 3 cards, all from different roles. Every role appears at least twice during the draft",
+    "file": "tour.js"
+  },
+  {
+    "before": "Você só pode pickar agentes que você tem o contrato! Cada jogador tem seu main e joga melhor com ele. Estes foram sorteados para esta run, com todas as funções. Você pode comprar novos agentes na loja!",
+    "after": "You can only field agents you have signed! Each player has a main and plays better on that agent. Your contracts are drawn at the start of the run, covering all four roles. Buy more agents in the shop!",
+    "file": "tour.js"
+  },
+  {
+    "before": "Encaixe no seu time",
+    "after": "Fitting into your team",
+    "file": "tour.js"
+  },
+  {
+    "before": "O agente mostrado é o de conforto da carta. Tente usar os mains dos jogadores! Além disso, jogadores da mesma equipe possuem sinergia e jogam melhor juntos!",
+    "after": "The agent shown is the card's comfort pick. Try to put players on their mains! Players from the same team also have synergy and play better together!",
+    "file": "tour.js"
+  },
+  {
+    "before": "ACS, KAST, KPR, MPR, APR e Swing decidem os confrontos da partida. A barrinha mostra de quantos por cento das outras cartas o jogador ganha em cada um",
+    "after": "ACS, KAST, KPR, DPR, APR and Swing decide match showdowns. Each bar shows what percentage of the other cards this player beats in that attribute",
+    "file": "tour.js"
+  },
+  {
+    "before": "Escolha 1 de 3 bônus, que vale até o fim da run. Você ganha um depois do draft e outro a cada fase vencida, e pode comprar mais na loja. Os raros aparecem bem menos",
+    "after": "Choose 1 of 3 bonuses that lasts for the rest of the run. You get one after the draft and another for each stage cleared, and can buy more in the shop. Rare bonuses appear much less often",
+    "file": "tour.js"
+  },
+  {
+    "before": "A fase",
+    "after": "The stage",
+    "file": "tour.js"
+  },
+  {
+    "before": "Os losangos são as vitórias que faltam para avançar; os círculos, as derrotas que ainda cabem",
+    "after": "Diamonds show the wins you still need to advance; circles show how many losses you can still take",
+    "file": "tour.js"
+  },
+  {
+    "before": "Período",
+    "after": "Semester",
+    "file": "tour.js"
+  },
+  {
+    "before": "Nesta run valem as regras deste período e de todos os anteriores. Clique para ver a lista",
+    "after": "This run uses the rules of this semester and every previous one. Click to see the list",
+    "file": "tour.js"
+  },
+  {
+    "before": "Clique em um jogador e depois em outro para trocar. Com o banco no meio, você vê o overall efetivo do time antes e depois, e confirma",
+    "after": "Click one player, then another, to swap them. When the bench is involved, you can compare your team's effective overall before and after, then confirm",
+    "file": "tour.js"
+  },
+  {
+    "before": "A nota muda com a escalação: verde quando o jogador rende mais que o overall da carta, vermelho quando rende menos",
+    "after": "The rating changes with your lineup: green when a player performs above their card overall, red when they perform below it",
+    "file": "tour.js"
+  },
+  {
+    "before": "Troque o agente do titular. Antes de confirmar, a prévia mostra o overall efetivo do time e a formação, antes e depois",
+    "after": "Change a starter's agent. Before you confirm, the preview shows your team's effective overall and formation before and after",
+    "file": "tour.js"
+  },
+  {
+    "before": "Sinergia",
+    "after": "Synergy",
+    "file": "tour.js"
+  },
+  {
+    "before": "Escudo aceso: titulares da mesma equipe. O número é o bônus de cada um",
+    "after": "A lit crest marks starters from the same team. The number is each player's bonus",
+    "file": "tour.js"
+  },
+  {
+    "before": "Os bônus desta run e o que cada um faz",
+    "after": "Your bonuses for this run and what each one does",
+    "file": "tour.js"
+  },
+  {
+    "before": "Banco",
+    "after": "Bench",
+    "file": "tour.js"
+  },
+  {
+    "before": "Selecione uma carta para ver, trocar de lugar ou vender. Vender um titular sem reserva deixa a vaga aberta até você comprar outra carta",
+    "after": "Select a card to view, swap or sell it. Selling a starter with no substitute leaves an empty slot until you buy another card",
+    "file": "tour.js"
+  },
+  {
+    "before": "As funções dos cinco agentes definem a formação, que dá ou tira pontos de chance no ataque e na defesa. As etiquetas são os confrontos que mais saem nas suas Jogadas de Efeito. O guia mostra todas as formações",
+    "after": "Your five agents' roles determine your formation, which adds or removes percentage points of win chance on attack and defense. The tags show the showdowns your Power Plays draw from. The guide shows every formation",
+    "file": "tour.js"
+  },
+  {
+    "before": "O rival, o overall efetivo dos dois lados e as cinco cartas dele. Clique numa carta para ver os atributos",
+    "after": "Your opponent, both teams' effective overall and their five cards. Click a card to see its attributes",
+    "file": "tour.js"
+  },
+  {
+    "before": "Sobrou moeda? Compre pontos de chance, uma Jogada de Efeito a mais ou o estudo do rival para a próxima partida, ou +1 de overall para uma carta pelo resto da run",
+    "after": "Got coins left? Buy extra win chance, another Power Play or opponent scouting for the next match, or give a card +1 overall for the rest of the run",
+    "file": "tour.js"
+  },
+  {
+    "before": "Pacotes, mercado e contratos de agente. As ofertas mudam a cada partida",
+    "after": "Packs, market players and agent contracts. Offers change after each match",
+    "file": "tour.js"
+  },
+  {
+    "before": "Os atributos do elenco e o que cada jogador fez nesta run",
+    "after": "Your roster's attributes and what each player has done in this run",
+    "file": "tour.js"
+  },
+  {
+    "before": "O próximo adversário, as cartas dele e a preparação da partida",
+    "after": "Your next opponent, their cards and match preparation",
+    "file": "tour.js"
+  },
+  {
+    "before": "Com menos de cinco titulares o time não joga. Complete o time na loja, ou perca a partida por W.O.: derrota automática, sem moedas",
+    "after": "With fewer than five starters, your team cannot play. Complete your lineup in the shop or forfeit: an automatic loss with no coins earned",
+    "file": "tour.js"
+  },
+  {
+    "before": "Você ganha moedas por partida, por vitória e por fase vencida. Vitórias seguidas pagam um bônus que cresce a cada uma",
+    "after": "Earn coins for playing matches, winning and clearing stages. Consecutive wins pay a bonus that grows with each win",
+    "file": "tour.js"
+  },
+  {
+    "before": "Cada pacote revela 3 cartas da faixa de overall indicada, você escolhe 1",
+    "after": "Each pack reveals 3 cards in the overall range shown. Keep 1",
+    "file": "tour.js"
+  },
+  {
+    "before": "Pacote de função",
+    "after": "Role pack",
+    "file": "tour.js"
+  },
+  {
+    "before": "Só cartas de uma função, na faixa de overall do mercado desta fase. A função segue a ordem mostrada no pacote e avança a cada partida e a cada compra",
+    "after": "Cards from a single role, in this stage's market overall range. The role follows the order shown on the pack and advances after every match and every purchase",
+    "file": "tour.js"
+  },
+  {
+    "before": "Abre 3 bônus da comissão técnica que você ainda não tem, e você fica com 1. Cada pacote custa 100 moedas a mais que o anterior",
+    "after": "Reveals 3 coaching staff bonuses you do not already have. Keep 1. Each pack costs 100 coins more than the previous one",
+    "file": "tour.js"
+  },
+  {
+    "before": "Prefere saber exatamente quem você vai comprar? O mercado traz jogadores prontos para jogar pelo seu time! Você pode comparar como sua equipe ficaria ao substituir um titular por essa carta",
+    "after": "Want to know exactly who you're buying? The market offers players ready to join your team! Compare how your lineup would look with that card replacing a starter",
+    "file": "tour.js"
+  },
+  {
+    "before": "O contrato libera o agente para qualquer titular até o fim da run. A loja avisa quando alguém do elenco tem conforto nele",
+    "after": "A contract unlocks an agent for any starter for the rest of the run. The shop tells you when someone on your roster has that agent as their comfort pick",
+    "file": "tour.js"
+  },
+  {
+    "before": "Paga para sortear novas ofertas de mercado e de contratos agora",
+    "after": "Pay to draw fresh market players and agent contracts right away",
+    "file": "tour.js"
+  },
+  {
+    "before": "São 3 por partida. Usada no freezetime, ela troca o round por um confronto entre um jogador seu e um do rival: quem vence o confronto leva o round. Guarde para um round que parece perdido ou para um que não pode escapar. O rival também tem as dele",
+    "after": "You get 3 per match. Use one during freezetime to turn the round into a showdown between one of your players and an opponent: whoever wins the showdown wins the round. Save them for rounds that look lost or ones you cannot afford to lose. Your opponent has their own, too",
+    "file": "tour.js"
+  },
+  {
+    "before": "Chance do round",
+    "after": "Round win chance",
+    "file": "tour.js"
+  },
+  {
+    "before": "A chance de cada time no round que vai começar. Ela parte do equipamento que cada um leva; as cartas, a formação e os bônus somam ou tiram pontos. Deixe o ponteiro na barra, ou toque nela, para comparar os dois times",
+    "after": "Each team's chance of winning the upcoming round. It starts with their equipment; cards, formation and bonuses add or remove percentage points. Hover over the bar or tap it to compare both teams",
+    "file": "tour.js"
+  },
+  {
+    "before": "Ritmo",
+    "after": "Pace",
+    "file": "tour.js"
+  },
+  {
+    "before": "Começar round inicia o round; durante ele, o mesmo botão pausa. Ao lado fica a velocidade",
+    "after": "Start round begins the round; during play, the same button pauses it. Speed controls are beside it",
+    "file": "tour.js"
+  },
+  {
+    "before": "Cada jogador paga a própria arma, colete e habilidades. O round rende 3.000 na vitória e de 1.900 a 2.900 na derrota, mais 200 por abate. Quem sobrevive mantém a arma",
+    "after": "Each player pays for their own weapon, shields and abilities. A round pays 3,000 credits for a win and 1,900 to 2,900 for a loss, plus 200 per kill. Survivors keep their weapons",
+    "file": "tour.js"
+  },
+  {
+    "before": "Os tipos de compra",
+    "after": "Buy types",
+    "file": "tour.js"
+  },
+  {
+    "before": "Cada time decide a própria compra: guarda os créditos num round que parece perdido e compra tudo quando isso vira o round. Completa: pelo menos quatro com rifle. Forçado: gastou tudo sem conseguir se armar. Parcial e Eco: o time guardou créditos para o round seguinte",
+    "after": "Each team chooses its own buy: save credits in a round that looks lost, or spend everything when it can turn the round. Full: at least four players with rifles. Force Buy: spent everything but could not fully gear up. Partial and Eco: saved credits for the next round",
+    "file": "tour.js"
+  },
+  {
+    "before": "No automático o round começa sozinho depois da contagem. Sem Jogada de Efeito na mão, ou quando a jogada do round é do rival, a partida não espera",
+    "after": "On automatic, the round starts when the countdown ends. With no Power Plays left, or when your opponent calls the play, the match does not wait",
+    "file": "tour.js"
+  },
+  {
+    "before": "Este round será decidido num confronto. Você escolhe o seu jogador sem ver quem vem do outro lado",
+    "after": "This round will be decided by a showdown. Choose your player without knowing who your opponent will send",
+    "file": "tour.js"
+  },
+  {
+    "before": "Quem vai",
+    "after": "Who goes in",
+    "file": "tour.js"
+  },
+  {
+    "before": "O confronto compara os dois atributos mostrados: quem levar os dois vence, e no 1 a 1 vence o maior overall efetivo. Quem foi só volta a ficar disponível depois que os cinco tiverem ido",
+    "after": "The showdown compares the two attributes shown: win both to take it. If each player wins one, the higher effective overall wins. A player becomes available again only after all five have been used",
+    "file": "tour.js"
+  },
+  {
+    "before": "Os números",
+    "after": "The numbers",
+    "file": "tour.js"
+  },
+  {
+    "before": "Os atributos que valem neste confronto. A barra mostra de quantos por cento das outras cartas o jogador ganha",
+    "after": "The attributes used in this showdown. Each bar shows what percentage of the other cards this player beats",
+    "file": "tour.js"
+  },
+  {
+    "before": "Placar final",
+    "after": "Final scoreboard",
+    "file": "tour.js"
+  },
+  {
+    "before": "K, D e A são abates, mortes e assistências. FK são os primeiros abates do round; 2K a Ace, os rounds com 2 a 5 abates. JE são os confrontos vencidos, do total a que ele foi",
+    "after": "K, D and A are kills, deaths and assists. FK counts opening kills; 2K through Ace count rounds with 2 to 5 kills. PP shows showdowns won out of showdowns played",
+    "file": "tour.js"
+  },
+  {
+    "before": "Copia um resumo da run em texto, para colar onde quiser",
+    "after": "Copy a text summary of your run to paste anywhere",
+    "file": "tour.js"
+  },
+  {
+    "before": "O que o seu time já fez, somando todas as runs dos dois modos",
+    "after": "What your team has done across all runs in both modes",
+    "file": "tour.js"
+  },
+  {
+    "before": "O escudo do time",
+    "after": "Your team crest",
+    "file": "tour.js"
+  },
+  {
+    "before": "Monte o escudo do seu time: ele aparece no placar e na imagem do resultado. Cada escolha vale na hora",
+    "after": "Design your team crest: it appears on the scoreboard and in your result image. Each choice takes effect immediately",
+    "file": "tour.js"
+  },
+  {
+    "before": "Quando você consegue um feito, o símbolo acende e o dia fica anotado. Conquistas não dão moedas nem bônus: são só para mostrar",
+    "after": "When you earn an achievement, its symbol lights up and the date is recorded. Achievements give no coins or bonuses: they're for bragging rights",
+    "file": "tour.js"
+  },
+  {
+    "before": "A carta entra no álbum quando joga uma partida como titular do seu time. As que faltam aparecem escuras; a estrela marca as que já foram campeãs com você",
+    "after": "A card joins the album when it starts a match for your team. Missing cards are dark; a star marks cards that have won a title with you",
+    "file": "tour.js"
+  },
+  {
+    "before": "Entendi",
+    "after": "Got it",
+    "file": "tour.js"
+  },
+  {
+    "before": "Próximo",
+    "after": "Next",
+    "file": "tour.js"
+  },
+  {
+    "before": "Pular Tutorial",
+    "after": "Skip tutorial",
+    "file": "tour.js"
+  },
+  {
+    "before": "Pontuação média de combate",
+    "after": "Average combat score",
+    "file": "ui.js"
+  },
+  {
+    "before": "Rounds com abate, assistência, sobrevivência ou troca",
+    "after": "Rounds with a kill, assist, survival or trade",
+    "file": "ui.js"
+  },
+  {
+    "before": "Abates por round",
+    "after": "Kills per round",
+    "file": "ui.js"
+  },
+  {
+    "before": "Mortes por round: menor é melhor",
+    "after": "Deaths per round: lower is better",
+    "file": "ui.js"
+  },
+  {
+    "before": "Assistências por round",
+    "after": "Assists per round",
+    "file": "ui.js"
+  },
+  {
+    "before": "Impacto médio nos rounds",
+    "after": "Average round impact",
+    "file": "ui.js"
+  },
+  {
+    "before": "Melhor que",
+    "after": "Better than",
+    "file": "ui.js"
+  },
+  {
+    "before": "% das cartas",
+    "after": "% of cards",
+    "file": "ui.js"
+  },
+  {
+    "before": "efetivo",
+    "after": "effective",
+    "file": "ui.js"
+  },
+  {
+    "before": ", na carta",
+    "after": ", printed on card",
+    "file": "ui.js"
+  },
+  {
+    "before": "\" alt=\"Carta de",
+    "after": "\" alt=\"Card for",
+    "file": "ui.js"
+  },
+  {
+    "before": "Foto de",
+    "after": "Photo of",
+    "file": "ui.js"
+  },
+  {
+    "before": "Colete",
+    "after": "Shields:",
+    "file": "ui.js"
+  },
+  {
+    "before": "Sem colete",
+    "after": "No shields",
+    "file": "ui.js"
+  }
+]
