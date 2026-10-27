@@ -1,15 +1,15 @@
 // As telas do jogo. Cada função recebe o contexto (base, run, partida, estado de interface) e devolve HTML.
 // As telas mostram dados e ações; as explicações ficam no tutorial (tour.js).
-import * as E from './engine.js?v=211ca1209b';
-import * as C from './campaign.js?v=211ca1209b';
-import {previewChange} from './impact.js?v=211ca1209b';
-import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=211ca1209b';
-import {albumSummary,cardStatus} from './album.js?v=211ca1209b';
-import * as A from './achievements.js?v=211ca1209b';
-import * as ST from './stats.js?v=211ca1209b';
-import * as B from './abilities.js?v=211ca1209b';
-import * as K from './crest.js?v=211ca1209b';
-import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=211ca1209b';
+import * as E from './engine.js?v=0a83137a2f';
+import * as C from './campaign.js?v=0a83137a2f';
+import {previewChange} from './impact.js?v=0a83137a2f';
+import {FREEZE_OPTIONS,freezeClock} from './pace.js?v=0a83137a2f';
+import {albumSummary,cardStatus} from './album.js?v=0a83137a2f';
+import * as A from './achievements.js?v=0a83137a2f';
+import * as ST from './stats.js?v=0a83137a2f';
+import * as B from './abilities.js?v=0a83137a2f';
+import * as K from './crest.js?v=0a83137a2f';
+import {esc,num,signed,statText,statLabel,meter,stats,tierOf,roleKey,roleIcon,roleTag,formationIcon,achievementIcon,agentIcon,abilityIcon,agentChip,coin,cardArt,teamColor,teamInfo,teamLogo,teamFlag,teamMark,roundIcon,brandArt,mapFor,cutout,hasPhoto,mug,weapon,ticker,STAT_HELP} from './ui.js?v=0a83137a2f';
 
 const plural = (n,one,many)=>`${n} ${n===1?one:many}`;
 const names = list=>list.map(p=>esc(p.name)).join(list.length===2?" and ":', ');
@@ -74,7 +74,7 @@ function modes(ctx) {
   return `<div class="modes">
     <article class="mode free"><p class="eyebrow">${free?C.modeLine(free):"Classic Mode"}</p>
       <h2>${esc(capital(free?C.resultLine(free):"no runs yet"))}</h2>${
-        periods.period?`<span class="period-pips" role="img" aria-label="Períodos vencidos: ${periods.cleared} of ${C.PERIODS}">${Array.from({length:C.PERIODS},(_,i)=>`<i class="pip win${i<periods.cleared?' on':''}"></i>`).join('')}</span>`:''}
+        periods.period?`<span class="period-pips" role="img" aria-label="Semesters completed: ${periods.cleared} of ${C.PERIODS}">${Array.from({length:C.PERIODS},(_,i)=>`<i class="pip win${i<periods.cleared?' on':''}"></i>`).join('')}</span>`:''}
       <div class="mode-actions">${freeOn?"<button class=\"btn primary big\" data-action=\"continue\">Continue run</button><button class=\"btn\" data-action=\"new-run\">New run</button>"
         :"<button class=\"btn primary big\" data-action=\"new-run\">Start run</button>"}</div></article>
     <article class="mode daily"><p class="eyebrow">Daily Challenge · #${C.dailyNumber(day)} · ${C.dayLabel(day)}</p>
@@ -95,9 +95,9 @@ export function home(ctx) {
       ${modes(ctx)}
       <div class="hero-foot">
         <dl class="career"><div><dt>Runs</dt><dd>${career.runs}</dd></div><div><dt>Titles</dt><dd>${career.titles}</dd></div><div><dt>Best run</dt><dd>${esc(career.best||'-')}</dd></div></dl>
-        <button class="album-link" data-action="album" aria-label="Álbum de cartinhas: ${summary.have} of ${summary.total}"><span>Album</span><b>${summary.have}<small> / ${summary.total}</small></b></button>
-        <button class="album-link feats-link" data-action="feats" aria-label="Conquistas: ${feats.have} of ${feats.total}"><span>Achievements</span><b>${feats.have}<small> / ${feats.total}</small></b></button>
-        <button class="album-link stats-link" data-action="career" aria-label="Estatísticas: ${matches} matches"><span>Statistics</span><b>${num(matches)}<small> ${matches===1?"match":"matches"}</small></b></button>
+        <button class="album-link" data-action="album" aria-label="Card album: ${summary.have} of ${summary.total}"><span>Album</span><b>${summary.have}<small> / ${summary.total}</small></b></button>
+        <button class="album-link feats-link" data-action="feats" aria-label="Achievements: ${feats.have} of ${feats.total}"><span>Achievements</span><b>${feats.have}<small> / ${feats.total}</small></b></button>
+        <button class="album-link stats-link" data-action="career" aria-label="Statistics: ${matches} matches"><span>Statistics</span><b>${num(matches)}<small> ${matches===1?"match":"matches"}</small></b></button>
       </div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -164,7 +164,7 @@ function starter(slot,i,lineup,ctx) {
   const mods=[eff.comfort&&`<span class="good">Comfort +${eff.comfort}</span>`,eff.chemistry&&`<span class="good">Team +${eff.chemistry}</span>`,eff.staff&&`<span class="good">Staff +${eff.staff}</span>`,eff.trained&&`<span class="good">Training +${eff.trained}</span>`,eff.penalty&&`<span class="bad">${eff.label} ${signed(eff.penalty)}</span>`].filter(Boolean);
   return `<div class="slot ${selected?'selected':''}" style="--i:${i};--team:${teamColor(p.team)}">
     <button class="slot-card" data-action="select" data-id="${p.id}" aria-pressed="${selected}" aria-label="${esc(p.name)}, starter, effective overall ${eff.value}">${cardArt(p,{effective:eff.value})}</button>
-    <button class="agent-btn role-${roleKey(E.AGENTS[slot.agent])}" data-action="agent" data-id="${p.id}" aria-label="Agent for ${esc(p.name)}: ${slot.agent}. Trocar">${agentIcon(slot.agent)}<b>${slot.agent}</b><i aria-hidden="true">▾</i></button>
+    <button class="agent-btn role-${roleKey(E.AGENTS[slot.agent])}" data-action="agent" data-id="${p.id}" aria-label="Agent for ${esc(p.name)}: ${slot.agent}. Change">${agentIcon(slot.agent)}<b>${slot.agent}</b><i aria-hidden="true">▾</i></button>
     <p class="mods">${mods.join('')}</p>
     <span class="slot-team${eff.chemistry?' linked':''}" role="img" aria-label="${esc(p.team)}${eff.chemistry?`: synergy +${eff.chemistry}`:''}" data-tip="${esc(p.team)}">${teamLogo(p.team)}${eff.chemistry?`<b>+${eff.chemistry}</b>`:''}</span>
   </div>`;
@@ -659,7 +659,7 @@ const ALBUM_FILTERS = {all:["All",()=>true],have:["Owned",status=>status!=='miss
 export function album(ctx) {
   const summary=albumSummary(ctx.album,ctx.db.players),filter=ALBUM_FILTERS[ctx.ui.albumFilter]?ctx.ui.albumFilter:'all',keep=ALBUM_FILTERS[filter][1];
   const teams=summary.teams.map(team=>({...team,shown:team.cards.filter(p=>keep(cardStatus(ctx.album,p.id)))})).filter(team=>team.shown.length);
-  return `${backHome()}${band("Card album",`${summary.have} of ${summary.total}`,`${summary.champions} ★ · ${summary.complete} of ${summary.teams.length} equipes`,'compact')}
+  return `${backHome()}${band("Card album",`${summary.have} of ${summary.total}`,`${summary.champions} ★ · ${summary.complete} of ${summary.teams.length} teams`,'compact')}
   <div class="album-filters" role="group" aria-label="Show">${Object.entries(ALBUM_FILTERS).map(([key,[label]])=>`<button data-action="album-filter" data-id="${key}" aria-pressed="${key===filter}">${label}</button>`).join('')}</div>
   <div class="album">${teams.map(team=>`<section class="album-team ${team.complete?'complete':''}" style="--team:${teamColor(team.team)}">
       <header>${teamLogo(team.team)}<h2>${esc(team.team)}</h2>${teamFlag(team.team)}<span>${team.have} / ${team.total}</span></header>
@@ -934,7 +934,7 @@ export function cardDetail(ctx,id) {
 export function packDialog(ctx) {
   const {db,run}=ctx,pack={name:C.packName(run.pack)},roster=C.rosterIds(run).map(id=>db.byId.get(id));
   const cards=run.pack.cards.map(id=>db.byId.get(id)),best=[...cards].sort((a,b)=>b.ovr-a.ovr||b.photo-a.photo)[0];
-  return `<button class="walkout" data-action="skip-walkout" aria-label="Revelando ${esc(best.name)}. Click to skip">
+  return `<button class="walkout" data-action="skip-walkout" aria-label="Revealing ${esc(best.name)}. Click to skip">
       <span class="walk-step role-${roleKey(best.role)}" style="--s:0">${roleIcon(best.role)}<b>${esc(best.role)}</b></span>
       <span class="walk-step role-${roleKey(E.AGENTS[best.comfort])}" style="--s:1">${agentIcon(best.comfort)}<b>${esc(best.comfort)}</b></span>
       <span class="walk-step" style="--s:2">${teamLogo(best.team)}<b>${esc(best.team)}</b></span>

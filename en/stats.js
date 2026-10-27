@@ -4,8 +4,8 @@
 // vitórias por fase, rounds por lado, rivais, formações, agentes, confrontos, onde cada run acabou e os recordes de
 // round (o mais difícil vencido e o mais fácil perdido).
 // É JSON puro. Um par é {n, w}: quantas vezes, e quantas delas vencidas.
-import * as E from './engine.js?v=211ca1209b';
-import {STAGES,hasPlayed} from './campaign.js?v=211ca1209b';
+import * as E from './engine.js?v=0a83137a2f';
+import {STAGES,hasPlayed} from './campaign.js?v=0a83137a2f';
 
 // Where a run ended, from the best ending to the worst. `quit` is a run given up or replaced before its end.
 export const OUTCOMES = ['champion','final','semis','quarters','groups','qualifier','quit'];

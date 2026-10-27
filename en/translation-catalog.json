@@ -965,6 +965,11 @@
     "file": "screens.js"
   },
   {
+    "before": "contra",
+    "after": "against",
+    "file": "app.js"
+  },
+  {
     "before": "Imagem copiada",
     "after": "Image copied",
     "file": "app.js"
@@ -2520,6 +2525,11 @@
     "file": "screens.js"
   },
   {
+    "before": ". Trocar",
+    "after": ". Change",
+    "file": "screens.js"
+  },
+  {
     "before": "sem",
     "after": "no",
     "file": "screens.js"
@@ -3228,6 +3238,11 @@
     "before": "Álbum de cartinhas",
     "after": "Card album",
     "file": "tour.js"
+  },
+  {
+    "before": "equipes",
+    "after": "teams",
+    "file": "screens.js"
   },
   {
     "before": "falta",

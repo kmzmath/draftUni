@@ -1,19 +1,19 @@
 // Estado, ações e ciclo de renderização. As regras ficam em engine.js e campaign.js; as telas, em screens.js.
-import * as E from './engine.js?v=211ca1209b';
-import * as C from './campaign.js?v=211ca1209b';
-import * as S from './screens.js?v=211ca1209b';
-import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=211ca1209b';
-import {startTour,closeTour,tourOpen} from './tour.js?v=211ca1209b';
-import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,callBeat,freezeClock,openingKills} from './pace.js?v=211ca1209b';
-import {stamp,cleanAlbum} from './album.js?v=211ca1209b';
-import {initTips,refreshTips} from './tip.js?v=211ca1209b';
-import {shareModel,copyShareImage} from './share.js?v=211ca1209b';
-import {staleSave,stampSave} from './save.js?v=211ca1209b';
-import * as A from './achievements.js?v=211ca1209b';
-import * as ST from './stats.js?v=211ca1209b';
-import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=211ca1209b';
-import {playChime} from './sound.js?v=211ca1209b';
-import * as K from './crest.js?v=211ca1209b';
+import * as E from './engine.js?v=0a83137a2f';
+import * as C from './campaign.js?v=0a83137a2f';
+import * as S from './screens.js?v=0a83137a2f';
+import {$,esc,useBase,useArt,num,outsideBox} from './ui.js?v=0a83137a2f';
+import {startTour,closeTour,tourOpen} from './tour.js?v=0a83137a2f';
+import {PACE,FREEZE_DEFAULT,cleanFreeze,savedFreezeAuto,beforeRound,playbackBeat,callBeat,freezeClock,openingKills} from './pace.js?v=0a83137a2f';
+import {stamp,cleanAlbum} from './album.js?v=0a83137a2f';
+import {initTips,refreshTips} from './tip.js?v=0a83137a2f';
+import {shareModel,copyShareImage} from './share.js?v=0a83137a2f';
+import {staleSave,stampSave} from './save.js?v=0a83137a2f';
+import * as A from './achievements.js?v=0a83137a2f';
+import * as ST from './stats.js?v=0a83137a2f';
+import {runningBuild,readBuild,buildAddress,cleanAddress,shouldSwitch,VERSION_FILE,ASK_EVERY} from './version.js?v=0a83137a2f';
+import {playChime} from './sound.js?v=0a83137a2f';
+import * as K from './crest.js?v=0a83137a2f';
 
 const RUN_KEY="univava:en:run",DAILY_KEY="univava:en:daily",CAREER_KEY="univava:en:career",PREFS_KEY="univava:en:prefs",ALBUM_KEY="univava:en:album",FEATS_KEY="univava:en:feats",STATS_KEY="univava:en:stats",RIVALS_KEY="univava:en:rivals";
 const KEYS={free:RUN_KEY,daily:DAILY_KEY},NOTICE_KEY="univava:en:notice",SWITCH_KEY="univava:en:build",PLACE_KEY="univava:en:place";
@@ -555,7 +555,7 @@ const actions={
     C.roundSeen(ctx.run,ctx.match);
     ctx.ui.showEvent=false;ctx.ui.duel={record,before,step:0};
     duelClock();
-    announce(`${record.event.contest.won?"Showdown won":"Showdown lost"} contra ${record.event.enemy.name}. ${record.won?"Round won":"Round lost"}.`);
+    announce(`${record.event.contest.won?"Showdown won":"Showdown lost"} against ${record.event.enemy.name}. ${record.won?"Round won":"Round lost"}.`);
   },
   'see-result'(){finishMatch();},
   // The result as a picture, on the clipboard (or saved as a file where the browser doesn't let a page copy images).
@@ -686,7 +686,7 @@ async function init(){
   checkBuild();
   if(BUILD&&new URL(location.href).searchParams.has('v'))history.replaceState(null,'',cleanAddress(location.href));
   try{
-    const response=await fetch('players.json?v=211ca1209b');
+    const response=await fetch('players.json?v=0a83137a2f');
     if(!response.ok)throw new Error("The player data file did not respond");
     ctx.db=C.indexDb(await response.json());
   }catch(error){
@@ -697,7 +697,7 @@ async function init(){
   useBase(ctx.db.players);
   initTips();
   // Brand art is optional: without assets.json the game draws its own glyphs.
-  try{const art=await fetch('assets.json?v=211ca1209b');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
+  try{const art=await fetch('assets.json?v=0a83137a2f');if(art.ok)useArt(await art.json());}catch{/* drawn fallbacks */}
   ctx.showcase=E.shuffle(ctx.db.players.filter(p=>p.photo&&p.ovr>=86)).slice(0,5);
   readCareer();
   const saved_prefs=load(PREFS_KEY)||{};
